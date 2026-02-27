@@ -669,129 +669,90 @@ spectral_alignment:
     - "Token alignment is defined in band space, never in raw bin space."
 
 # ============================================================
-# 6) MEANING SPACE (LEVEL 2)
+# Level 6) MEANING SPACE — Wave-Coherence Search (FINAL for MVP)
 # ============================================================
 meaning_space:
   nature: dynamically_expanding_manifold
-  
-  distributed_storage:
-    role: horizontally_scalable_semantic_space
-    invariant:
-      - "Meaning space may be partitioned across multiple storage nodes."
-      - "Partitioning does not affect semantic equivalence."
-      - "Basis vectors are globally addressable regardless of physical storage location."
-    hardware_acceleration:
-      cpu: native
-      gpu: optional
-      tpu: optional
 
   basis:
     fields:
       basis_id: string
-      vec: float_vector
+
+      # --- Wave signature (MVP core) ---
+      wave_signature:
+        type: complex_band_signature
+        definition:
+          domain: "band_space"
+          components:
+            - band_complex: "complex STFT band values (per band, short time window)"
+            - amp_env: "amplitude envelope (per band)"
+            - d_amp: "delta amplitude envelope (per band)"
+        storage:
+          format: "packed_complex64"   # complex64 packed (re, im)
+
       strength: float
       stability: float
       dormant: bool
-      label_cache: string|null
       created_at: int
       updated_at: int
 
-  vector_search:
-    primary_key: basis.vec
-    similarity: cosine
-    method:
-      mvp: brute_force
-      scalable: external_ann_index   # faiss/hnswlib/annoy
-    invariants:
-      - "Nearest-neighbor retrieval is always performed on basis.vec."
-      - "Labels are never used as semantic retrieval keys."
-
-  parallel_search:
-    method: distributed_cosine_similarity
-    execution:
-      model: parallel
-      supports:
-        - cpu_multithread
-        - gpu_simd
-        - tpu_matrix_acceleration
-    process:
-      - project_query_to_all_partitions
-      - compute_local_similarity
-      - select_local_topK
-      - merge_global_topK
-      - perform_weighted_superposition
-      - decode_logits_from_superposition
-    invariant:
-      - "Parallel execution does not alter semantic outcome."
-      - "Parallel execution affects latency only."
-  
   projection:
     input: spectral_observer.output.band_features
-    similarity: cosine
-    topK: runtime.meaning_space.basis_topK
-    output: sparse_mixture           # {basis_id: weight}
+    output: observed_wave_signature
+    invariant:
+      - "Projection produces wave-domain signature, not a static vector embedding."
+
+  # ------------------------------------------------------------
+  # Wave Search: Interference / Coherence Maximization
+  # ------------------------------------------------------------
+  wave_search:
+    enabled: true
+    similarity: wave_coherence            # <-- cosine ではなく coherence
+    method: matched_filter_band_coherence # MVP: matched filter
+    params:
+      normalize: true                     # scale-invariant
+      allow_time_lag: true
+      lag_range_steps: [-2, 2]            # MVP: 小さな時間ずれのみ許容
+      band_weights:
+        low: 1.2
+        mid: 1.0
+        high: 0.9
+      phase_use: relative_phase           # 絶対位相ではなく相対位相で整合
+      score_components:
+        coherence: 0.75                   # 位相整合（干渉）
+        envelope: 0.25                    # 包絡整合（安定化補助）
+
+    topK: 32
+    output: sparse_mixture # {basis_id: weight}
     residual:
-      definition: "1 - max_cos_similarity"
+      definition: "1 - max_wave_coherence"
       output_name: projection_residual
-  
+
+    invariants:
+      - "Retrieval key is wave_signature only."
+      - "No cosine/label-based retrieval."
+
   basis_lifecycle:
-    # NOTE: Decoherence trigger is similarity-only (separate from gradient)
     decoherence:
       trigger: max_similarity_below_threshold
-      threshold: runtime.meaning_space.create_threshold_cos
+      threshold: 0.35
       action: create_basis
       create_basis:
-        label_cache: null
-        strength_init: runtime.meaning_space.strength_init_low
-        stability_init: runtime.meaning_space.stability_init_low
-        dormant_init: false
-        vector_source: spectral_observer.output.band_features
-        post_actions:
-          - ensure_vector_indexed
-  
+        vector_source: meaning_space.projection.output   # wave signature
+        post_actions: [ensure_wave_indexed]
+
     coherence:
       trigger: stability_above_threshold
-      threshold: runtime.meaning_space.stability_threshold
-      action:
-        - generate_label
-        - upsert_label_dictionary
-        - ensure_vector_indexed
-      generate_label:
-        method: token_basis_association_topK
-        params:
-          topK: runtime.meaning_space.label_topK
-          min_weight: runtime.meaning_space.label_min_weight
-          max_len: runtime.meaning_space.label_max_len
-          joiner: ""
-        output:
-          set_field: basis.label_cache
-      upsert_label_dictionary:
-        role: metadata_reverse_lookup
-        storage:
-          table: basis_label_dictionary
-          key: basis_id
-          value: label
-        notes:
-          - "Label is metadata for humans/monitoring only."
-          - "Label is not used for semantic search."
-      ensure_vector_indexed:
-        role: searchability
-        index:
-          type: vector_index
-          key: basis_id
-          vector_field: basis.vec
-        notes:
-          - "This action is idempotent."
-  
-    merge:
-      threshold_cos: runtime.meaning_space.merge_threshold_cos
-      action: optional
-  
-    attenuation:
-      strength_decay: runtime.meaning_space.strength_decay
-      dormancy:
-        trigger_strength_below: runtime.meaning_space.dormant_strength_below
-        action: set_dormant_true
+      threshold: 0.75
+      action: [optional_label_generation, ensure_wave_indexed]
+
+  index:
+    ensure_wave_indexed:
+      role: searchability
+      key: basis_id
+      field: basis.wave_signature
+      notes:
+        - "Indexing is wave-signature based (can be brute-force MVP)."
 # ============================================================
 # Level 7) DB DECODER (MODIFICATION: Attractor-Stabilized Search — FINAL)
 # ============================================================
