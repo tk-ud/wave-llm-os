@@ -754,122 +754,167 @@ meaning_space:
       notes:
         - "Indexing is wave-signature based (can be brute-force MVP)."
 # ============================================================
-# Level 7) DB DECODER (MODIFICATION: Attractor-Stabilized Search — FINAL)
+# Level 7) DB DECODER (Wave-Coherence + Attractor-Stabilized — FINAL)
 # ============================================================
 db_decoder:
   role: observation_based_reconstruction
+
   invariant:
     - "Decoder MUST NOT modify wave_core.state.psi."
-    - "Decoder MUST NOT modify meaning_space.basis.vec."
+    - "Decoder MUST NOT modify meaning_space.basis (wave_signature / vec / metadata)."
     - "Decoder MUST NOT create, merge, or delete basis."
+    - "Decoder MUST NOT originate meaning; logits only."
     - "Sampling remains the only collapse operation."
-    - "Attractor stabilization affects ranking only, never semantic state."
+    - "Stabilization affects ranking/weights only (decoder-local)."
 
   inputs:
-    - meaning_space.projection.output
+    - meaning_space.wave_search.output          # sparse_mixture: {basis_id: weight}
+    - meaning_space.projection.output           # observed_wave_signature (query-side)
+    - spectral_observer.output.band_features    # for stall detection signals
     - prev_token_id
 
   # ------------------------------------------------------------
-  # 1) Standard Logit Reconstruction (Unchanged Core)
+  # 1) Pattern Key (Decoder-local hash for transition lookup)
   # ------------------------------------------------------------
   pattern_key:
     method: hash_quantized_projection
+    source: meaning_space.wave_search.output
     quantize:
       basis_weight_round: runtime.decoder.pattern_quantize.basis_weight_round
       basis_count_topN: runtime.decoder.pattern_quantize.basis_count_topN
 
+  # ------------------------------------------------------------
+  # 2) Retrieval (Transition Statistics)
+  # ------------------------------------------------------------
   retrieval:
     sources:
       - pattern_next
       - bigram_backoff
 
+  # ------------------------------------------------------------
+  # 3) Geometry + Transition Blend (Base Logits)
+  # ------------------------------------------------------------
   scoring:
+    geometry_source: meaning_space.wave_search.output
+    transition_source:
+      pattern_next: { table: pattern_next, key: pattern_key }
+      bigram:       { table: bigram,      key: prev_token_id }
     blend:
       geometry: runtime.decoder.blend.geometry
       transition: runtime.decoder.blend.transition
     output: logits_map
 
   # ------------------------------------------------------------
-  # 2) Attractor-Stabilized Search (Ranking Layer Only)
+  # 4) Attractor-Stabilized Search (Ranking Layer Only)
+  #    NOTE: no cosine here; coherence-domain only.
   # ------------------------------------------------------------
   attractor_stabilization:
     enabled: true
 
-    reference_point:
-      source: meaning_space.attractor_generation.abstract_wave_centroid
-      invariant:
-        - "Reference point is derived from projection only."
-        - "Reference point does not alter basis vectors."
+    # 4A) Decoder-local attractor (centroid) generation
+    #     - does NOT touch basis
+    #     - computed from current sparse mixture only
+    attractor_generation:
+      enabled: true
+      method: local_centroid_mean
+      input:
+        basis_ids: meaning_space.wave_search.output.keys
+        weights:   meaning_space.wave_search.output.weights
+        fields:
+          - basis.wave_signature.band_complex
+          - basis.wave_signature.amp_env
+          - basis.wave_signature.d_amp
+      output:
+        abstract_wave_centroid:
+          type: complex_band_signature
 
-    # ----------------------------------------
-    # 2A) Centroid Offset Filtering
-    # ----------------------------------------
+    reference_point:
+      source: db_decoder.attractor_stabilization.attractor_generation.abstract_wave_centroid
+      invariant:
+        - "Reference is derived from (projection + retrieved bases) only."
+        - "Reference does not alter basis vectors or wave state."
+
+    # 4B) Coherence-based re-ranking around centroid (no distance-mixing)
     centroid_offset_search:
       enabled: true
-      primary_metric: cosine        # Semantic distance remains cosine
+      primary_metric: wave_coherence
+      method: matched_filter_band_coherence
+      params:
+        normalize: true
+        allow_time_lag: true
+        lag_range_steps: [-2, 2]
+        phase_use: relative_phase
+        score_components:
+          coherence: 0.75
+          envelope: 0.25
+      # Local stability gate (envelope-domain, not semantic distance)
       secondary_filter:
-        metric: abs(basis.amplitude - abstract_wave.amplitude)
+        metric: abs(basis.wave_signature.amp_env - abstract_wave_centroid.amp_env)
+        reduction: bandwise_l1_mean
         dynamic_window_threshold: 0.05
       invariant:
-        - "Cosine similarity remains the primary semantic metric."
-        - "Amplitude filtering acts only as local stability gate."
+        - "Primary semantic metric remains wave_coherence."
+        - "Secondary filter is a local stability gate (envelope only)."
         - "No basis removal; only ranking attenuation."
 
-    # ----------------------------------------
-    # 2B) Loop / Howling Detection
-    # ----------------------------------------
+    # 4C) Loop / Howling Detection (progress-stall in band space)
     loop_detection:
       signal: dEdb_stable_count
       trigger_condition: "> 5"
-      purpose: "Detect oscillatory decoding without semantic progression."
+      purpose: "Detect oscillatory decoding without semantic progression (band-space stall)."
       invariant:
         - "Loop detection does not inspect or modify wave state."
 
-    # ----------------------------------------
-    # 2C) Strategy Adjustment (Snap)
-    # ----------------------------------------
+    # 4D) Strategy Adjustment (Snap) = weight rebalancing ONLY
     strategy_adjustment:
+      enabled: true
+      trigger: dEdb_stable_count
+      condition: "> 5"
       action: attractor_snap
       snap_method: weight_rebalancing_toward_centroid
 
       rebalancing:
         method: soft_weight_bias
+        similarity_metric: wave_coherence
+        similarity_ref: abstract_wave_centroid
+        alpha: 0.15
         formula: |
           w_i' = normalize(
             w_i * (1 - alpha) +
-            alpha * centroid_similarity_i
+            alpha * coherence_i_to_centroid
           )
-        alpha: 0.15
         clamp_min_weight: 0.0
         clamp_max_weight: 1.0
 
       invariant:
-        - "Rebalancing modifies projection weights only."
+        - "Rebalancing modifies decoder-local mixture weights only."
         - "No single basis is forced to weight=1."
         - "Mixture superposition is preserved."
         - "Sampling remains stochastic."
 
   # ------------------------------------------------------------
-  # 3) Post-Stabilization Decode
+  # 5) Post-Stabilization Decode
   # ------------------------------------------------------------
   post_adjustment_decode:
     input: adjusted_projection_sparse_mixture
+    transition_sources:
+      - pattern_next
+      - bigram_backoff
     output: stabilized_logits_map
     invariant:
-      - "Decoder produces logits via geometric superposition."
       - "No deterministic selection occurs before sampling."
 
   # ------------------------------------------------------------
-  # 4) Philosophical Compliance Check
+  # 6) Philosophical Compliance Check
   # ------------------------------------------------------------
   compliance:
     checks:
       - "No wave state mutation."
-      - "No semantic space mutation."
+      - "No meaning space mutation."
       - "No collapse outside sampling."
       - "No deterministic override of mixture."
+      - "No cosine metric usage in decoder stabilization."
     failure_action: abort_adjustment
-
 # ============================================================
 # 8) LEARNING (OBSERVATION-CONDITIONAL UPDATES)
 # ============================================================
