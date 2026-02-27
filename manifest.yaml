@@ -793,43 +793,121 @@ meaning_space:
         trigger_strength_below: runtime.meaning_space.dormant_strength_below
         action: set_dormant_true
 # ============================================================
-# 7) DB DECODER (LEVEL 3) — PSEUDO-MLP REPLACEMENT
+# Level 7) DB DECODER (MODIFICATION: Attractor-Stabilized Search — FINAL)
 # ============================================================
 db_decoder:
   role: observation_based_reconstruction
+  invariant:
+    - "Decoder MUST NOT modify wave_core.state.psi."
+    - "Decoder MUST NOT modify meaning_space.basis.vec."
+    - "Decoder MUST NOT create, merge, or delete basis."
+    - "Sampling remains the only collapse operation."
+    - "Attractor stabilization affects ranking only, never semantic state."
+
   inputs:
     - meaning_space.projection.output
     - prev_token_id
-  
+
+  # ------------------------------------------------------------
+  # 1) Standard Logit Reconstruction (Unchanged Core)
+  # ------------------------------------------------------------
   pattern_key:
     method: hash_quantized_projection
     quantize:
       basis_weight_round: runtime.decoder.pattern_quantize.basis_weight_round
       basis_count_topN: runtime.decoder.pattern_quantize.basis_count_topN
-  
+
   retrieval:
     sources:
       - pattern_next
       - bigram_backoff
-  
+
   scoring:
     blend:
       geometry: runtime.decoder.blend.geometry
       transition: runtime.decoder.blend.transition
     output: logits_map
-  
-  invariants:
-    - "Decoder does not originate meaning."
-    - "Decoder uses observation-derived projection and aggregate stats."
 
-  convergence:
-    principle: semantic_superposition
-    description: >
-      Multiple basis vectors contribute via cosine similarity weighting.
-      Logits emerge from weighted geometric superposition and converge via sampling.
+  # ------------------------------------------------------------
+  # 2) Attractor-Stabilized Search (Ranking Layer Only)
+  # ------------------------------------------------------------
+  attractor_stabilization:
+    enabled: true
+
+    reference_point:
+      source: meaning_space.attractor_generation.abstract_wave_centroid
+      invariant:
+        - "Reference point is derived from projection only."
+        - "Reference point does not alter basis vectors."
+
+    # ----------------------------------------
+    # 2A) Centroid Offset Filtering
+    # ----------------------------------------
+    centroid_offset_search:
+      enabled: true
+      primary_metric: cosine        # Semantic distance remains cosine
+      secondary_filter:
+        metric: abs(basis.amplitude - abstract_wave.amplitude)
+        dynamic_window_threshold: 0.05
+      invariant:
+        - "Cosine similarity remains the primary semantic metric."
+        - "Amplitude filtering acts only as local stability gate."
+        - "No basis removal; only ranking attenuation."
+
+    # ----------------------------------------
+    # 2B) Loop / Howling Detection
+    # ----------------------------------------
+    loop_detection:
+      signal: dEdb_stable_count
+      trigger_condition: "> 5"
+      purpose: "Detect oscillatory decoding without semantic progression."
+      invariant:
+        - "Loop detection does not inspect or modify wave state."
+
+    # ----------------------------------------
+    # 2C) Strategy Adjustment (Snap)
+    # ----------------------------------------
+    strategy_adjustment:
+      action: attractor_snap
+      snap_method: weight_rebalancing_toward_centroid
+
+      rebalancing:
+        method: soft_weight_bias
+        formula: |
+          w_i' = normalize(
+            w_i * (1 - alpha) +
+            alpha * centroid_similarity_i
+          )
+        alpha: 0.15
+        clamp_min_weight: 0.0
+        clamp_max_weight: 1.0
+
+      invariant:
+        - "Rebalancing modifies projection weights only."
+        - "No single basis is forced to weight=1."
+        - "Mixture superposition is preserved."
+        - "Sampling remains stochastic."
+
+  # ------------------------------------------------------------
+  # 3) Post-Stabilization Decode
+  # ------------------------------------------------------------
+  post_adjustment_decode:
+    input: adjusted_projection_sparse_mixture
+    output: stabilized_logits_map
     invariant:
-      - "No single basis determines output."
-      - "Output emerges from distributed geometric coherence."
+      - "Decoder produces logits via geometric superposition."
+      - "No deterministic selection occurs before sampling."
+
+  # ------------------------------------------------------------
+  # 4) Philosophical Compliance Check
+  # ------------------------------------------------------------
+  compliance:
+    checks:
+      - "No wave state mutation."
+      - "No semantic space mutation."
+      - "No collapse outside sampling."
+      - "No deterministic override of mixture."
+    failure_action: abort_adjustment
 
 # ============================================================
 # 8) LEARNING (OBSERVATION-CONDITIONAL UPDATES)
