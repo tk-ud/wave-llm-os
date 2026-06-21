@@ -103,23 +103,26 @@ The next core exists to avoid that.
 
 ---
 
-# 4. Quaternion Is the Model
+# 4. Quaternion Exploration Model
 
-Quaternion is not an optional representation layer.
+In this draft, quaternion means the exploration model of the system.
 
-Quaternion is the model.
+It defines how an input anchor is routed through multiple semantic spaces while preserving candidate bundles.
 
-More precisely:
+The database stores the observable spaces:
 
-> The exploration method itself is quaternion.
+```text
+grammar space
+vocabulary space
+hash space
+residual space
+draft space
+adopted space
+```
 
-The grammar space, vocabulary space, draft space, adopted space, hash space, and residual space are not the model by themselves.
+The quaternion model defines the exploration relation across those spaces.
 
-They are structured semantic spaces referenced and traversed by the model.
-
-The model is the quaternion exploration relation that binds these spaces into candidate search paths.
-
-Conceptually:
+The core relation is:
 
 ```text
 q = S + (I1 · R1) + (I2 · R2) + (I3 · R3)
@@ -144,17 +147,17 @@ The real-side spaces store observable candidates, evidence, pressure, adoption s
 
 The imaginary-side axes define directional search relations.
 
-The quaternion model does not merely store a state.
+Together, they define the search path.
 
-It defines how input anchors rotate through grammar, vocabulary, hash, residual, draft, and adopted spaces without collapsing candidate bundles too early.
+The model evaluates how input moves through grammar, vocabulary, hash, residual, draft, and adopted spaces without collapsing candidate bundles too early.
 
-The system does not ask:
+The system does not start from the question:
 
 ```text
 Which token is closest?
 ```
 
-It asks:
+It starts from:
 
 ```text
 Which grammar-vocabulary-residual exploration path remains coherent under the current input anchor?
