@@ -14,7 +14,7 @@ The existing spectral-wave architecture is preserved as legacy. It remains histo
 
 However, the legacy design treated semantic formation too much as a single-space spectral process.
 
-The next core redefines the system around quaternion exploration, grammar space, vocabulary space, candidate bundles, residuals, and explicit adoption.
+The next core redefines the system around a quaternion-style processing equation, grammar space, vocabulary space, candidate bundles, residuals, a decoherence bank, and explicit adoption.
 
 ---
 
@@ -59,18 +59,15 @@ Next core:
 
 ```text
 input
-→ quaternion exploration
-→ grammar-neighbor candidate bundle
-→ unmatched grammar slots
-→ vocabulary-neighbor candidate bundle
-→ residual token hash
-→ coherence / decoherence separation
-→ draft or adopted grammar-vocabulary spaces
+→ coherence layer
+→ decoherence bank
+→ coherence decoder
+→ output candidate state
 ```
 
 The system is no longer primarily a continuously integrated spectral matrix or vector state.
 
-It becomes a layered quaternion exploration system over grammar, vocabulary, hash, residual, draft, and adopted spaces.
+It becomes a layered quaternion-style exploration system over grammar, vocabulary, hash, residual, draft, and adopted spaces.
 
 ---
 
@@ -88,6 +85,7 @@ But it did not clearly define:
 - how residuals become draft vocabulary
 - how draft grammar becomes adopted grammar
 - how long context can be absorbed without continuous full-sequence computation
+- how a decoder can be generated from coherence and decoherence rather than pre-attached as a separate black box
 
 Without explicit grammar space, the system risks becoming another single-space similarity engine.
 
@@ -103,53 +101,91 @@ The next core exists to avoid that.
 
 ---
 
-# 4. Quaternion Exploration Model
+# 4. Quaternion-Style Processing Equation
 
-In this draft, quaternion means the exploration model of the system.
-
-It defines how an input anchor is routed through multiple semantic spaces while preserving candidate bundles.
-
-The database stores the observable spaces:
+The draft core is expressed as:
 
 ```text
-grammar space
-vocabulary space
-hash space
-residual space
-draft space
-adopted space
-```
-
-The quaternion model defines the exploration relation across those spaces.
-
-The core relation is:
-
-```text
-q = S + (I1 · R1) + (I2 · R2) + (I3 · R3)
+q = w + xi + yj + zk
 ```
 
 Where:
 
 ```text
-S  = scalar input anchor
+q = output candidate state
+w = input anchor
 
-I1 = hash / draft-vocabulary exploration direction
-R1 = hash space and draft vocabulary space
-
-I2 = adopted-grammar / adopted-vocabulary exploration direction
-R2 = adopted grammar space and adopted vocabulary space
-
-I3 = residual / decoherence exploration direction
-R3 = draft grammar space and unresolved residual space
+xi = coherence layer
+yj = decoherence bank
+zk = coherence decoder
 ```
 
-The real-side spaces store observable candidates, evidence, pressure, adoption state, and residuals.
+Expanded:
 
-The imaginary-side axes define directional search relations.
+```text
+w = input anchor
 
-Together, they define the search path.
+x = token bundle / hash bundle / segmented input fragments
+i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
 
-The model evaluates how input moves through grammar, vocabulary, hash, residual, draft, and adopted spaces without collapsing candidate bundles too early.
+xi = coherence layer
+   = search whether x can be absorbed by i
+
+
+y = unsearchable difference / no-hit residual / low-hit residual
+j = draft grammar candidate, including draft grammar and draft vocabulary accumulation context
+
+yj = decoherence bank
+   = store y into j-side draft accumulation
+
+
+z = exploration hit bundle
+k = corrected grammar candidate
+
+zk = coherence decoder
+   = project z through k into an output-capable grammar candidate
+```
+
+This is quaternion-style, not a strict Hamilton quaternion algebra at the draft stage.
+
+The symbols `i`, `j`, and `k` are candidate imaginary axes.
+
+They are not assumed to be fixed orthogonal mathematical basis vectors.
+
+They are candidate-bearing virtual axes that appear through the exploration process.
+
+The important algebraic property is procedural non-commutativity.
+
+Search order matters.
+
+```text
+ij ≠ ji
+```
+
+In this model, the following processing relation is central:
+
+```text
+ij = k
+```
+
+This means:
+
+```text
+coherence candidate axis
+composed with
+decoherence bank candidate axis
+produces
+coherence decoder axis
+```
+
+Or, operationally:
+
+```text
+xi finds what can be absorbed.
+yj stores what cannot be absorbed.
+The composition of i and j produces k.
+zk uses k to decode the surviving hit bundle into corrected grammar.
+```
 
 The system does not start from the question:
 
@@ -160,18 +196,16 @@ Which token is closest?
 It starts from:
 
 ```text
-Which grammar-vocabulary-residual exploration path remains coherent under the current input anchor?
+Which coherence/decoherence path can produce a corrected grammar candidate for output?
 ```
-
-This is the core distinction.
 
 The database stores the spaces.
 
-The quaternion defines the exploration model.
+The quaternion-style equation defines the exploration and decoding process.
 
-The runtime evaluates candidate quaternion paths.
+The runtime evaluates candidate paths.
 
-Projection turns a quaternion exploration state into a usable output candidate.
+Projection turns a corrected grammar candidate into usable output.
 
 Collapse selects or emits an output.
 
@@ -179,7 +213,7 @@ Adoption updates persistent spaces only through explicit rules.
 
 ---
 
-# 5. Layered Semantic Space
+# 5. Layered Semantic Spaces
 
 The next core separates semantic space into layered spaces.
 
@@ -192,6 +226,7 @@ adopted grammar space
 adopted vocabulary space
 draft grammar space
 draft vocabulary space
+decoherence bank
 residual space
 ```
 
@@ -219,7 +254,7 @@ Characters may receive stable UUID or index identities, but the system must not 
 
 Character-level identity is only an atomic reference layer.
 
-Meaning aggregation occurs at chunk, candidate, residual, grammar, and vocabulary bundle levels.
+Meaning aggregation occurs at chunk, candidate, residual, grammar, vocabulary bundle, and decoherence-bank levels.
 
 ## 5.3 Adopted Grammar Space
 
@@ -251,17 +286,217 @@ Draft vocabulary space contains residual token hashes, repeated chunks, candidat
 
 Draft vocabulary is the system's holding area for unresolved expression.
 
-## 5.7 Residual Space
+## 5.7 Decoherence Bank
 
-Residual space contains what existing grammar and vocabulary spaces could not explain.
+The decoherence bank stores no-hit, low-hit, and unabsorbed residuals.
 
-Residuals are not errors.
+It is not an error table.
 
-Residuals are future meaning candidates.
+It is a structured bank of future vocabulary and grammar candidates.
+
+Repeated entries may become draft vocabulary or draft grammar.
+
+Recurring draft entries may later be promoted into adopted vocabulary or adopted grammar.
 
 ---
 
-# 6. Candidate Bundles Must Not Collapse Early
+# 6. xi: Coherence Layer
+
+The `xi` term is the coherence layer.
+
+```text
+x = token bundle / hash bundle / segmented input fragments
+i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
+```
+
+The coherence layer searches whether the input fragments can be absorbed by existing spaces.
+
+It checks:
+
+- adopted grammar candidates
+- adopted vocabulary candidates
+- existing draft vocabulary candidates
+- near-neighbor candidates
+- partial matches
+- incomplete grammar candidates
+
+If `x` hits or nearly hits `i`, the system records coherence evidence.
+
+The purpose of this layer is not to produce final output.
+
+The purpose is to identify which parts of the input already belong to known or draft semantic space.
+
+Operationally:
+
+```text
+input fragments
+→ adopted grammar / adopted vocabulary / draft vocabulary candidates
+→ hit, near-hit, partial-hit, or no-hit
+```
+
+The result of this layer is an exploration hit bundle plus any unabsorbed differences.
+
+---
+
+# 7. yj: Decoherence Bank
+
+The `yj` term is the decoherence bank.
+
+```text
+y = unsearchable difference / no-hit residual / low-hit residual
+j = draft grammar candidate and draft accumulation context
+```
+
+The decoherence bank stores what the coherence layer could not absorb.
+
+This includes:
+
+- new words
+- unknown expressions
+- no-hit token hashes
+- low-hit token hashes
+- unresolved grammar fragments
+- unmatched grammar slots
+- repeated but not-yet-adopted patterns
+
+The bank is intentionally persistent.
+
+Unabsorbed differences must not be discarded.
+
+They are stored as draft vocabulary or draft grammar candidates.
+
+A scheduled aggregation job may later inspect the bank.
+
+Example promotion logic:
+
+```sql
+select token_hash, count(*) as observed_count
+from decoherence_bank
+group by token_hash
+having count(*) > 10;
+```
+
+When recurrence, count, or coherence exceeds a promotion threshold, a draft may become an adopted vocabulary or adopted grammar candidate.
+
+Operationally:
+
+```text
+no-hit / low-hit residual
+→ decoherence bank
+→ scheduled aggregation
+→ promotion candidate
+→ adopted vocabulary or adopted grammar
+```
+
+This is how unknown input can become known input later.
+
+Yesterday's `yj` candidate may become tomorrow's `xi` hit.
+
+---
+
+# 8. ij = k: Procedural Composition
+
+In this draft, `ij = k` is a processing relation.
+
+It means that the composition of the coherence candidate axis and the decoherence-bank candidate axis produces the coherence decoder axis.
+
+```text
+i = coherence candidate axis
+j = decoherence-bank candidate axis
+k = coherence decoder axis
+```
+
+Operationally:
+
+```text
+coherence layer
++ decoherence bank
+→ corrected grammar axis
+```
+
+Or:
+
+```text
+known hits
++ stored unknown residuals
+→ output-capable corrected grammar candidate
+```
+
+This is not merely symbolic decoration.
+
+The system cannot output from `xi` alone.
+
+The coherence layer only tells what was hit or nearly hit.
+
+The system cannot output from `yj` alone.
+
+The decoherence bank only stores what could not be absorbed.
+
+The system needs `zk` because final output requires a corrected grammar candidate.
+
+Thus:
+
+```text
+ij = k
+zk = coherence decoder
+```
+
+The order matters.
+
+```text
+ij = k
+ji ≠ k
+```
+
+Searching known candidates first and then banking residuals does not produce the same result as starting from residuals first.
+
+This is the procedural meaning of non-commutativity in this model.
+
+---
+
+# 9. zk: Coherence Decoder
+
+The `zk` term is the coherence decoder.
+
+```text
+z = exploration hit bundle
+k = corrected grammar candidate
+```
+
+The coherence decoder projects surviving hit bundles into output-capable corrected grammar.
+
+It uses:
+
+- hit bundles from the coherence layer
+- unresolved slots from incomplete grammar candidates
+- promoted candidates from the decoherence bank
+- adopted grammar candidates
+- adopted vocabulary candidates
+- draft candidates that remain relevant
+
+The decoder does not originate meaning.
+
+Meaning candidates are generated by exploration, hit evidence, residual banking, recurrence, and adoption.
+
+The coherence decoder projects those candidates into a usable output grammar.
+
+Operationally:
+
+```text
+exploration hit bundle
+→ corrected grammar candidate
+→ output projection
+→ collapse
+→ emitted output
+```
+
+This decoder is not a next-token predictor.
+
+It is a grammar projection layer over surviving coherence and decoherence evidence.
+
+---
+
+# 10. Candidate Bundles Must Not Collapse Early
 
 Near-neighbor search must always preserve multiple candidates.
 
@@ -307,111 +542,23 @@ roast pork
 
 Meaning correction does not require a separate magical semantic table.
 
-It can emerge from incomplete grammar candidates and unresolved vocabulary slots.
+It can emerge from incomplete grammar candidates, unresolved vocabulary slots, and the coherence decoder.
 
 ---
 
-# 7. Meaning Correction Through Incomplete Grammar
-
-Meaning correction is not a separate post-processing trick.
-
-It is a natural result of quaternion exploration when incomplete grammar candidates remain alive.
-
-The flow is:
-
-```text
-input
-→ grammar-neighbor candidate bundle
-→ matched grammar slots / unmatched grammar slots
-→ vocabulary search from unmatched slots
-→ candidate vocabulary completion bundle
-→ coherence comparison
-→ output candidate or residual preservation
-```
-
-The important part is that incomplete grammar candidates are not discarded.
-
-A fully matched grammar candidate may produce a direct interpretation.
-
-A partially matched grammar candidate may produce a better semantic search path.
-
-This allows the system to connect descriptive phrases to candidate vocabulary items even when surface strings do not match.
-
-Example:
-
-```text
-Input:
-"pig meat grilled into a dish"
-
-Incomplete grammar candidates:
-{ingredient} + {cooking method} + {dish name}
-{meat} + {heat process} + {food result}
-
-Unmatched slot:
-{dish name}
-
-Vocabulary candidates:
-pork steak
-pork saute
-grilled pork
-char siu
-roast pork
-```
-
-The system does not need to know the final answer at the input boundary.
-
-The grammar candidate opens the route.
-
-The vocabulary space fills the unresolved slot.
-
-The quaternion exploration path evaluates coherence.
-
----
-
-# 8. Residual-Driven Learning
-
-The system should not learn everything.
-
-It should first subtract what existing spaces can already explain.
-
-The basic flow is:
-
-```text
-input
-- grammar-space near candidates, including draft grammar
-= grammar residual candidate bundle
-
-grammar residual candidate bundle
-- vocabulary-space near candidates, including draft vocabulary
-= residual candidate bundle
-
-residual candidate bundle
-→ token_hash insert on conflict
-```
-
-Only residuals should create pressure for new draft vocabulary or draft grammar.
-
-This prevents the system from exploding computationally.
-
-Known structures are absorbed by adopted or draft spaces.
-
-Only unexplained differences are accumulated.
-
----
-
-# 9. Long Context Handling
+# 11. Long Context Handling
 
 The system does not need to hold long context as one continuous internal state.
 
-It can absorb long input by distributing it into grammar candidates, vocabulary candidates, residuals, and aggregate differences.
+It can absorb long input by distributing it into grammar candidates, vocabulary candidates, decoherence-bank entries, residuals, and aggregate differences.
 
 This is not summarization.
 
 It is semantic distribution.
 
-Known parts of a long input reinforce existing grammar and vocabulary spaces.
+Known parts of a long input reinforce existing grammar and vocabulary spaces through the coherence layer.
 
-Unknown parts become residual candidates.
+Unknown parts are stored in the decoherence bank.
 
 Repeated residuals increase pressure.
 
@@ -425,7 +572,7 @@ The system stores structured semantic traces instead of relying on one opaque co
 
 ---
 
-# 10. Summarization as Grammar-Space Projection
+# 12. Summarization as Grammar-Space Projection
 
 Summarization is not merely deletion.
 
@@ -439,6 +586,7 @@ observe vocabulary pressure
 → search grammar space from those vocabulary pressures
 → produce multiple summary grammar candidates
 → select compression level from candidate grammar forms
+→ decode through corrected grammar
 → generate output
 ```
 
@@ -461,7 +609,7 @@ Each summary type is a different grammar-space projection.
 
 ---
 
-# 11. Tokenization Philosophy
+# 13. Tokenization Philosophy
 
 The system should not depend on language-specific morphological analyzers.
 
@@ -491,7 +639,7 @@ The system must not aggregate meaning one character at a time.
 
 ---
 
-# 12. Event-Driven Runtime
+# 14. Event-Driven Runtime
 
 The core runtime should be mostly database-driven.
 
@@ -505,7 +653,9 @@ neighbor lookup
 aggregate diff
 candidate bundle update
 residual upsert
+decoherence bank insert/update
 pressure calculation
+scheduled aggregation
 notify on hit / no-hit / threshold crossing
 ```
 
@@ -519,58 +669,11 @@ The system may notify when:
 - draft vocabulary repeatedly appears
 - adopted grammar coherence increases
 - a summary projection candidate is available
+- decoherence-bank entries exceed promotion thresholds
 
 The system should not automatically rewrite adopted meaning.
 
 It should recommend, notify, and preserve evidence.
-
----
-
-# 13. Coherence and Decoherence
-
-Coherence means that an input or residual candidate repeatedly aligns with adopted or stable draft spaces.
-
-Decoherence means that an input or residual candidate cannot be sufficiently absorbed by existing grammar or vocabulary spaces.
-
-Coherence reinforces.
-
-Decoherence drafts.
-
-Neither should automatically overwrite adopted meaning.
-
-The system should preserve:
-
-- adopted grammar
-- adopted vocabulary
-- draft grammar
-- draft vocabulary
-- residual token hashes
-- candidate evidence
-- lineage
-
-Meaning should grow through observable pressure and explicit adoption, not silent mutation.
-
----
-
-# 14. Human Tool Principle
-
-The system is a tool for humans.
-
-It must not become the decision authority.
-
-It may observe.
-
-It may recommend.
-
-It may preserve evidence.
-
-It may show candidate grammar and vocabulary structures.
-
-But adoption remains explicit.
-
-The goal is not to replace human judgment.
-
-The goal is to reduce invisible cognitive work by surfacing useful grammar, vocabulary, summary, search, and evidence structures from existing input.
 
 ---
 
@@ -586,7 +689,9 @@ It does not attempt to scale meaning through larger parameter matrices.
 
 It attempts to reduce computation by using:
 
-- quaternion exploration paths
+- coherence-layer hits
+- decoherence-bank accumulation
+- coherence-decoder projection
 - grammar-space near candidates
 - vocabulary-space near candidates
 - incomplete grammar slot search
@@ -594,6 +699,10 @@ It attempts to reduce computation by using:
 - residual-only updates
 - event-driven notifications
 - explicit adoption
+
+In this model, attention and decoder are not fully separate black boxes.
+
+The quaternion-style process attends through `xi`, banks unresolved difference through `yj`, and decodes through `zk`.
 
 The goal is not larger context windows.
 
@@ -611,7 +720,7 @@ It established observation-derived meaning.
 
 It established that the decoder must not originate meaning.
 
-However, the next core replaces the legacy spectral-wave mechanism with a layered quaternion grammar-vocabulary exploration model.
+However, the next core replaces the legacy spectral-wave mechanism with a layered quaternion-style grammar-vocabulary exploration model.
 
 Legacy terms such as wave, coherence, decoherence, and collapse may remain as conceptual vocabulary.
 
@@ -619,30 +728,24 @@ But the implementation must not depend on a single Euler-integrated wave matrix.
 
 The new core is not a continuous spectral matrix update.
 
-It is a layered quaternion exploration and residual-difference semantic system.
+It is a layered quaternion-style coherence/decoherence/decoder system.
 
 Short form:
 
 ```text
-Do not compress meaning into weights.
-Do not compress long context into one hidden state.
-Do not collapse candidates too early.
-Do not let the tokenizer decide meaning.
+q = w + xi + yj + zk
 
-Observe input.
-Explore through quaternion paths.
-Search grammar candidates.
-Preserve incomplete grammar slots.
-Search vocabulary candidates.
-Preserve residuals.
-Separate coherence and decoherence.
-Draft before adoption.
-Notify before mutation.
-Let humans adopt meaning.
+w  = input anchor
+xi = coherence layer
+yj = decoherence bank
+zk = coherence decoder
+
+ij = k
+ji ≠ k
 ```
 
 Meaning is not a word.
 
 Meaning is not a vector.
 
-Meaning is the connection form that survives observation, residual pressure, candidate comparison, quaternion exploration, and adoption.
+Meaning is the connection form that survives observation, coherence search, decoherence banking, corrected grammar decoding, and adoption.
