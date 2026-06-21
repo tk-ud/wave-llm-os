@@ -359,8 +359,6 @@ mastication.learn
 external_observation.ingest
 remote_event.ingest
 constraint.apply
-snapshot.create
-snapshot.restore
 ```
 
 `freeze.enabled = true` prohibits semantic mutation.
@@ -370,6 +368,10 @@ Freeze allows read-only coherence lookup, relation lookup, decoder projection, a
 Freeze blocks adoption, promotion, mastication learning, external adoption, and distributed semantic update.
 
 Blocked operations must be recorded in `logs.diff`.
+
+A separate semantic snapshot/restore mechanism is not canonical.
+
+When freeze and operation gates are enforced, coherence logs, current aggregates, draft spaces, adopted spaces, and relation spaces do not mutate through semantic write functions.
 
 ---
 
