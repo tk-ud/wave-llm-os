@@ -79,6 +79,8 @@ It does not define canonical runtime authority.
 | semantic snapshot / restore | reject | unnecessary in canonical core because freeze/function gates prevent coherence/current/draft mutation |
 | scheduler / maintenance loop | migrate | backend-triggered scheduler_job / scheduler_job_run with DB-owned lock and operation gate |
 | Phase relation candidate generation | migrate | DRAFT_PHASE_RELATION_CANDIDATE.md; outputs grammar arrays only |
+| structural near-neighbor search | migrate | DRAFT_NEAR_NEIGHBOR_SEARCH.md; arrays are structural vectors |
+| dense embedding vector search as semantic authority | reject | pgvector-style dense vectors erase structural meaning |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
 
 Snapshot note:
@@ -109,6 +111,16 @@ Phase relation candidate generation outputs grammar arrays.
 Because token → vocabulary → grammar → grammar array is hierarchical, a decided grammar array determines the vocabulary and token references.
 
 Missing slots are completed by reverse hierarchical near-neighbor search.
+```
+
+Near-neighbor note:
+
+```text
+The array is the vector.
+
+The hierarchy is the meaning.
+
+Dense embedding vectors are not canonical because they erase structural meaning.
 ```
 
 ---
@@ -371,20 +383,41 @@ Rules:
 
 ---
 
-# 14. Pending Migration Items
+# 14. Structural Near-Neighbor Search
+
+Migrated as array-based structural search.
+
+Canonical object:
+
+```text
+DRAFT_NEAR_NEIGHBOR_SEARCH.md
+```
+
+Rules:
+
+- ordered UUID arrays are structural semantic vectors
+- link tables preserve position
+- `logs.current` supplies pressure
+- `logs.diff` supplies mutation/adoption evidence
+- dense embedding vectors are rejected as semantic authority
+- pgvector is not canonical
+- pg_trgm may only support raw-text fallback and is not semantic authority
+
+---
+
+# 15. Pending Migration Items
 
 The following still need detailed canonical table/function specs:
 
 - constraint rule table
 - adoption audit table, or explicit use of logs.diff for adoption audit
-- near-neighbor extension choice
 - web search result mastication schema
 - remote node trust registry
 - decoder trace / loop guard equivalent
 
 ---
 
-# 15. Promotion Path
+# 16. Promotion Path
 
 Before this draft becomes canonical:
 
