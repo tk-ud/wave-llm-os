@@ -40,7 +40,7 @@ raw input
 
 Meaning is not assigned by the tokenizer.
 
-Meaning is decided later by coherence search, decoherence banking, promotion, and decoding.
+Meaning is decided later by coherence search, decoherence banking, relation formation, promotion, and decoding.
 
 ---
 
@@ -343,17 +343,32 @@ candidate → no-hit / low-hit residual → decoherence bank
 
 This becomes part of `y`, stored through `j`.
 
-## 7.3 zk: coherence decoder
+## 7.3 relation layer
 
-When enough hit bundle evidence exists:
+If multiple grammar or vocabulary candidates are found across a scope or adjacent scopes, they should be connected.
 
 ```text
-z → corrected grammar candidate k → output projection
+candidate A
+candidate B
+candidate C
+→ coherence relation candidate
+```
+
+Without relation, output becomes a mirror of local input fragments.
+
+Relation is what allows the system to connect the beginning and end of a divided input.
+
+## 7.4 zk: coherence decoder
+
+When enough hit bundle and relation evidence exists:
+
+```text
+z + relation evidence → corrected grammar candidate k → output projection
 ```
 
 The tokenizer does not produce final output.
 
-It only prepares stable candidates for the coherence/decoherence pipeline.
+It only prepares stable candidates for the coherence/decoherence/relation pipeline.
 
 ---
 
@@ -385,7 +400,304 @@ A token that was unknown yesterday may become a coherence-layer hit tomorrow.
 
 ---
 
-# 9. Why SQL Is Suitable Here
+# 9. Coherence Relation Layer
+
+The coherence relation layer connects divided grammar and vocabulary candidates.
+
+This is required because tokenization and scope splitting break input into local pieces.
+
+If those pieces are not reconnected, the system only mirrors nearby fragments.
+
+The relation layer preserves ordered semantic continuity.
+
+Example:
+
+```text
+scope 1: refrigeration does not cool
+scope 2: cargo may be damaged
+scope 3: customer wants repair by tomorrow
+```
+
+Without relation:
+
+```text
+three local hits
+```
+
+With relation:
+
+```text
+cooling failure → customer damage risk → deadline requirement
+```
+
+## 9.1 relation table
+
+Minimal form:
+
+```sql
+create table coherence_relation_layer (
+  relation_uuid uuid primary key default gen_random_uuid(),
+  relation_index bigint not null unique,
+
+  relation_array uuid[] not null,
+
+  relation_kind text not null default 'grammar_to_grammar',
+  source_scope_uuid uuid null,
+  source_observation_uuid uuid null,
+
+  observed_count bigint not null default 1,
+  coherence_weight numeric not null default 0,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+Suggested meaning:
+
+```text
+relation_uuid      = stable identity of the relation
+relation_index     = deterministic or insertion-order relation index
+relation_array     = ordered candidate UUIDs participating in the relation
+relation_kind      = grammar_to_grammar, vocab_to_grammar, vocab_to_vocab, etc.
+source_scope_uuid  = scope that produced the relation, if available
+observed_count     = recurrence pressure
+coherence_weight   = normalized relation strength
+```
+
+## 9.2 relation link table
+
+For search and aggregation, a link table is recommended.
+
+```sql
+create table coherence_relation_link (
+  relation_uuid uuid not null references coherence_relation_layer(relation_uuid),
+  candidate_uuid uuid not null,
+  candidate_kind text not null,
+  position integer not null,
+  role text null,
+
+  primary key (relation_uuid, position)
+);
+```
+
+Suggested candidate kinds:
+
+```text
+token
+word
+draft_vocabulary
+adopted_vocabulary
+draft_grammar
+adopted_grammar
+corrected_grammar
+```
+
+## 9.3 relation upsert
+
+Relation can be upserted by a stable relation hash.
+
+A production table may include `relation_hash`:
+
+```sql
+alter table coherence_relation_layer
+add column relation_hash text unique;
+```
+
+Then:
+
+```sql
+insert into coherence_relation_layer (
+  relation_index,
+  relation_array,
+  relation_hash,
+  relation_kind,
+  source_scope_uuid,
+  source_observation_uuid
+)
+values (
+  :relation_index,
+  :relation_array,
+  :relation_hash,
+  :relation_kind,
+  :source_scope_uuid,
+  :source_observation_uuid
+)
+on conflict (relation_hash)
+do update set
+  observed_count = coherence_relation_layer.observed_count + 1,
+  last_seen_at = now();
+```
+
+Relation is not optional metadata.
+
+It is the memory that allows segmented grammar to remain connected.
+
+---
+
+# 10. Phase Relation Candidate Generation
+
+Phase Attention should not run as a heavy synchronous reply-time process.
+
+It should operate on normalized and aggregated tables.
+
+Phase does not primarily inspect raw input.
+
+It reads:
+
+```text
+adopted vocabulary table
+adopted grammar table
+draft vocabulary table
+draft grammar table
+coherence relation layer
+relation aggregate weights
+hit counts
+coherence weights
+co-occurrence frequencies
+scope-crossing continuity
+```
+
+Phase uses these normalized aggregate values to generate relation candidates.
+
+## 10.1 What Phase does
+
+Phase slides across layers and searches for relation candidates.
+
+```text
+vocabulary layer
+→ grammar layer
+→ relation layer
+→ corrected grammar layer
+```
+
+It may generate candidates such as:
+
+```text
+grammar A → grammar B
+grammar B → grammar C
+vocabulary bundle X → grammar A
+vocabulary bundle Y → grammar B
+grammar A + grammar C recur under the same use case
+```
+
+The goal is to discover relation candidates that are not directly present as one raw input span.
+
+## 10.2 Phase should use aggregates
+
+Phase should use pre-aggregated values such as:
+
+```text
+observed_count
+coherence_weight
+co_occurrence_count
+relation_frequency
+scope_transition_count
+promotion_count
+semantic_axis_candidate_count
+```
+
+This keeps reply-time processing light.
+
+## 10.3 Phase output
+
+Phase should output candidates, not mutate adopted structures directly.
+
+Possible output tables:
+
+```sql
+create table phase_relation_candidate (
+  phase_candidate_uuid uuid primary key default gen_random_uuid(),
+  candidate_relation_array uuid[] not null,
+  candidate_kind text not null default 'relation_candidate',
+  source_aggregate_window text null,
+  phase_score numeric not null default 0,
+  evidence_count bigint not null default 0,
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+A candidate may later be reviewed, promoted, or used by the coherence decoder as draft relation evidence.
+
+## 10.4 Runtime boundary
+
+Synchronous reply path:
+
+```text
+input
+→ token/word candidates
+→ xi coherence hit
+→ yj residual bank
+→ relation lookup
+→ zk coherence decoder
+```
+
+Asynchronous / scheduled path:
+
+```text
+normalized vocabulary and grammar tables
+→ relation aggregates
+→ Phase Attention
+→ phase_relation_candidate
+→ later promotion or decoder support
+```
+
+This prevents Phase from becoming a heavy bottleneck in ordinary response generation.
+
+---
+
+# 11. Why Relation Matters
+
+If relation is thin, output will mirror input.
+
+The system may still identify local words and grammar fragments, but it cannot connect them into a semantic flow.
+
+With weak relation:
+
+```text
+input fragments in
+similar fragments out
+```
+
+With strong relation:
+
+```text
+input fragments
+→ connected grammar sequence
+→ corrected grammar candidate
+→ useful output
+```
+
+Therefore, relation growth is one of the main differences between:
+
+```text
+surface-level tokenizer
+```
+
+and:
+
+```text
+language-model-like behavior
+```
+
+A mature system should track not only vocabulary growth and grammar growth, but relation growth.
+
+Useful growth metrics:
+
+```text
+relation_count
+relation_density
+average relation length
+scope-crossing relation count
+phase_relation_candidate count
+relation promotion count
+coherence decoder success rate
+```
+
+---
+
+# 12. Why SQL Is Suitable Here
 
 This layer is mostly:
 
@@ -396,7 +708,9 @@ hash generation
 upsert
 range tracking
 count aggregation
+relation insert/update
 scheduled promotion
+phase candidate generation
 notify
 ```
 
@@ -416,7 +730,7 @@ The worker should assist execution, not decide meaning.
 
 ---
 
-# 10. Minimal First Implementation
+# 13. Minimal First Implementation
 
 A minimal implementation can start with:
 
@@ -424,12 +738,16 @@ A minimal implementation can start with:
 1. token_registry
 2. word_registry
 3. decoherence_bank
-4. split_flag tokens
-5. scope_size = 1000
-6. simple split rules
-7. word_hash upsert
-8. no-hit insert into decoherence_bank
-9. scheduled count-based promotion
+4. coherence_relation_layer
+5. coherence_relation_link
+6. split_flag tokens
+7. scope_size = 1000
+8. simple split rules
+9. word_hash upsert
+10. no-hit insert into decoherence_bank
+11. relation upsert from adjacent candidate bundles
+12. scheduled count-based promotion
+13. scheduled Phase candidate generation from aggregates
 ```
 
 No MeCab, UniDic, or language-specific tokenizer is required for the first version.
@@ -442,11 +760,17 @@ boundary splitter
 hash aggregator
 ```
 
-The language model behavior emerges later from coherence hits, decoherence banking, promotion, corrected grammar, and output projection.
+The relation layer is:
+
+```text
+semantic continuity memory
+```
+
+The language model behavior emerges later from coherence hits, decoherence banking, relation formation, promotion, corrected grammar, and output projection.
 
 ---
 
-# 11. Short Form
+# 14. Short Form
 
 ```text
 Do not make the tokenizer smart.
@@ -457,5 +781,7 @@ Index, split, hash, and upsert.
 
 Known candidates go to xi.
 Unknown candidates go to yj.
+Connected candidates go to the coherence relation layer.
+Aggregated relations feed Phase.
 Corrected grammar output comes from zk.
 ```
