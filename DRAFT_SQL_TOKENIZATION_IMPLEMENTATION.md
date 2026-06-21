@@ -1,787 +1,847 @@
-# Draft Implementation Note: SQL-Based Tokenization and Scope Split
+# Draft Implementation Note: PostgreSQL Canonical Core Tables
 
 ## Status
 
-This document is an implementation draft for the tokenizer / splitter layer of the Quaternion Exploration Core.
+This document is the implementation draft for the canonical database layer of the Quaternion Exploration Core.
 
-It is intentionally practical.
+It replaces the earlier tokenizer-only draft with a PostgreSQL-first schema for:
 
-The goal is not to build a language-specific morphological analyzer.
+- token identity
+- vocabulary candidates
+- grammar candidates
+- grammar relation candidates
+- decoherence bank
+- coherence logs
+- scheduled aggregate current values
+- diff/change evidence
+- core state
+- operation policy gates
+- notify queue
+- mastication jobs
+- remote event intake
 
-The goal is to create a lightweight database-driven tokenizer that can feed:
+SQLite is intentionally not a target for the canonical implementation.
 
-```text
-q = w + xi + yj + zk
-
-xi = coherence layer
-yj = decoherence bank
-zk = coherence decoder
-```
-
-The tokenizer should produce stable token and word candidates without deciding meaning at the input boundary.
-
----
-
-# 1. Basic Idea
-
-Tokenization is treated as indexing and segmentation, not semantic interpretation.
-
-The entrance layer should only do the minimum necessary work:
-
-```text
-raw input
-→ scoped text window
-→ character/token indexing
-→ split boundary detection
-→ word candidate generation
-→ hash/upsert
-→ coherence layer
-```
-
-Meaning is not assigned by the tokenizer.
-
-Meaning is decided later by coherence search, decoherence banking, relation formation, promotion, and decoding.
+The next core requires PostgreSQL features such as UUID, JSONB, arrays, upsert, functions, triggers, notify/listen, scheduled workers, and near-neighbor search extensions.
 
 ---
 
-# 2. Core Tables
+# 1. Storage Decision
 
-## 2.1 token table
+Canonical storage target:
 
-The token table stores atomic raw tokens.
+```text
+PostgreSQL
+```
 
-At the simplest level, one character may be one token.
+Rationale:
+
+- UUID is first-class
+- JSONB is first-class
+- arrays can store ordered candidate bundles
+- link tables can support search and aggregation
+- `insert ... on conflict` is required
+- functions can centralize operation gates
+- triggers can enqueue notify events
+- LISTEN/NOTIFY can drive backend workers
+- extensions can support near-neighbor search
+- scheduled aggregation can be DB-centered
+
+SQLite is not used for the canonical core because the design requires database-side policy, aggregation, and near-neighbor behavior.
+
+---
+
+# 2. Schema Responsibilities
+
+```text
+logs.coherence = append-only coherence observation log
+logs.current   = scheduled aggregate read model from logs.coherence
+logs.diff      = mutation / normalization / flag / core_state evidence
+
+token            = raw atomic identity
+vocabulary       = ordered token bundle
+grammar          = ordered vocabulary bundle
+grammar_relation = ordered grammar bundle
+
+decoherence_bank = no-hit / low-hit / unabsorbed residuals
+core_state       = runtime state authority
+core_operation_policy = operation gate rules
+core_notify_queue = DB-created notifications for backend workers
+```
+
+The backend transports work.
+
+The database decides state-aware semantic acceptance.
+
+---
+
+# 3. Core Logs
+
+## 3.1 logs.coherence
+
+`logs.coherence` is append-only.
+
+It records observed coherence facts. It does not decide adoption.
 
 ```sql
-create table token_registry (
-  token_uuid uuid primary key default gen_random_uuid(),
-  token_index bigint not null unique,
-  raw_token text not null,
-  split_flag boolean not null default false,
-  split_kind text null,
+create schema if not exists logs;
+
+create table logs.coherence (
+  coherence_uuid uuid primary key default gen_random_uuid(),
+
+  target_table text not null,
+  target_uuid uuid not null,
+
+  source_observation_uuid uuid null,
+  source_scope_uuid uuid null,
+
+  coherence_kind text not null default 'hit',
+  -- hit | near_hit | partial_hit | relation_hit | eos_hit
+
+  coherence_score numeric null,
+
+  end_of_sentence_observed boolean not null default false,
+
+  context jsonb null,
+
+  observed_at timestamptz not null default now()
+);
+
+create index idx_logs_coherence_target
+  on logs.coherence (target_table, target_uuid);
+
+create index idx_logs_coherence_observed_at
+  on logs.coherence (observed_at);
+```
+
+## 3.2 logs.current
+
+`logs.current` is the scheduled aggregate result table.
+
+It is the read model used by runtime, schedulers, promotion logic, flag decisions, and Phase candidate generation.
+
+```sql
+create table logs.current (
+  current_uuid uuid primary key default gen_random_uuid(),
+
+  target_table text not null,
+  target_uuid uuid not null,
+
+  current_value jsonb not null,
+
+  aggregation_version bigint not null default 1,
+
+  aggregated_from timestamptz null,
+  aggregated_to timestamptz not null default now(),
+
+  updated_at timestamptz not null default now(),
+
+  unique (target_table, target_uuid)
+);
+
+create index idx_logs_current_target
+  on logs.current (target_table, target_uuid);
+
+create index idx_logs_current_value_gin
+  on logs.current using gin (current_value);
+```
+
+Example `current_value`:
+
+```json
+{
+  "coherence_count": 124,
+  "hit_count": 103,
+  "near_hit_count": 12,
+  "partial_hit_count": 9,
+  "end_of_sentence_count": 91,
+  "end_of_sentence_score": 73.38,
+  "last_coherence_score": 0.82,
+  "draft_pressure": 41,
+  "relation_pressure": 18
+}
+```
+
+## 3.3 logs.diff
+
+`logs.diff` records all meaningful changes.
+
+It is used for:
+
+- decoherence-to-normalized changes
+- draft-to-adopted changes
+- flag changes
+- core state changes
+- freeze-blocked mutation evidence
+- remote event decisions
+- mastication decisions
+
+```sql
+create table logs.diff (
+  diff_uuid uuid primary key default gen_random_uuid(),
+
+  target_table text not null,
+  target_uuid uuid not null,
+
+  operation_key text not null,
+
+  status text not null default 'applied',
+  -- applied | rejected | deferred | blocked | queued
+
+  before_value jsonb null,
+  after_value jsonb null,
+  diff_value jsonb null,
+
+  reason text null,
+  actor text null,
+
   created_at timestamptz not null default now()
 );
+
+create index idx_logs_diff_target
+  on logs.diff (target_table, target_uuid);
+
+create index idx_logs_diff_operation
+  on logs.diff (operation_key, status);
 ```
 
-Suggested meaning:
+---
 
-```text
-token_uuid  = stable identity of the token
-token_index = deterministic or insertion-order index
-raw_token   = raw character or atomic unit
-split_flag  = true when this token acts as a split boundary
-split_kind  = space, newline, comma, period, slash, bracket, etc.
-```
+# 4. Token Table
 
-Example split tokens:
+`token` stores atomic raw identities.
 
-```text
-" "  → space
-"\n" → line_break
-"。" → japanese_period
-"、" → japanese_comma
-","  → comma
-"."  → period
-":"  → colon
-"/"  → slash
-"("  → open_paren
-")"  → close_paren
-```
-
-## 2.2 word table
-
-The word table stores candidate chunks made from token indexes.
+The token layer is not semantic authority.
 
 ```sql
-create table word_registry (
-  word_uuid uuid primary key default gen_random_uuid(),
-  token_index_array bigint[] not null,
-  raw_word text not null,
-  word_hash text not null unique,
+create table token (
+  token_uuid uuid primary key default gen_random_uuid(),
+
+  token_index bigint not null unique,
+
+  raw text not null,
+
   split_flag boolean not null default false,
   split_kind text null,
-  observed_count bigint not null default 1,
-  first_seen_at timestamptz not null default now(),
-  last_seen_at timestamptz not null default now()
+
+  created_at timestamptz not null default now()
 );
+
+create index idx_token_raw
+  on token (raw);
+
+create index idx_token_split
+  on token (split_flag, split_kind);
 ```
 
-Suggested meaning:
-
-```text
-word_uuid         = stable identity of a word/chunk candidate
-token_index_array = ordered token indexes included in the chunk
-raw_word          = raw chunk text
-word_hash         = stable hash of raw_word or token sequence
-split_flag        = true when this word/chunk acts as a split boundary
-split_kind        = registered split type, if any
-observed_count    = recurrence pressure
-```
-
-A join table can be added later if array search becomes insufficient.
-
-```sql
-create table word_token_link (
-  word_uuid uuid not null references word_registry(word_uuid),
-  token_uuid uuid not null references token_registry(token_uuid),
-  position integer not null,
-  primary key (word_uuid, position)
-);
-```
-
-For the first implementation, `token_index_array[]` may be enough.
-
----
-
-# 3. Scope Split
-
-Long input should not be processed as one giant string.
-
-If input length exceeds a threshold, process it in local scopes.
-
-Initial rule:
-
-```text
-scope_size = 1000 characters
-optional_overlap = 50 to 100 characters
-```
-
-Example:
-
-```text
-scope 1: 0..1000
-scope 2: 900..1900
-scope 3: 1800..2800
-```
-
-Overlap prevents boundary loss.
-
-Duplicate word candidates are deduplicated by `word_hash` or token sequence hash.
-
----
-
-# 4. Split Strategy
-
-Within each scope, split in cheap stages.
-
-Recommended order:
-
-```text
-1. token split_flag boundaries
-2. registered word split_flag boundaries
-3. lightweight regex rules
-4. remaining residual chunks
-```
-
-This avoids heavy language-specific parsing.
-
-## 4.1 token split boundaries
-
-Use atomic split tokens first.
-
-Examples:
+Example split kinds:
 
 ```text
 space
 newline
-punctuation
-brackets
-slashes
-commas
-periods
+japanese_period
+japanese_comma
+comma
+period
+colon
+slash
+open_paren
+close_paren
+code_fence
+url_boundary
 ```
-
-## 4.2 word split boundaries
-
-Some registered chunks can become split markers.
-
-Examples:
-
-```text
-"。\n"
-"---"
-"```"
-"###"
-"http://"
-"https://"
-```
-
-## 4.3 regex split rules
-
-Regex should be used as a controlled boundary or extraction rule, not as a massive full parser.
-
-Examples:
-
-```text
-dates
-URLs
-email addresses
-numbers
-model numbers
-file paths
-SQL identifiers
-currency values
-error codes
-```
-
-Regex rules should be prioritized and bounded.
 
 ---
 
-# 5. Iterative Consume Instead of Global Replace
+# 5. Vocabulary Table
 
-When a split succeeds, do not blindly run global replace.
-
-A global replace may delete multiple matching substrings unintentionally.
-
-Instead, use match ranges.
-
-Unsafe idea:
-
-```text
-replace(txt, match_text, "")
-```
-
-Safer idea:
-
-```text
-match = first match with start/end
-consume only [start, end]
-continue with the remaining text or unconsumed ranges
-```
-
-Pseudo flow:
-
-```text
-remaining = scope_text
-
-while remaining has split match:
-  match = find_first_split_match(remaining)
-
-  before = remaining[0:match.start]
-  hit    = remaining[match.start:match.end]
-  after  = remaining[match.end:]
-
-  save_candidate(before) if not empty
-  save_split(hit)
-
-  remaining = after
-
-save_candidate(remaining) if not empty
-```
-
-For more precise implementation, store consumed ranges instead of mutating text.
-
-```text
-consumed_ranges = [[start, end], ...]
-```
-
-Then emit unconsumed ranges as residual candidates.
-
----
-
-# 6. Upsert Pattern
-
-Word candidates should be upserted by hash.
+`vocabulary` is an ordered token bundle.
 
 ```sql
-insert into word_registry (
-  token_index_array,
-  raw_word,
-  word_hash,
-  split_flag,
-  split_kind
-)
-values (
-  :token_index_array,
-  :raw_word,
-  :word_hash,
-  :split_flag,
-  :split_kind
-)
-on conflict (word_hash)
-do update set
-  observed_count = word_registry.observed_count + 1,
-  last_seen_at = now();
+create table vocabulary (
+  vocabulary_uuid uuid primary key default gen_random_uuid(),
+
+  vocabulary_index bigint not null unique,
+
+  token_array uuid[] not null,
+
+  raw_text text null,
+  vocabulary_hash text not null unique,
+
+  split_flag boolean not null default false,
+  split_kind text null,
+
+  draft_flag boolean not null default true,
+  status text not null default 'draft',
+  -- draft | adopted | archived | quarantined | rejected | dormant
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index idx_vocabulary_token_array
+  on vocabulary using gin (token_array);
+
+create index idx_vocabulary_status
+  on vocabulary (draft_flag, status);
 ```
 
-The tokenizer does not decide whether a word is adopted vocabulary.
-
-It only records recurrence.
-
-Adoption is handled by scheduled promotion rules and explicit adoption logic.
-
----
-
-# 7. Connection to xi / yj / zk
-
-The tokenizer feeds the quaternion-style processing layers.
-
-```text
-scoped input
-→ token/word candidates
-→ xi coherence layer
-```
-
-## 7.1 xi: coherence layer
-
-If a token/word candidate hits adopted grammar, adopted vocabulary, or existing draft vocabulary:
-
-```text
-candidate → coherence hit bundle
-```
-
-This becomes part of `z`, the exploration hit bundle.
-
-## 7.2 yj: decoherence bank
-
-If a token/word candidate cannot be absorbed:
-
-```text
-candidate → no-hit / low-hit residual → decoherence bank
-```
-
-This becomes part of `y`, stored through `j`.
-
-## 7.3 relation layer
-
-If multiple grammar or vocabulary candidates are found across a scope or adjacent scopes, they should be connected.
-
-```text
-candidate A
-candidate B
-candidate C
-→ coherence relation candidate
-```
-
-Without relation, output becomes a mirror of local input fragments.
-
-Relation is what allows the system to connect the beginning and end of a divided input.
-
-## 7.4 zk: coherence decoder
-
-When enough hit bundle and relation evidence exists:
-
-```text
-z + relation evidence → corrected grammar candidate k → output projection
-```
-
-The tokenizer does not produce final output.
-
-It only prepares stable candidates for the coherence/decoherence/relation pipeline.
-
----
-
-# 8. Decoherence Bank Promotion
-
-Unknown or repeated residuals should be promoted only after recurrence or coherence thresholds.
-
-Example:
+Search/aggregation link table:
 
 ```sql
-select word_hash, raw_word, count(*) as observed_count
-from decoherence_bank
-group by word_hash, raw_word
-having count(*) > 10;
+create table vocabulary_token_link (
+  vocabulary_uuid uuid not null references vocabulary(vocabulary_uuid),
+  token_uuid uuid not null references token(token_uuid),
+  position integer not null,
+
+  primary key (vocabulary_uuid, position)
+);
+
+create index idx_vocabulary_token_link_token
+  on vocabulary_token_link (token_uuid, position);
 ```
-
-Promotion examples:
-
-```text
-decoherence bank → draft vocabulary
-draft vocabulary → adopted vocabulary
-decoherence bank → draft grammar
-draft grammar → adopted grammar
-```
-
-This is the practical learning path.
-
-A token that was unknown yesterday may become a coherence-layer hit tomorrow.
 
 ---
 
-# 9. Coherence Relation Layer
+# 6. Grammar Table
 
-The coherence relation layer connects divided grammar and vocabulary candidates.
-
-This is required because tokenization and scope splitting break input into local pieces.
-
-If those pieces are not reconnected, the system only mirrors nearby fragments.
-
-The relation layer preserves ordered semantic continuity.
-
-Example:
-
-```text
-scope 1: refrigeration does not cool
-scope 2: cargo may be damaged
-scope 3: customer wants repair by tomorrow
-```
-
-Without relation:
-
-```text
-three local hits
-```
-
-With relation:
-
-```text
-cooling failure → customer damage risk → deadline requirement
-```
-
-## 9.1 relation table
-
-Minimal form:
+`grammar` is an ordered vocabulary bundle.
 
 ```sql
-create table coherence_relation_layer (
-  relation_uuid uuid primary key default gen_random_uuid(),
-  relation_index bigint not null unique,
+create table grammar (
+  grammar_uuid uuid primary key default gen_random_uuid(),
 
-  relation_array uuid[] not null,
+  grammar_index bigint not null unique,
 
-  relation_kind text not null default 'grammar_to_grammar',
-  source_scope_uuid uuid null,
+  vocabulary_array uuid[] not null,
+
+  grammar_hash text not null unique,
+
+  end_of_sentence_flag boolean not null default false,
+
+  draft_flag boolean not null default true,
+  status text not null default 'draft',
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index idx_grammar_vocabulary_array
+  on grammar using gin (vocabulary_array);
+
+create index idx_grammar_status
+  on grammar (draft_flag, status);
+
+create index idx_grammar_eos
+  on grammar (end_of_sentence_flag);
+```
+
+Search/aggregation link table:
+
+```sql
+create table grammar_vocabulary_link (
+  grammar_uuid uuid not null references grammar(grammar_uuid),
+  vocabulary_uuid uuid not null references vocabulary(vocabulary_uuid),
+  position integer not null,
+
+  primary key (grammar_uuid, position)
+);
+
+create index idx_grammar_vocabulary_link_vocabulary
+  on grammar_vocabulary_link (vocabulary_uuid, position);
+```
+
+---
+
+# 7. Grammar Relation Table
+
+`grammar_relation` is an ordered grammar bundle.
+
+It is the canonical successor of the older coherence relation layer.
+
+```sql
+create table grammar_relation (
+  grammar_relation_uuid uuid primary key default gen_random_uuid(),
+
+  grammar_relation_index bigint not null unique,
+
+  grammar_array uuid[] not null,
+
+  relation_hash text not null unique,
+
+  end_of_sentence_flag boolean not null default false,
+
+  draft_flag boolean not null default true,
+  status text not null default 'draft',
+
+  relation_weight numeric not null default 0,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index idx_grammar_relation_array
+  on grammar_relation using gin (grammar_array);
+
+create index idx_grammar_relation_status
+  on grammar_relation (draft_flag, status);
+
+create index idx_grammar_relation_eos
+  on grammar_relation (end_of_sentence_flag);
+```
+
+Search/aggregation link table:
+
+```sql
+create table grammar_relation_link (
+  grammar_relation_uuid uuid not null references grammar_relation(grammar_relation_uuid),
+  grammar_uuid uuid not null references grammar(grammar_uuid),
+  position integer not null,
+
+  primary key (grammar_relation_uuid, position)
+);
+
+create index idx_grammar_relation_link_grammar
+  on grammar_relation_link (grammar_uuid, position);
+```
+
+---
+
+# 8. Decoherence Bank
+
+`decoherence_bank` stores no-hit, low-hit, and unabsorbed residuals.
+
+It is also the trigger point for web-search notifications, offline near-neighbor replacement, and question notifications.
+
+```sql
+create table decoherence_bank (
+  decoherence_uuid uuid primary key default gen_random_uuid(),
+
+  residual_hash text not null unique,
+  residual_kind text not null,
+  -- token | vocabulary | grammar | grammar_relation | external | remote
+
+  raw_text text null,
+  token_array uuid[] null,
+  vocabulary_array uuid[] null,
+  grammar_array uuid[] null,
+
   source_observation_uuid uuid null,
+  source_scope_uuid uuid null,
 
   observed_count bigint not null default 1,
-  coherence_weight numeric not null default 0,
-  first_seen_at timestamptz not null default now(),
-  last_seen_at timestamptz not null default now()
+  pressure numeric not null default 0,
+
+  status text not null default 'draft',
+  -- draft | queued | promoted | quarantined | rejected | dormant
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
+
+create index idx_decoherence_status
+  on decoherence_bank (status);
+
+create index idx_decoherence_pressure
+  on decoherence_bank (pressure, observed_count);
 ```
 
-Suggested meaning:
-
-```text
-relation_uuid      = stable identity of the relation
-relation_index     = deterministic or insertion-order relation index
-relation_array     = ordered candidate UUIDs participating in the relation
-relation_kind      = grammar_to_grammar, vocab_to_grammar, vocab_to_vocab, etc.
-source_scope_uuid  = scope that produced the relation, if available
-observed_count     = recurrence pressure
-coherence_weight   = normalized relation strength
-```
-
-## 9.2 relation link table
-
-For search and aggregation, a link table is recommended.
+Upsert pattern:
 
 ```sql
-create table coherence_relation_link (
-  relation_uuid uuid not null references coherence_relation_layer(relation_uuid),
-  candidate_uuid uuid not null,
-  candidate_kind text not null,
-  position integer not null,
-  role text null,
-
-  primary key (relation_uuid, position)
-);
+insert into decoherence_bank (
+  residual_hash,
+  residual_kind,
+  raw_text,
+  token_array,
+  vocabulary_array,
+  grammar_array,
+  source_observation_uuid,
+  source_scope_uuid
+)
+values (
+  :residual_hash,
+  :residual_kind,
+  :raw_text,
+  :token_array,
+  :vocabulary_array,
+  :grammar_array,
+  :source_observation_uuid,
+  :source_scope_uuid
+)
+on conflict (residual_hash)
+do update set
+  observed_count = decoherence_bank.observed_count + 1,
+  pressure = decoherence_bank.pressure + 1,
+  updated_at = now()
+returning decoherence_uuid;
 ```
 
-Suggested candidate kinds:
+After a successful insert or conflict update, the runtime should evaluate:
 
 ```text
-token
-word
-draft_vocabulary
-adopted_vocabulary
-draft_grammar
-adopted_grammar
-corrected_grammar
-```
-
-## 9.3 relation upsert
-
-Relation can be upserted by a stable relation hash.
-
-A production table may include `relation_hash`:
-
-```sql
-alter table coherence_relation_layer
-add column relation_hash text unique;
+online.enabled
+external_observation.enabled
+freeze.enabled
+near_blend.enabled
+question_notify.enabled
 ```
 
 Then:
 
-```sql
-insert into coherence_relation_layer (
-  relation_index,
-  relation_array,
-  relation_hash,
-  relation_kind,
-  source_scope_uuid,
-  source_observation_uuid
-)
-values (
-  :relation_index,
-  :relation_array,
-  :relation_hash,
-  :relation_kind,
-  :source_scope_uuid,
-  :source_observation_uuid
-)
-on conflict (relation_hash)
-do update set
-  observed_count = coherence_relation_layer.observed_count + 1,
-  last_seen_at = now();
+```text
+online=true  → notify.web_search_requested
+offline=true → near vocabulary / grammar / relation blend
+frequent unresolved residual → notify.question_requested
 ```
-
-Relation is not optional metadata.
-
-It is the memory that allows segmented grammar to remain connected.
 
 ---
 
-# 10. Phase Relation Candidate Generation
+# 9. Core State
 
-Phase Attention should not run as a heavy synchronous reply-time process.
-
-It should operate on normalized and aggregated tables.
-
-Phase does not primarily inspect raw input.
-
-It reads:
-
-```text
-adopted vocabulary table
-adopted grammar table
-draft vocabulary table
-draft grammar table
-coherence relation layer
-relation aggregate weights
-hit counts
-coherence weights
-co-occurrence frequencies
-scope-crossing continuity
-```
-
-Phase uses these normalized aggregate values to generate relation candidates.
-
-## 10.1 What Phase does
-
-Phase slides across layers and searches for relation candidates.
-
-```text
-vocabulary layer
-→ grammar layer
-→ relation layer
-→ corrected grammar layer
-```
-
-It may generate candidates such as:
-
-```text
-grammar A → grammar B
-grammar B → grammar C
-vocabulary bundle X → grammar A
-vocabulary bundle Y → grammar B
-grammar A + grammar C recur under the same use case
-```
-
-The goal is to discover relation candidates that are not directly present as one raw input span.
-
-## 10.2 Phase should use aggregates
-
-Phase should use pre-aggregated values such as:
-
-```text
-observed_count
-coherence_weight
-co_occurrence_count
-relation_frequency
-scope_transition_count
-promotion_count
-semantic_axis_candidate_count
-```
-
-This keeps reply-time processing light.
-
-## 10.3 Phase output
-
-Phase should output candidates, not mutate adopted structures directly.
-
-Possible output tables:
+`core_state` is the runtime authority for mutable execution state.
 
 ```sql
-create table phase_relation_candidate (
-  phase_candidate_uuid uuid primary key default gen_random_uuid(),
-  candidate_relation_array uuid[] not null,
-  candidate_kind text not null default 'relation_candidate',
-  source_aggregate_window text null,
-  phase_score numeric not null default 0,
-  evidence_count bigint not null default 0,
-  status text not null default 'draft',
+create table core_state (
+  state_uuid uuid primary key default gen_random_uuid(),
+
+  state_key text not null unique,
+  state_kind text not null,
+  -- bool | int | numeric | text | json
+
+  bool_value boolean null,
+  int_value bigint null,
+  numeric_value numeric null,
+  text_value text null,
+  json_value jsonb null,
+
+  authority text not null default 'core',
+  description text null,
+
   created_at timestamptz not null default now(),
-  last_seen_at timestamptz not null default now()
+  updated_at timestamptz not null default now()
 );
 ```
 
-A candidate may later be reviewed, promoted, or used by the coherence decoder as draft relation evidence.
+Initial state examples:
 
-## 10.4 Runtime boundary
+```sql
+insert into core_state (state_key, state_kind, bool_value, description)
+values
+  ('freeze.enabled', 'bool', false, 'semantic mutation gate'),
+  ('online.enabled', 'bool', true, 'online/offline external observation switch'),
+  ('mastication.enabled', 'bool', true, 'controlled external/remote observation ingestion'),
+  ('external_observation.enabled', 'bool', true, 'web search notification switch'),
+  ('distributed_sync.enabled', 'bool', false, 'remote event intake switch'),
+  ('question_notify.enabled', 'bool', true, 'question notification switch'),
+  ('near_blend.enabled', 'bool', true, 'offline near-neighbor replacement switch'),
+  ('constraint.enabled', 'bool', true, 'post-decoder pre-collapse stabilizer switch');
+```
 
-Synchronous reply path:
+---
+
+# 10. Operation Policy Gate
+
+All mutation-capable operations must pass through an operation gate.
+
+```sql
+create table core_operation_policy (
+  policy_uuid uuid primary key default gen_random_uuid(),
+
+  state_key text not null references core_state(state_key),
+  expected_bool boolean not null,
+
+  operation_key text not null,
+
+  allowed boolean not null,
+
+  reason text null,
+
+  created_at timestamptz not null default now(),
+
+  unique (state_key, expected_bool, operation_key)
+);
+```
+
+Example policies:
+
+```sql
+insert into core_operation_policy (
+  state_key,
+  expected_bool,
+  operation_key,
+  allowed,
+  reason
+)
+values
+  ('freeze.enabled', true, 'adopt.vocabulary', false, 'freeze prohibits adopted vocabulary mutation'),
+  ('freeze.enabled', true, 'adopt.grammar', false, 'freeze prohibits adopted grammar mutation'),
+  ('freeze.enabled', true, 'adopt.relation', false, 'freeze prohibits adopted relation mutation'),
+  ('freeze.enabled', true, 'promote.decoherence_to_draft', false, 'freeze prohibits promotion'),
+  ('freeze.enabled', true, 'promote.phase_relation', false, 'freeze prohibits relation promotion'),
+  ('freeze.enabled', true, 'mastication.learn', false, 'freeze prohibits mastication learning'),
+  ('freeze.enabled', true, 'external_observation.ingest', false, 'freeze prohibits external adoption'),
+  ('freeze.enabled', true, 'decode.output', true, 'freeze allows read-only decoding'),
+  ('freeze.enabled', true, 'coherence.lookup', true, 'freeze allows read-only coherence lookup'),
+  ('freeze.enabled', true, 'relation.lookup', true, 'freeze allows read-only relation lookup');
+```
+
+Gate function:
+
+```sql
+create or replace function core_can_execute(p_operation_key text)
+returns boolean
+language sql
+stable
+as $$
+  select not exists (
+    select 1
+    from core_operation_policy p
+    join core_state s on s.state_key = p.state_key
+    where p.operation_key = p_operation_key
+      and s.bool_value = p.expected_bool
+      and p.allowed = false
+  );
+$$;
+```
+
+---
+
+# 11. Notify Queue
+
+`core_notify_queue` is the DB-to-backend work queue.
+
+The database enqueues semantic notifications; the backend consumes and executes transport or worker tasks.
+
+```sql
+create table core_notify_queue (
+  notify_uuid uuid primary key default gen_random_uuid(),
+
+  notify_kind text not null,
+  -- web_search_requested | question_requested | promotion_candidate_detected
+  -- phase_relation_candidate_ready | freeze_blocked_mutation
+
+  source_operation text not null,
+  source_table text null,
+  source_uuid uuid null,
+
+  status text not null default 'queued',
+  -- queued | processing | consumed | failed | cancelled
+
+  payload_json jsonb null,
+
+  created_at timestamptz not null default now(),
+  consumed_at timestamptz null
+);
+
+create index idx_core_notify_queue_status
+  on core_notify_queue (status, notify_kind, created_at);
+```
+
+---
+
+# 12. Mastication Jobs
+
+Mastication is controlled external/remote observation ingestion.
+
+```sql
+create table mastication_job (
+  job_uuid uuid primary key default gen_random_uuid(),
+
+  source_kind text not null,
+  -- web | file | user_supplied | remote_event
+
+  source_hash text not null,
+  status text not null default 'queued',
+  -- queued | processing | completed | failed | quarantined | blocked
+
+  raw_text_policy text not null default 'discard_after_ingest',
+
+  learning_weight numeric not null default 0.10,
+
+  created_at timestamptz not null default now(),
+  started_at timestamptz null,
+  finished_at timestamptz null
+);
+
+create table mastication_observation_result (
+  result_uuid uuid primary key default gen_random_uuid(),
+
+  job_uuid uuid not null references mastication_job(job_uuid),
+
+  observation_uuid uuid null,
+
+  inserted_token_count bigint not null default 0,
+  decoherence_insert_count bigint not null default 0,
+  relation_candidate_count bigint not null default 0,
+  adopted_update_count bigint not null default 0,
+
+  raw_text_discarded boolean not null default true,
+
+  created_at timestamptz not null default now()
+);
+```
+
+Mastication queueing may be allowed during freeze.
+
+Mastication learning must be blocked during freeze.
+
+---
+
+# 13. Remote Event Intake
+
+Remote events are observation candidates, not semantic updates.
+
+```sql
+create table remote_event_inbox (
+  event_uuid uuid primary key default gen_random_uuid(),
+
+  remote_node_id text not null,
+  event_hash text not null unique,
+  signature text null,
+  payload_hash text not null,
+
+  status text not null default 'received',
+  -- received | rejected | quarantined | queued_for_mastication | accepted_observation
+
+  decision text null,
+  reason text null,
+
+  created_at timestamptz not null default now()
+);
+
+create table remote_event_quarantine (
+  quarantine_uuid uuid primary key default gen_random_uuid(),
+
+  event_uuid uuid not null references remote_event_inbox(event_uuid),
+
+  reason text not null,
+  released boolean not null default false,
+
+  created_at timestamptz not null default now(),
+  released_at timestamptz null
+);
+```
+
+Backend may verify cryptographic facts.
+
+Database decides semantic acceptance.
+
+Remote events must not directly mutate adopted vocabulary, adopted grammar, adopted relation, or core state.
+
+---
+
+# 14. Scheduled Aggregation
+
+## 14.1 Coherence to Current
+
+Scheduled aggregation reads `logs.coherence` and upserts `logs.current`.
+
+Example for grammar:
+
+```sql
+insert into logs.current (
+  target_table,
+  target_uuid,
+  current_value,
+  aggregated_to,
+  updated_at
+)
+select
+  'grammar' as target_table,
+  target_uuid,
+  jsonb_build_object(
+    'coherence_count', count(*),
+    'hit_count', count(*) filter (where coherence_kind = 'hit'),
+    'near_hit_count', count(*) filter (where coherence_kind = 'near_hit'),
+    'partial_hit_count', count(*) filter (where coherence_kind = 'partial_hit'),
+    'end_of_sentence_count', count(*) filter (
+      where end_of_sentence_observed = true
+    ),
+    'end_of_sentence_score',
+      100.0
+      * count(*) filter (where end_of_sentence_observed = true)
+      / nullif(count(*), 0)
+  ) as current_value,
+  now(),
+  now()
+from logs.coherence
+where target_table = 'grammar'
+group by target_uuid
+on conflict (target_table, target_uuid)
+do update set
+  current_value = excluded.current_value,
+  aggregated_to = excluded.aggregated_to,
+  updated_at = now();
+```
+
+## 14.2 End-of-Sentence Flag Update
+
+Provisional rule:
+
+```text
+coherence_count >= 20
+end_of_sentence_score >= 70
+```
+
+```sql
+update grammar g
+set
+  end_of_sentence_flag = true,
+  updated_at = now()
+from logs.current c
+where c.target_table = 'grammar'
+  and c.target_uuid = g.grammar_uuid
+  and (c.current_value->>'coherence_count')::int >= 20
+  and (c.current_value->>'end_of_sentence_score')::numeric >= 70
+  and g.end_of_sentence_flag = false;
+```
+
+The update must be recorded in `logs.diff`.
+
+---
+
+# 15. Canonical Runtime Path
 
 ```text
 input
-→ token/word candidates
-→ xi coherence hit
-→ yj residual bank
-→ relation lookup
+→ scope split
+→ token upsert
+→ vocabulary candidate upsert
+→ grammar candidate upsert
+→ xi coherence lookup
+→ logs.coherence append
+→ no-hit / low-hit residual
+→ decoherence_bank upsert
+→ online/offline branch
+   online  → web_search_requested notify
+   offline → near vocabulary / grammar / relation blend
+   frequent unresolved residual → question_requested notify
+→ grammar_relation lookup/upsert
 → zk coherence decoder
-```
-
-Asynchronous / scheduled path:
-
-```text
-normalized vocabulary and grammar tables
-→ relation aggregates
-→ Phase Attention
-→ phase_relation_candidate
-→ later promotion or decoder support
-```
-
-This prevents Phase from becoming a heavy bottleneck in ordinary response generation.
-
----
-
-# 11. Why Relation Matters
-
-If relation is thin, output will mirror input.
-
-The system may still identify local words and grammar fragments, but it cannot connect them into a semantic flow.
-
-With weak relation:
-
-```text
-input fragments in
-similar fragments out
-```
-
-With strong relation:
-
-```text
-input fragments
-→ connected grammar sequence
-→ corrected grammar candidate
-→ useful output
-```
-
-Therefore, relation growth is one of the main differences between:
-
-```text
-surface-level tokenizer
-```
-
-and:
-
-```text
-language-model-like behavior
-```
-
-A mature system should track not only vocabulary growth and grammar growth, but relation growth.
-
-Useful growth metrics:
-
-```text
-relation_count
-relation_density
-average relation length
-scope-crossing relation count
-phase_relation_candidate count
-relation promotion count
-coherence decoder success rate
+→ constraint apply
+→ collapse/output
+→ mutation-capable updates only through core_can_execute()
 ```
 
 ---
 
-# 12. Why SQL Is Suitable Here
-
-This layer is mostly:
+# 16. Minimal Function List
 
 ```text
-scope split
-index assignment
-hash generation
-upsert
-range tracking
-count aggregation
-relation insert/update
-scheduled promotion
-phase candidate generation
-notify
+core_get_state(state_key)
+core_set_state(state_key, value, reason)
+core_can_execute(operation_key)
+core_record_diff(...)
+core_append_coherence(...)
+core_upsert_decoherence(...)
+core_enqueue_notify(...)
+core_ingest_remote_event(...)
+core_queue_mastication(...)
+core_promote_candidate(...)
+core_adopt_candidate(...)
+core_freeze(reason)
+core_unfreeze(reason)
 ```
 
-These are database-friendly operations.
-
-A C# or other worker may still be useful for:
-
-- efficient streaming input
-- complex regex libraries
-- external file handling
-- crawler integration
-- background scheduling
-
-But the semantic authority should remain in the database structures.
-
-The worker should assist execution, not decide meaning.
-
----
-
-# 13. Minimal First Implementation
-
-A minimal implementation can start with:
-
-```text
-1. token_registry
-2. word_registry
-3. decoherence_bank
-4. coherence_relation_layer
-5. coherence_relation_link
-6. split_flag tokens
-7. scope_size = 1000
-8. simple split rules
-9. word_hash upsert
-10. no-hit insert into decoherence_bank
-11. relation upsert from adjacent candidate bundles
-12. scheduled count-based promotion
-13. scheduled Phase candidate generation from aggregates
-```
-
-No MeCab, UniDic, or language-specific tokenizer is required for the first version.
-
-The tokenizer is:
-
-```text
-UUID indexer
-boundary splitter
-hash aggregator
-```
-
-The relation layer is:
-
-```text
-semantic continuity memory
-```
-
-The language model behavior emerges later from coherence hits, decoherence banking, relation formation, promotion, corrected grammar, and output projection.
-
----
-
-# 14. Short Form
-
-```text
-Do not make the tokenizer smart.
-Make the tokenizer stable.
-
-Do not parse meaning at the entrance.
-Index, split, hash, and upsert.
-
-Known candidates go to xi.
-Unknown candidates go to yj.
-Connected candidates go to the coherence relation layer.
-Aggregated relations feed Phase.
-Corrected grammar output comes from zk.
-```
+The application should call database functions rather than reimplement policy decisions in backend code.
