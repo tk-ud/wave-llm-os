@@ -78,6 +78,7 @@ It does not define canonical runtime authority.
 | semantic freeze | migrate | core_state + operation gate |
 | semantic snapshot / restore | reject | unnecessary in canonical core because freeze/function gates prevent coherence/current/draft mutation |
 | scheduler / maintenance loop | migrate | backend-triggered scheduler_job / scheduler_job_run with DB-owned lock and operation gate |
+| Phase relation candidate generation | migrate | DRAFT_PHASE_RELATION_CANDIDATE.md; outputs grammar arrays only |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
 
 Snapshot note:
@@ -98,6 +99,16 @@ SQL does not run the scheduler by itself.
 A backend worker, cron process, or external runner wakes up and calls DB functions.
 
 The database owns job registry, lock, operation gate, blocked/skipped decisions, and run evidence.
+```
+
+Phase note:
+
+```text
+Phase relation candidate generation outputs grammar arrays.
+
+Because token → vocabulary → grammar → grammar array is hierarchical, a decided grammar array determines the vocabulary and token references.
+
+Missing slots are completed by reverse hierarchical near-neighbor search.
 ```
 
 ---
@@ -337,12 +348,34 @@ cleanup.expired_locks
 
 ---
 
-# 13. Pending Migration Items
+# 13. Phase Relation Candidate
+
+Migrated as scheduled grammar-relation candidate generation.
+
+Canonical object:
+
+```text
+phase_relation_candidate
+phase_relation_candidate_link
+```
+
+Rules:
+
+- Phase reads `logs.current` and other normalized aggregate evidence
+- Phase does not inspect raw input as its primary source
+- Phase outputs grammar arrays only
+- grammar arrays determine vocabulary/token levels through hierarchy
+- missing slots are filled by reverse hierarchical near-neighbor search
+- Phase candidates must not directly mutate `grammar_relation`
+- promotion must pass `core_can_execute('promote.phase_relation')`
+
+---
+
+# 14. Pending Migration Items
 
 The following still need detailed canonical table/function specs:
 
 - constraint rule table
-- Phase relation candidate table
 - adoption audit table, or explicit use of logs.diff for adoption audit
 - near-neighbor extension choice
 - web search result mastication schema
@@ -351,7 +384,7 @@ The following still need detailed canonical table/function specs:
 
 ---
 
-# 14. Promotion Path
+# 15. Promotion Path
 
 Before this draft becomes canonical:
 
