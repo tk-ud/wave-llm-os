@@ -19,10 +19,11 @@ It replaces the earlier tokenizer-only draft with a PostgreSQL-first schema for:
 - notify queue
 - mastication jobs
 - remote event intake
+- scheduler worker coordination
 
 SQLite is intentionally not a target for the canonical implementation.
 
-The next core requires PostgreSQL features such as UUID, JSONB, arrays, upsert, functions, triggers, notify/listen, scheduled workers, and near-neighbor search extensions.
+The next core requires PostgreSQL features such as UUID, JSONB, arrays, upsert, functions, triggers, notify/listen, backend-driven scheduled workers, and near-neighbor search extensions.
 
 ---
 
@@ -45,9 +46,15 @@ Rationale:
 - triggers can enqueue notify events
 - LISTEN/NOTIFY can drive backend workers
 - extensions can support near-neighbor search
-- scheduled aggregation can be DB-centered
+- backend workers can call DB-owned scheduled functions
 
 SQLite is not used for the canonical core because the design requires database-side policy, aggregation, and near-neighbor behavior.
+
+PostgreSQL does not run the scheduler by itself.
+
+A backend worker, cron process, or external job runner starts scheduled work.
+
+However, job lock, job eligibility, operation gating, and semantic decisions remain in the database.
 
 ---
 
@@ -67,9 +74,11 @@ decoherence_bank = no-hit / low-hit / unabsorbed residuals
 core_state       = runtime state authority
 core_operation_policy = operation gate rules
 core_notify_queue = DB-created notifications for backend workers
+scheduler_job = DB-owned job registry for backend-triggered scheduled work
+scheduler_job_run = scheduled work execution evidence
 ```
 
-The backend transports work.
+The backend transports work and starts workers.
 
 The database decides state-aware semantic acceptance.
 
@@ -175,6 +184,7 @@ It is used for:
 - freeze-blocked mutation evidence
 - remote event decisions
 - mastication decisions
+- scheduler blocked/skipped decisions
 
 ```sql
 create table logs.diff (
@@ -581,6 +591,10 @@ values
   ('freeze.enabled', true, 'promote.phase_relation', false, 'freeze prohibits relation promotion'),
   ('freeze.enabled', true, 'mastication.learn', false, 'freeze prohibits mastication learning'),
   ('freeze.enabled', true, 'external_observation.ingest', false, 'freeze prohibits external adoption'),
+  ('freeze.enabled', true, 'aggregate.logs_current', false, 'freeze prohibits current aggregate mutation'),
+  ('freeze.enabled', true, 'update.flag.grammar_eos', false, 'freeze prohibits grammar flag mutation'),
+  ('freeze.enabled', true, 'detect.promotion_candidate', false, 'freeze prohibits promotion detection mutation'),
+  ('freeze.enabled', true, 'generate.phase_relation_candidate', false, 'freeze prohibits phase candidate mutation'),
   ('freeze.enabled', true, 'decode.output', true, 'freeze allows read-only decoding'),
   ('freeze.enabled', true, 'coherence.lookup', true, 'freeze allows read-only coherence lookup'),
   ('freeze.enabled', true, 'relation.lookup', true, 'freeze allows read-only relation lookup');
@@ -640,7 +654,157 @@ create index idx_core_notify_queue_status
 
 ---
 
-# 12. Mastication Jobs
+# 12. Scheduler Worker Registry
+
+SQL does not run scheduled jobs by itself.
+
+A backend worker, cron process, or external job runner must wake up and call database functions.
+
+The database still owns:
+
+- which jobs exist
+- whether a job is enabled
+- which operation gate applies
+- lock acquisition
+- blocked/skipped decisions
+- run evidence
+
+Backend worker responsibility:
+
+```text
+wake up
+→ claim due job from DB
+→ call DB function
+→ report completion/failure
+```
+
+Backend worker must not reimplement semantic policy.
+
+## 12.1 scheduler_job
+
+```sql
+create table scheduler_job (
+  job_uuid uuid primary key default gen_random_uuid(),
+
+  job_key text not null unique,
+
+  operation_key text not null,
+
+  enabled boolean not null default true,
+
+  schedule_kind text not null,
+  -- interval | cron | manual
+
+  interval_seconds integer null,
+  cron_expr text null,
+
+  status text not null default 'idle',
+  -- idle | running | failed | disabled
+
+  locked_by text null,
+  locked_until timestamptz null,
+
+  last_run_at timestamptz null,
+  next_run_at timestamptz null,
+
+  run_count bigint not null default 0,
+  fail_count bigint not null default 0,
+
+  config_json jsonb null,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index idx_scheduler_job_due
+  on scheduler_job (enabled, next_run_at, status);
+
+create index idx_scheduler_job_lock
+  on scheduler_job (locked_until);
+```
+
+## 12.2 scheduler_job_run
+
+```sql
+create table scheduler_job_run (
+  run_uuid uuid primary key default gen_random_uuid(),
+
+  job_uuid uuid not null references scheduler_job(job_uuid),
+
+  operation_key text not null,
+
+  status text not null,
+  -- running | completed | failed | skipped | blocked
+
+  started_at timestamptz not null default now(),
+  finished_at timestamptz null,
+
+  affected_count bigint null,
+
+  result_json jsonb null,
+  error_json jsonb null
+);
+
+create index idx_scheduler_job_run_job
+  on scheduler_job_run (job_uuid, started_at desc);
+
+create index idx_scheduler_job_run_status
+  on scheduler_job_run (status, operation_key);
+```
+
+## 12.3 Initial Jobs
+
+```sql
+insert into scheduler_job (
+  job_key,
+  operation_key,
+  enabled,
+  schedule_kind,
+  interval_seconds,
+  status
+)
+values
+  ('aggregate.logs_current', 'aggregate.logs_current', true, 'interval', 60, 'idle'),
+  ('update.grammar_eos_flag', 'update.flag.grammar_eos', true, 'interval', 300, 'idle'),
+  ('detect.promotion_candidate', 'detect.promotion_candidate', true, 'interval', 300, 'idle'),
+  ('generate.phase_relation_candidate', 'generate.phase_relation_candidate', true, 'interval', 600, 'idle'),
+  ('process.mastication_queue', 'mastication.observe', true, 'interval', 60, 'idle'),
+  ('process.remote_event_inbox', 'remote_event.ingest', true, 'interval', 60, 'idle'),
+  ('consume.notify_queue', 'notify.consume', true, 'interval', 30, 'idle'),
+  ('cleanup.expired_locks', 'scheduler.cleanup_locks', true, 'interval', 300, 'idle');
+```
+
+## 12.4 Scheduler Gate Rule
+
+Before executing a job, the DB-owned runner function must call:
+
+```sql
+select core_can_execute(operation_key);
+```
+
+If false:
+
+```text
+scheduler_job_run.status = blocked
+logs.diff.operation_key = operation_key
+logs.diff.status = blocked
+```
+
+During freeze:
+
+```text
+aggregate.logs_current             blocked
+update.grammar_eos_flag            blocked
+detect.promotion_candidate         blocked
+generate.phase_relation_candidate  blocked
+mastication.learn                  blocked
+
+read-only decode / lookup          allowed
+```
+
+---
+
+# 13. Mastication Jobs
 
 Mastication is controlled external/remote observation ingestion.
 
@@ -688,7 +852,7 @@ Mastication learning must be blocked during freeze.
 
 ---
 
-# 13. Remote Event Intake
+# 14. Remote Event Intake
 
 Remote events are observation candidates, not semantic updates.
 
@@ -731,9 +895,11 @@ Remote events must not directly mutate adopted vocabulary, adopted grammar, adop
 
 ---
 
-# 14. Scheduled Aggregation
+# 15. Scheduled Aggregation
 
-## 14.1 Coherence to Current
+Scheduled aggregation is started by backend worker and decided by DB functions.
+
+## 15.1 Coherence to Current
 
 Scheduled aggregation reads `logs.coherence` and upserts `logs.current`.
 
@@ -775,7 +941,7 @@ do update set
   updated_at = now();
 ```
 
-## 14.2 End-of-Sentence Flag Update
+## 15.2 End-of-Sentence Flag Update
 
 Provisional rule:
 
@@ -801,7 +967,7 @@ The update must be recorded in `logs.diff`.
 
 ---
 
-# 15. Canonical Runtime Path
+# 16. Canonical Runtime Path
 
 ```text
 input
@@ -824,9 +990,20 @@ input
 → mutation-capable updates only through core_can_execute()
 ```
 
+Scheduled path:
+
+```text
+backend worker / cron
+→ scheduler_claim_job(...)
+→ core_can_execute(operation_key)
+→ core_run_scheduler_job(job_key)
+→ scheduler_job_run evidence
+→ logs.diff if blocked / meaningful mutation
+```
+
 ---
 
-# 16. Minimal Function List
+# 17. Minimal Function List
 
 ```text
 core_get_state(state_key)
@@ -842,6 +1019,10 @@ core_promote_candidate(...)
 core_adopt_candidate(...)
 core_freeze(reason)
 core_unfreeze(reason)
+scheduler_claim_job(worker_id)
+scheduler_finish_job(run_uuid, result)
+scheduler_fail_job(run_uuid, error)
+core_run_scheduler_job(job_key)
 ```
 
 The application should call database functions rather than reimplement policy decisions in backend code.
