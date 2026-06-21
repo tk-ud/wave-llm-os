@@ -77,6 +77,7 @@ It does not define canonical runtime authority.
 | external observation last resort | reinterpret | web search notify from decoherence pressure |
 | semantic freeze | migrate | core_state + operation gate |
 | semantic snapshot / restore | reject | unnecessary in canonical core because freeze/function gates prevent coherence/current/draft mutation |
+| scheduler / maintenance loop | migrate | backend-triggered scheduler_job / scheduler_job_run with DB-owned lock and operation gate |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
 
 Snapshot note:
@@ -87,6 +88,16 @@ The canonical core does not need semantic_snapshot / restore as a separate seman
 When freeze.enabled is true and operation gates are enforced, logs.coherence, logs.current, draft spaces, adopted spaces, and relation spaces do not mutate through semantic write functions.
 
 Therefore snapshot/restore is not migrated into the canonical runtime.
+```
+
+Scheduler note:
+
+```text
+SQL does not run the scheduler by itself.
+
+A backend worker, cron process, or external runner wakes up and calls DB functions.
+
+The database owns job registry, lock, operation gate, blocked/skipped decisions, and run evidence.
 ```
 
 ---
@@ -119,6 +130,9 @@ Freeze blocks:
 - mastication.learn
 - external_observation.ingest
 - remote semantic update
+- current aggregation
+- grammar flag update
+- phase candidate generation
 - core state mutation unless explicitly authorized
 
 Blocked mutations must be recorded in `logs.diff`.
@@ -286,7 +300,44 @@ Canonical storage is PostgreSQL.
 
 ---
 
-# 12. Pending Migration Items
+# 12. Scheduler Registry
+
+Migrated as backend-triggered DB-owned scheduled work control.
+
+Canonical objects:
+
+```text
+scheduler_job
+scheduler_job_run
+core_operation_policy
+logs.diff
+```
+
+Rules:
+
+- backend worker wakes up jobs
+- DB owns job registry
+- DB owns lock state
+- DB owns operation gate
+- DB records run evidence
+- freeze blocks semantic write jobs
+
+Initial jobs:
+
+```text
+aggregate.logs_current
+update.grammar_eos_flag
+detect.promotion_candidate
+generate.phase_relation_candidate
+process.mastication_queue
+process.remote_event_inbox
+consume.notify_queue
+cleanup.expired_locks
+```
+
+---
+
+# 13. Pending Migration Items
 
 The following still need detailed canonical table/function specs:
 
@@ -296,12 +347,11 @@ The following still need detailed canonical table/function specs:
 - near-neighbor extension choice
 - web search result mastication schema
 - remote node trust registry
-- scheduler job registry
 - decoder trace / loop guard equivalent
 
 ---
 
-# 13. Promotion Path
+# 14. Promotion Path
 
 Before this draft becomes canonical:
 
