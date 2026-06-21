@@ -2,106 +2,91 @@
 
 ## Status
 
-This document is a draft philosophy for the next conceptual core of Wave LLMOS.
+This document is the working draft for the next conceptual core of Wave LLMOS.
 
-The existing spectral-wave architecture is preserved as legacy. It remains historically important because it established the original premise:
+The existing spectral-wave documents remain in the repository as legacy references. They are not deleted. They preserve the historical origin of the project, but they do not define the canonical runtime authority of the next core.
+
+The next core replaces the old `wave_geometry` authority with a database-centered quaternion exploration model over vocabulary, grammar, grammar relation, decoherence, coherence logs, scheduled aggregation, core state, and explicit adoption.
+
+---
+
+# 1. Preserved Legacy Principles
+
+The following legacy principles remain valid and are migrated into the new core:
 
 - meaning does not originate from fixed neural weights
 - meaning is generated from observation
 - semantic state should be persistent, inspectable, and expandable
 - the decoder must not be treated as the origin of meaning
 - collapse must be explicit and bounded
+- learning must be non-destructive
+- raw external observation must not directly define meaning
+- distributed nodes must not create global semantic authority
 
-However, the legacy design treated semantic formation too much as a single-space spectral process.
+The following legacy mechanism is not migrated as canonical authority:
 
-The next core redefines the system around a quaternion-style processing equation, grammar space, vocabulary space, candidate bundles, residuals, a decoherence bank, a coherence relation layer, Phase relation candidate generation, and explicit adoption.
+- `wave_geometry` as primary semantic state
+- `psi` / spectral matrix as meaning authority
+- Euler-integrated wave state as the core semantic substrate
+- STFT / spectral basis as the canonical meaning basis
+- wave-signature search as the required semantic retrieval key
+
+Those elements may remain as historical references or optional experimental feature channels, but they must not override the canonical grammar/vocabulary/relation core.
 
 ---
 
-# 1. Core Premise
+# 2. Core Premise
 
 Meaning does not exist inside a word alone.
 
 Meaning emerges from the connection form between elements.
 
-A word, token, character, table value, status, phrase, event, or grammar fragment is not meaningful by itself.
+A word, token, character, table value, status, phrase, event, grammar fragment, or relation fragment is not meaningful by itself.
 
-Meaning appears when those elements are connected through grammar, vocabulary, usage, recurrence, pressure, residuals, relation, and adoption.
+Meaning appears when those elements are connected through vocabulary, grammar, usage, recurrence, residual pressure, coherence, decoherence, relation, scheduled aggregation, and explicit adoption.
 
 Therefore, the system must not begin by assuming a fixed semantic vector space.
 
-It must observe input, compare it against existing grammar and vocabulary spaces, preserve multiple near-neighbor candidates, connect divided candidates through relation, and only then generate draft or adopted meaning structures.
+It must observe input, compare it against existing vocabulary/grammar/relation spaces, preserve multiple near-neighbor candidates, store unabsorbed differences, connect divided candidates through relation, and only then generate draft or adopted meaning structures.
 
 ---
 
-# 2. Legacy Principle Preserved
+# 3. Canonical Authority Order
 
-The legacy Wave LLMOS principle remains valid:
-
-> Meaning originates from observation, not from a predefined vector space.
-
-The new core preserves this principle.
-
-However, the mechanism changes.
-
-Legacy core:
+The canonical runtime authority is ordered as follows:
 
 ```text
-token
-→ phase hash
-→ wave state update
-→ spectral observation
-→ basis search
-→ decoder
+1. Quaternion Exploration Core
+2. Core State / Operation Gate
+3. Persistent Semantic Tables
+   - vocabulary
+   - grammar
+   - grammar_relation
+   - decoherence_bank
+   - logs.coherence
+   - logs.current
+   - logs.diff
+4. Coherence / Decoherence / Relation Runtime
+5. Scheduled Aggregation and Phase Candidate Generation
+6. Coherence Decoder
+7. Constraint Layer
+8. External / Remote Observation Intake
+9. Legacy Archive
 ```
 
-Next core:
+The backend must not become semantic authority.
+
+The backend may transport input, verify cryptographic facts, execute workers, and call database functions.
+
+The database decides whether an operation is accepted, rejected, deferred, quarantined, queued, or blocked.
+
+The runtime asks:
 
 ```text
-input
-→ coherence layer
-→ decoherence bank
-→ coherence relation layer
-→ coherence decoder
-→ output candidate state
+core_can_execute(operation_key)
 ```
 
-The system is no longer primarily a continuously integrated spectral matrix or vector state.
-
-It becomes a layered quaternion-style exploration system over grammar, vocabulary, hash, residual, draft, adopted, and relation spaces.
-
----
-
-# 3. Why the Legacy Core Becomes Insufficient
-
-The legacy design had a vocabulary-like wave space, but it did not sufficiently define grammar space and grammar-to-grammar relation.
-
-It could represent observed patterns, spectral signatures, and basis formation.
-
-But it did not clearly define:
-
-- how grammar candidates are formed
-- how vocabulary candidates and grammar candidates interact
-- how incomplete grammar matches should trigger vocabulary exploration
-- how divided grammar fragments remain connected across scope boundaries
-- how residuals become draft vocabulary
-- how draft grammar becomes adopted grammar
-- how relation candidates are generated from normalized aggregates
-- how long context can be absorbed without continuous full-sequence computation
-- how a decoder can be generated from coherence, decoherence, and relation rather than pre-attached as a separate black box
-
-Without explicit grammar and relation space, the system risks becoming another local similarity engine.
-
-That would repeat the same structural problem found in large attention systems:
-
-- input is pulled into one representational space
-- candidates are collapsed too early
-- weak but important alternatives are lost
-- long context becomes computationally expensive
-- meaning is compressed rather than distributed into inspectable structures
-- output mirrors local input because relation is too thin
-
-The next core exists to avoid that.
+It does not hardcode semantic mutation rules in application code.
 
 ---
 
@@ -129,15 +114,15 @@ Expanded:
 ```text
 w = input anchor
 
-x = token bundle / hash bundle / segmented input fragments
-i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
+x = token bundle / vocabulary bundle / segmented input fragments
+i = regular grammar candidate, regular vocabulary candidate, or draft candidate
 
 xi = coherence layer
    = search whether x can be absorbed by i
 
 
 y = unsearchable difference / no-hit residual / low-hit residual
-j = draft grammar candidate, including draft grammar and draft vocabulary accumulation context
+j = draft grammar candidate and draft accumulation context
 
 yj = decoherence bank
    = store y into j-side draft accumulation
@@ -150,39 +135,17 @@ zk = coherence decoder
    = project z through k into an output-capable grammar candidate
 ```
 
-This is quaternion-style, not a strict Hamilton quaternion algebra at the draft stage.
+This is quaternion-style, not strict Hamilton quaternion algebra.
 
-The symbols `i`, `j`, and `k` are candidate imaginary axes.
+The symbols `i`, `j`, and `k` are candidate-bearing procedural axes.
 
-They are not assumed to be fixed orthogonal mathematical basis vectors.
-
-They are candidate-bearing virtual axes that appear through the exploration process.
-
-The important algebraic property is procedural non-commutativity.
-
-Search order matters.
+The important algebraic property is procedural non-commutativity:
 
 ```text
-ij ≠ ji
+ij != ji
 ```
 
-In this model, the following processing relation is central:
-
-```text
-ij = k
-```
-
-This means:
-
-```text
-coherence candidate axis
-composed with
-decoherence bank candidate axis
-produces
-coherence decoder axis
-```
-
-Or, operationally:
+Operationally:
 
 ```text
 xi finds what can be absorbed.
@@ -192,7 +155,7 @@ The composition of i and j produces k.
 zk uses k to decode the surviving hit bundle into corrected grammar.
 ```
 
-The system does not start from the question:
+The system does not start from:
 
 ```text
 Which token is closest?
@@ -204,179 +167,120 @@ It starts from:
 Which coherence/decoherence/relation path can produce a corrected grammar candidate for output?
 ```
 
-The database stores the spaces.
-
-The quaternion-style equation defines the exploration and decoding process.
-
-The runtime evaluates candidate paths.
-
-Relation connects fragmented grammar candidates into semantic continuity.
-
-Projection turns a corrected grammar candidate into usable output.
-
-Collapse selects or emits an output.
-
-Adoption updates persistent spaces only through explicit rules.
-
 ---
 
-# 5. Layered Semantic Spaces
+# 5. Canonical Semantic Spaces
 
-The next core separates semantic space into layered spaces.
-
-Initial candidate stack:
+The next core separates semantic space into layered persistent spaces:
 
 ```text
-input grammar space
-hash space
-adopted grammar space
-adopted vocabulary space
-draft grammar space
-draft vocabulary space
-decoherence bank
-coherence relation layer
-phase relation candidate space
-residual space
+token
+vocabulary
+grammar
+grammar_relation
+decoherence_bank
+logs.coherence
+logs.current
+logs.diff
+phase_relation_candidate
+core_state
+core_operation_policy
+core_notify_queue
 ```
 
 These spaces are not fixed ontologies.
 
-They are observed, updated, and separated by usage, pressure, recurrence, relation, and explicit adoption.
+They are observed, updated, and separated by usage, pressure, recurrence, relation, scheduled aggregation, and explicit adoption.
 
-## 5.1 Input Grammar Space
+## 5.1 token
 
-The input grammar space represents the observed structural form of the current input.
+`token` is an atomic raw identity layer.
 
-It does not assume that the input has already been tokenized into meaningful words.
+It may represent a character, separator, punctuation mark, code fragment, or other atomic unit.
 
-It observes sequence, boundaries, repeated forms, separators, punctuation, line breaks, and local connection patterns.
+The token layer is not semantic authority.
 
-## 5.2 Hash Space
+## 5.2 vocabulary
 
-Hash space is a language-independent indexing layer.
+`vocabulary` is an ordered token bundle.
 
-It is not a semantic embedding model.
+A vocabulary candidate may be a word, phrase, code, label, status, domain expression, file path, URL fragment, or business term.
 
-It provides stable keys for observed character sequences, chunks, residuals, and candidate bundles.
+## 5.3 grammar
 
-Characters may receive stable UUID or index identities, but the system must not aggregate meaning one character at a time.
+`grammar` is an ordered vocabulary bundle.
 
-Character-level identity is only an atomic reference layer.
+A grammar candidate represents a connection form among vocabulary candidates.
 
-Meaning aggregation occurs at chunk, candidate, residual, grammar, vocabulary bundle, decoherence-bank, and relation levels.
+It is not a universal grammar rule.
 
-## 5.3 Adopted Grammar Space
+It is a locally observed semantic-grammar structure.
 
-Adopted grammar space contains grammar bundles that have been repeatedly observed, reinforced, or explicitly adopted.
+## 5.4 grammar_relation
 
-These bundles represent stable connection forms.
+`grammar_relation` is an ordered grammar bundle.
 
-They are not universal grammar rules.
+It is the semantic continuity memory that connects divided grammar candidates across scopes.
 
-They are locally adopted semantic-grammar structures.
+Without grammar relation, the system can identify local fragments but cannot connect the beginning and end of divided input.
 
-## 5.4 Adopted Vocabulary Space
+## 5.5 decoherence_bank
 
-Adopted vocabulary space contains vocabulary items that have stabilized through observation, usage, recurrence, and adoption.
-
-A vocabulary item may be a word, phrase, business term, code, label, status, category, or domain-specific expression.
-
-## 5.5 Draft Grammar Space
-
-Draft grammar space contains grammar candidates that have not yet stabilized.
-
-A draft grammar candidate may emerge from residuals, incomplete matches, repeated unknown structures, near-neighbor mismatches, or Phase-generated relation candidates.
-
-Draft grammar must not automatically become adopted grammar.
-
-## 5.6 Draft Vocabulary Space
-
-Draft vocabulary space contains residual token hashes, repeated chunks, candidate words, or unknown expressions that have not yet stabilized.
-
-Draft vocabulary is the system's holding area for unresolved expression.
-
-## 5.7 Decoherence Bank
-
-The decoherence bank stores no-hit, low-hit, and unabsorbed residuals.
+`decoherence_bank` stores no-hit, low-hit, and unabsorbed residuals.
 
 It is not an error table.
 
-It is a structured bank of future vocabulary and grammar candidates.
+It is the source of future draft vocabulary, draft grammar, web-search notifications, offline near-neighbor replacement, and question notifications.
 
-Repeated entries may become draft vocabulary or draft grammar.
+## 5.6 logs.coherence
 
-Recurring draft entries may later be promoted into adopted vocabulary or adopted grammar.
+`logs.coherence` is an append-only observation log.
 
-## 5.8 Coherence Relation Layer
+It records that a candidate cohered, nearly cohered, partially cohered, related, or appeared as sentence-ending in context.
 
-The coherence relation layer stores how grammar and vocabulary candidates connect.
+It does not decide adoption.
 
-It is the semantic continuity memory of the system.
+## 5.7 logs.current
 
-Without relation, the system can identify local fragments but cannot connect the beginning and end of a divided input.
+`logs.current` is the scheduled aggregate read model generated from `logs.coherence`.
 
-Relation is what prevents output from becoming a mirror of local input fragments.
+Runtime and schedulers read current aggregate values from `logs.current`.
 
-## 5.9 Phase Relation Candidate Space
+## 5.8 logs.diff
 
-Phase relation candidate space stores relation candidates generated from normalized aggregate values.
+`logs.diff` stores mutation evidence and time-series change records.
 
-Phase does not primarily inspect raw input.
-
-It works from adopted vocabulary, adopted grammar, draft vocabulary, draft grammar, existing relation, hit counts, relation weights, and co-occurrence aggregates.
-
-Phase-generated candidates are draft candidates.
-
-They should not silently mutate adopted grammar or adopted relation.
+It records draft-to-adopted changes, normalization, flag changes, core state changes, blocked mutations, remote-event decisions, and mastication decisions.
 
 ---
 
-# 6. xi: Coherence Layer
+# 6. Coherence Layer: xi
 
 The `xi` term is the coherence layer.
 
-```text
-x = token bundle / hash bundle / segmented input fragments
-i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
-```
+It checks whether input fragments can be absorbed by existing spaces:
 
-The coherence layer searches whether the input fragments can be absorbed by existing spaces.
-
-It checks:
-
-- adopted grammar candidates
-- adopted vocabulary candidates
-- existing draft vocabulary candidates
+- adopted vocabulary
+- adopted grammar
+- adopted grammar relation
+- draft vocabulary
+- draft grammar
+- draft grammar relation
 - near-neighbor candidates
 - partial matches
 - incomplete grammar candidates
 
-If `x` hits or nearly hits `i`, the system records coherence evidence.
+If the input hits or nearly hits candidates, the system appends coherence facts into `logs.coherence`.
 
-The purpose of this layer is not to produce final output.
+Coherence does not immediately become adoption.
 
-The purpose is to identify which parts of the input already belong to known or draft semantic space.
-
-Operationally:
-
-```text
-input fragments
-→ adopted grammar / adopted vocabulary / draft vocabulary candidates
-→ hit, near-hit, partial-hit, or no-hit
-```
-
-The result of this layer is an exploration hit bundle plus any unabsorbed differences.
+Coherence becomes decision material only after scheduled aggregation into `logs.current` and operation-gated promotion/adoption.
 
 ---
 
-# 7. yj: Decoherence Bank
+# 7. Decoherence Bank: yj
 
 The `yj` term is the decoherence bank.
-
-```text
-y = unsearchable difference / no-hit residual / low-hit residual
-j = draft grammar candidate and draft accumulation context
-```
 
 The decoherence bank stores what the coherence layer could not absorb.
 
@@ -384,342 +288,213 @@ This includes:
 
 - new words
 - unknown expressions
-- no-hit token hashes
-- low-hit token hashes
+- no-hit token/vocabulary hashes
+- low-hit token/vocabulary hashes
 - unresolved grammar fragments
 - unmatched grammar slots
 - repeated but not-yet-adopted patterns
 
-The bank is intentionally persistent.
+The decoherence bank is intentionally persistent.
 
 Unabsorbed differences must not be discarded.
 
-They are stored as draft vocabulary or draft grammar candidates.
+A successful insert or conflict update into the decoherence bank is also an event source.
 
-A scheduled aggregation job may later inspect the bank.
-
-Example promotion logic:
-
-```sql
-select token_hash, count(*) as observed_count
-from decoherence_bank
-group by token_hash
-having count(*) > 10;
-```
-
-When recurrence, count, or coherence exceeds a promotion threshold, a draft may become an adopted vocabulary or adopted grammar candidate.
-
-Operationally:
+After `decoherence_bank insert on conflict update`, the database evaluates core state:
 
 ```text
-no-hit / low-hit residual
-→ decoherence bank
+if online.enabled = true
+and external_observation.enabled = true
+and freeze.enabled = false:
+  enqueue notify.web_search_requested
+
+if online.enabled = false
+and near_blend.enabled = true:
+  attempt near vocabulary / grammar / relation replacement
+
+if residual pressure becomes frequent enough:
+  enqueue notify.question_requested
+```
+
+Web search is not performed directly inside ordinary inference.
+
+Web search is requested by notification from decoherence pressure.
+
+Offline mode does not request web search.
+
+Offline mode attempts near-neighbor replacement using known vocabulary, grammar, and relation candidates. If unresolved residuals recur, the system asks the user through a question notification.
+
+---
+
+# 8. Core State and Operation Gate
+
+Runtime state is stored in `core_state`.
+
+Examples:
+
+```text
+freeze.enabled
+online.enabled
+mastication.enabled
+external_observation.enabled
+distributed_sync.enabled
+question_notify.enabled
+near_blend.enabled
+constraint.enabled
+```
+
+Mutation-capable operations must pass through `core_can_execute(operation_key)`.
+
+Examples:
+
+```text
+adopt.vocabulary
+adopt.grammar
+adopt.relation
+promote.decoherence_to_draft
+promote.phase_relation
+mastication.queue
+mastication.observe
+mastication.learn
+external_observation.ingest
+remote_event.ingest
+constraint.apply
+snapshot.create
+snapshot.restore
+```
+
+`freeze.enabled = true` prohibits semantic mutation.
+
+Freeze allows read-only coherence lookup, relation lookup, decoder projection, and output collapse.
+
+Freeze blocks adoption, promotion, mastication learning, external adoption, and distributed semantic update.
+
+Blocked operations must be recorded in `logs.diff`.
+
+---
+
+# 9. Mastication
+
+Mastication is the controlled ingestion pipeline for external or remote observation.
+
+External text or remote payloads must not directly update adopted vocabulary, adopted grammar, adopted relation, or core state.
+
+They may become:
+
+- rejected input
+- quarantined observation
+- mastication job
+- draft candidate evidence
+- decoherence pressure
+
+The mastication path is:
+
+```text
+external / remote source
+→ DB ingest
+→ core_state / operation gate
+→ quarantine or mastication_job
+→ token / vocabulary candidate generation
+→ xi coherence lookup
+→ yj decoherence bank
+→ relation candidate update
 → scheduled aggregation
-→ promotion candidate
-→ adopted vocabulary or adopted grammar
+→ possible draft/adoption decision through operation gate
+→ raw text discard policy
 ```
 
-This is how unknown input can become known input later.
-
-Yesterday's `yj` candidate may become tomorrow's `xi` hit.
+Mastication may be queued while freeze is enabled, but mastication learning must be blocked during freeze.
 
 ---
 
-# 8. ij = k: Procedural Composition
+# 10. Distributed Observation
 
-In this draft, `ij = k` is a processing relation.
+Distributed synchronization is treated as remote observation intake, not semantic consensus.
 
-It means that the composition of the coherence candidate axis and the decoherence-bank candidate axis produces the coherence decoder axis.
+Remote events are not semantic updates.
 
-```text
-i = coherence candidate axis
-j = decoherence-bank candidate axis
-k = coherence decoder axis
-```
+A remote event must not directly mutate:
 
-Operationally:
+- adopted vocabulary
+- adopted grammar
+- adopted grammar relation
+- core_state
 
-```text
-coherence layer
-+ decoherence bank
-→ corrected grammar axis
-```
+The backend may verify cryptographic facts such as signatures, hashes, and replay protection.
 
-Or:
+The database decides semantic acceptance, quarantine, rejection, deferral, or mastication queueing.
 
-```text
-known hits
-+ stored unknown residuals
-→ output-capable corrected grammar candidate
-```
+There is no canonical distributed semantic state.
 
-This is not merely symbolic decoration.
-
-The system cannot output from `xi` alone.
-
-The coherence layer only tells what was hit or nearly hit.
-
-The system cannot output from `yj` alone.
-
-The decoherence bank only stores what could not be absorbed.
-
-The system needs `zk` because final output requires a corrected grammar candidate.
-
-Thus:
-
-```text
-ij = k
-zk = coherence decoder
-```
-
-The order matters.
-
-```text
-ij = k
-ji ≠ k
-```
-
-Searching known candidates first and then banking residuals does not produce the same result as starting from residuals first.
-
-This is the procedural meaning of non-commutativity in this model.
+Semantic authority remains local-node only.
 
 ---
 
-# 9. zk: Coherence Decoder
+# 11. Phase Relation Candidate Generation
 
-The `zk` term is the coherence decoder.
+Phase is not synchronous raw-input reasoning.
 
-```text
-z = exploration hit bundle, including relation evidence
-k = corrected grammar candidate
-```
+Phase reads normalized aggregate values, especially from `logs.current`, vocabulary, grammar, grammar relation, decoherence pressure, and promotion history.
 
-The coherence decoder projects surviving hit bundles into output-capable corrected grammar.
+Phase produces draft relation candidates.
 
-It uses:
+Phase must not silently mutate adopted grammar or adopted relation.
 
-- hit bundles from the coherence layer
-- relation evidence from the coherence relation layer
-- unresolved slots from incomplete grammar candidates
-- promoted candidates from the decoherence bank
-- adopted grammar candidates
-- adopted vocabulary candidates
-- draft candidates that remain relevant
-- Phase-generated relation candidates when available
-
-The decoder does not originate meaning.
-
-Meaning candidates are generated by exploration, hit evidence, residual banking, recurrence, relation, Phase candidate generation, and adoption.
-
-The coherence decoder projects those candidates into a usable output grammar.
-
-Operationally:
-
-```text
-exploration hit bundle
-+ coherence relation evidence
-→ corrected grammar candidate
-→ output projection
-→ collapse
-→ emitted output
-```
-
-This decoder is not a next-token predictor.
-
-It is a grammar projection layer over surviving coherence, decoherence, and relation evidence.
-
----
-
-# 10. Coherence Relation Layer
-
-The coherence relation layer is required because the system splits input.
-
-Tokenization, scope windows, and local grammar hits divide text into pieces.
-
-If those pieces are not connected, the system can only mirror local fragments.
-
-Relation is the memory that lets separated candidates become a semantic flow.
-
-Example:
-
-```text
-scope 1: refrigeration does not cool
-scope 2: cargo may be damaged
-scope 3: customer wants repair by tomorrow
-```
-
-Without relation:
-
-```text
-three local hits
-```
-
-With relation:
-
-```text
-cooling failure → customer damage risk → deadline requirement
-```
-
-The second form is not merely a local rewrite of the input.
-
-It is a connected grammar path.
-
-The relation layer stores:
-
-- grammar-to-grammar continuity
-- vocabulary-to-grammar continuity
-- vocabulary-to-vocabulary co-occurrence
-- scope-crossing continuity
-- order-sensitive candidate chains
-- use-case recurrence
-
-Therefore, relation is not optional metadata.
-
-It is the semantic continuity layer of the system.
-
----
-
-# 11. Phase Attention as Relation Candidate Generation
-
-Phase Attention should not be treated as a heavy synchronous reply-time process.
-
-Phase uses aggregate weights.
-
-If it is placed directly inside ordinary response generation, it may become too heavy.
-
-Therefore, Phase should primarily run as scheduled or asynchronous processing.
-
-Phase handles normalized data, not raw input.
-
-It reads:
-
-```text
-adopted vocabulary
-adopted grammar
-draft vocabulary
-draft grammar
-coherence relation layer
-relation aggregate weights
-hit counts
-co-occurrence counts
-scope-crossing continuity
-promotion history
-```
-
-Phase slides across layers to generate relation candidates.
-
-It may produce:
-
-```text
-grammar A → grammar B
-grammar B → grammar C
-vocabulary bundle X → grammar A
-vocabulary bundle Y → grammar B
-grammar A + grammar C recur under the same use case
-```
-
-The role of Phase is not to answer directly.
-
-The role of Phase is to generate candidate relations that can later support the coherence decoder.
-
-Without a rich relation layer, output is likely to become an input mirror.
-
-With a rich relation layer, the system can output grammar paths that are not explicitly present as one continuous raw input span.
-
-Thus:
-
-```text
-Phase = normalized aggregate relation candidate generation
-```
-
-Not:
-
-```text
-Phase = synchronous raw-input reasoning
-```
-
-Phase-generated relation candidates remain drafts until promoted or adopted.
+Phase output is subject to operation-gated promotion/adoption.
 
 ---
 
 # 12. Candidate Bundles Must Not Collapse Early
 
-Near-neighbor search must always preserve multiple candidates.
+Near-neighbor search must preserve multiple candidates.
 
 The system must not select only one nearest grammar or vocabulary item too early.
 
 Instead, it should operate on bundles:
 
 ```text
-grammar_near_candidates = {g1, g2, g3, ...}
 vocabulary_near_candidates = {v1, v2, v3, ...}
-grammar_residual_candidates = {Δg1, Δg2, Δg3, ...}
-relation_candidates = {r1, r2, r3, ...}
+grammar_near_candidates = {g1, g2, g3, ...}
+grammar_relation_candidates = {r1, r2, r3, ...}
 residual_candidates = {d1, d2, d3, ...}
+phase_relation_candidates = {p1, p2, p3, ...}
 ```
 
-This is essential.
+Multiple incomplete candidates preserve openings for correction.
 
-If only one candidate is selected, meaning correction becomes impossible.
-
-If multiple incomplete grammar candidates are preserved, the unmatched slots become search openings.
-
-For example:
-
-```text
-"pork meat that has been grilled"
-```
-
-may partially match grammar candidates such as:
-
-```text
-{ingredient} + {cooking method} + {dish}
-{animal/meat} + {heating method} + {food}
-{material} + {process} + {result}
-```
-
-The unmatched vocabulary slots can then search vocabulary space and produce candidates such as:
-
-```text
-pork steak
-grilled meat
-char siu
-roast pork
-```
-
-Meaning correction does not require a separate magical semantic table.
-
-It can emerge from incomplete grammar candidates, unresolved vocabulary slots, relation evidence, and the coherence decoder.
+Early collapse destroys correction paths.
 
 ---
 
-# 13. Long Context Handling
+# 13. End-of-Sentence as Observed Pressure
 
-The system does not need to hold long context as one continuous internal state.
+End-of-sentence flags are not hardcoded by punctuation alone.
 
-It can absorb long input by distributing it into grammar candidates, vocabulary candidates, relation candidates, decoherence-bank entries, residuals, and aggregate differences.
+When input grammar coheres and the observation context indicates sentence end, the system records:
 
-This is not summarization.
+```text
+logs.coherence.end_of_sentence_observed = true
+```
 
-It is semantic distribution.
+A scheduled job aggregates coherence logs into `logs.current`.
 
-Known parts of a long input reinforce existing grammar and vocabulary spaces through the coherence layer.
+Provisional score:
 
-Unknown parts are stored in the decoherence bank.
+```text
+end_of_sentence_score = 100 * end_of_sentence_count / coherence_count
+```
 
-Separated coherent parts are connected through the coherence relation layer.
+Provisional promotion rule:
 
-Repeated relation patterns increase relation pressure.
+```text
+if coherence_count >= minimum_observation_count
+and end_of_sentence_score >= 70:
+  set end_of_sentence_flag = true
+```
 
-Stable residuals may become draft vocabulary or draft grammar.
+The flag change must be recorded in `logs.diff`.
 
-Stable relation candidates may become adopted relation or adopted grammar paths.
-
-Adopted structures remain inspectable.
-
-Therefore, long context can be ingested without compressing all content into a single hidden vector state.
-
-The system stores structured semantic traces instead of relying on one opaque context window.
+This makes sentence-ending behavior observation-derived rather than purely rule-defined.
 
 ---
 
@@ -727,7 +502,7 @@ The system stores structured semantic traces instead of relying on one opaque co
 
 Summarization is not merely deletion.
 
-Summarization is projection into a selected grammar space.
+Summarization is projection into a selected grammar space and relation depth.
 
 When summarization is requested, the system should:
 
@@ -735,183 +510,138 @@ When summarization is requested, the system should:
 observe vocabulary pressure
 → identify strong vocabulary bundles
 → search grammar space from those vocabulary pressures
-→ include relation evidence
+→ include grammar relation evidence
 → produce multiple summary grammar candidates
 → select compression level from candidate grammar forms
 → decode through corrected grammar
-→ generate output
+→ collapse output
 ```
 
 Compression level is not only a token budget.
 
 It is a choice of grammar projection and relation depth.
 
-Examples:
+---
+
+# 15. Constraint Layer
+
+The constraint layer is a form stabilizer only.
+
+It must not originate meaning.
+
+It must not mutate adopted semantic spaces.
+
+It must not override core_state.
+
+It should run after coherence decoding and before collapse.
 
 ```text
-headline summary
-argument summary
-technical summary
-business summary
-evidence-preserving summary
-video-script summary
+stage: post_decoder_pre_collapse
+authority: form_stabilizer_only
 ```
 
-Each summary type is a different grammar-space and relation-depth projection.
+Constraint rule updates are mutation-capable operations and must pass the operation gate.
 
 ---
 
-# 15. Tokenization Philosophy
+# 16. Runtime Pipeline
 
-The system should not depend on language-specific morphological analyzers.
-
-Tokenization should not decide meaning at the entrance.
-
-Instead:
-
-- characters receive stable identities
-- boundaries are detected through separators, spaces, punctuation, line breaks, code patterns, and repeated structure
-- chunks become hash candidates
-- hash candidates are compared against grammar and vocabulary spaces
-- relations connect adjacent or scope-crossing candidates
-- only residual candidates are inserted or reinforced
-
-A tokenizer should act as:
+Canonical synchronous path:
 
 ```text
-UUID indexer
-boundary splitter
-hash aggregator
+input
+→ core_state read
+→ scope split
+→ token candidates
+→ vocabulary candidates
+→ grammar candidates
+→ xi coherence lookup
+→ logs.coherence append
+→ no-hit / low-hit residual
+→ yj decoherence_bank upsert
+→ online/offline branch
+→ grammar_relation lookup/upsert
+→ zk coherence decoder
+→ constraint apply
+→ collapse/output
+→ mutation-capable updates only through core_can_execute()
 ```
 
-not as a semantic authority.
+Scheduled path:
 
-One-character UUID assignment is an identity layer, not a meaning aggregation layer.
+```text
+logs.coherence
+→ scheduled aggregation
+→ logs.current upsert
+→ end-of-sentence flag check
+→ promotion candidate detection
+→ Phase relation candidate generation
+→ core_notify_queue
+```
 
-The system must not aggregate meaning one character at a time.
+External / remote path:
+
+```text
+external / remote event
+→ backend transport / cryptographic verification if needed
+→ DB ingest
+→ core_state / policy gate
+→ reject / quarantine / mastication queue
+→ same core observation pipeline
+```
 
 ---
 
-# 16. Event-Driven Runtime
+# 17. Legacy Archive Policy
 
-The core runtime should be mostly database-driven.
+Legacy files remain in the repository as historical references.
 
-Special programming should be minimal.
+They are not deleted.
 
-Primary operations:
+They no longer define canonical runtime authority after the new core becomes canonical.
 
-```text
-key assignment
-neighbor lookup
-aggregate diff
-candidate bundle update
-residual upsert
-decoherence bank insert/update
-relation insert/update
-pressure calculation
-scheduled aggregation
-Phase relation candidate generation
-notify on hit / no-hit / threshold crossing
-```
+Each legacy element may be:
 
-The system may notify when:
+- migrated
+- reinterpreted
+- archived
+- explicitly rejected
 
-- a known vocabulary space is hit
-- no matching vocabulary candidate exists
-- no matching grammar candidate exists
-- residual pressure exceeds a threshold
-- draft grammar repeatedly appears
-- draft vocabulary repeatedly appears
-- adopted grammar coherence increases
-- relation pressure increases
-- Phase relation candidates exceed thresholds
-- a summary projection candidate is available
-- decoherence-bank entries exceed promotion thresholds
+`wave_geometry` is archived as a canonical authority.
 
-The system should not automatically rewrite adopted meaning.
+Migrated from `wave_geometry`:
 
-It should recommend, notify, and preserve evidence.
+- observation-derived meaning
+- explicit collapse
+- non-destructive accumulation
+- decoder does not originate meaning
+- local semantic sovereignty
+
+Rejected from canonical authority:
+
+- wave state as primary semantic state
+- spectral matrix as meaning authority
+- `psi` / STFT / spectral basis as canonical core
+- wave-signature search as required semantic retrieval
 
 ---
 
-# 17. Relationship to Transformer Attention
-
-This architecture is not Transformer Attention.
-
-Transformer Attention computes weighted relationships inside a learned representation system and typically collapses candidates through softmax-like selection pressure.
-
-The next core preserves candidate bundles and avoids early collapse.
-
-It does not attempt to scale meaning through larger parameter matrices.
-
-It attempts to reduce computation by using:
-
-- coherence-layer hits
-- decoherence-bank accumulation
-- coherence-relation continuity
-- Phase relation candidate generation
-- coherence-decoder projection
-- grammar-space near candidates
-- vocabulary-space near candidates
-- incomplete grammar slot search
-- aggregate differences
-- residual-only updates
-- event-driven notifications
-- explicit adoption
-
-In this model, attention and decoder are not fully separate black boxes.
-
-The quaternion-style process attends through `xi`, banks unresolved difference through `yj`, connects coherent candidates through relation, and decodes through `zk`.
-
-Phase uses normalized aggregate values to grow relation candidates outside ordinary reply-time processing.
-
-The goal is not larger context windows.
-
-The goal is structured, inspectable, non-destructive semantic accumulation.
-
----
-
-# 18. Relationship to Legacy Wave LLMOS
-
-Legacy Wave LLMOS remains valuable as the origin of the project.
-
-It established the rejection of fixed semantic vector space as primary authority.
-
-It established observation-derived meaning.
-
-It established that the decoder must not originate meaning.
-
-However, the next core replaces the legacy spectral-wave mechanism with a layered quaternion-style grammar-vocabulary-relation exploration model.
-
-Legacy terms such as wave, coherence, decoherence, relation, phase, and collapse may remain as conceptual vocabulary.
-
-But the implementation must not depend on a single Euler-integrated wave matrix.
-
-The new core is not a continuous spectral matrix update.
-
-It is a layered quaternion-style coherence/decoherence/relation/decoder system.
-
-Short form:
+# 18. Short Form
 
 ```text
-q = w + xi + yj + zk
-
-w  = input anchor
-xi = coherence layer
-yj = decoherence bank
-zk = coherence decoder
-
-relation = semantic continuity memory
-phase    = aggregate relation candidate generation
-
-ij = k
-ji ≠ k
-```
-
 Meaning is not a word.
-
 Meaning is not a vector.
-
+Meaning is not wave_geometry.
 Meaning is not a local mirror of input.
 
-Meaning is the connection form that survives observation, coherence search, decoherence banking, relation formation, Phase candidate generation, corrected grammar decoding, and adoption.
+Meaning is the connection form that survives:
+observation,
+coherence logging,
+decoherence banking,
+current aggregation,
+relation formation,
+Phase candidate generation,
+operation-gated adoption,
+corrected grammar decoding,
+and explicit collapse.
+```
