@@ -76,8 +76,18 @@ It does not define canonical runtime authority.
 | fallback hierarchy | reinterpret | decoherence-triggered notify / offline blend / question notify |
 | external observation last resort | reinterpret | web search notify from decoherence pressure |
 | semantic freeze | migrate | core_state + operation gate |
-| semantic snapshot | migrate | pending table/function spec |
+| semantic snapshot / restore | reject | unnecessary in canonical core because freeze/function gates prevent coherence/current/draft mutation |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
+
+Snapshot note:
+
+```text
+The canonical core does not need semantic_snapshot / restore as a separate semantic mechanism.
+
+When freeze.enabled is true and operation gates are enforced, logs.coherence, logs.current, draft spaces, adopted spaces, and relation spaces do not mutate through semantic write functions.
+
+Therefore snapshot/restore is not migrated into the canonical runtime.
+```
 
 ---
 
@@ -280,8 +290,6 @@ Canonical storage is PostgreSQL.
 
 The following still need detailed canonical table/function specs:
 
-- semantic_snapshot
-- snapshot restore safety policy
 - constraint rule table
 - Phase relation candidate table
 - adoption audit table, or explicit use of logs.diff for adoption audit
@@ -289,6 +297,7 @@ The following still need detailed canonical table/function specs:
 - web search result mastication schema
 - remote node trust registry
 - scheduler job registry
+- decoder trace / loop guard equivalent
 
 ---
 
