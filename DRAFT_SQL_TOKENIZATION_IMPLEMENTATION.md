@@ -170,9 +170,38 @@ create index idx_logs_diff_target
 
 create index idx_logs_diff_operation
   on logs.diff (operation_key, status);
+
+create view logs.adoption_audit as
+select *
+from logs.diff
+where operation_key in (
+  'adopt.vocabulary',
+  'adopt.grammar',
+  'adopt.relation',
+  'promote.decoherence_to_draft',
+  'promote.phase_relation'
+);
 ```
 
 `target_index` may be null only for non-semantic operational events that do not target a semantic table row.
+
+Adoption audit is not a separate table.
+
+Adoption is mutation evidence, so `logs.diff` is the source of truth.
+
+`logs.adoption_audit` is a read-only view over `logs.diff`.
+
+Operation key namespace:
+
+```text
+adopt.*      = draft/adopted semantic adoption
+promote.*    = promotion into draft/adopted candidate space
+update.flag.* = observed flag mutation
+remote.*     = remote event decision
+mastication.* = mastication decision
+scheduler.*  = scheduler decision
+notify.*     = notification decision
+```
 
 ---
 
@@ -926,6 +955,7 @@ UUID is identity.
 Index is semantic reference.
 Array is index array.
 Canonical schema does not define uuid[] columns.
+Adoption audit is a view over logs.diff, not a table.
 Near-neighbor search runs over index arrays.
 pgvector may accelerate derived retrieval.
 Structural verification decides.
