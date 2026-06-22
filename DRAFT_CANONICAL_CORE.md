@@ -58,6 +58,7 @@ scheduler_job_run
 phase_relation_candidate
 structural_vector_index
 mastication_job
+remote_node_trust
 remote_event_inbox
 remote_event_quarantine
 ```
@@ -104,6 +105,55 @@ system
 Web search results are normal input observations with `source_kind = 'web'`.
 
 Remote events are normal input observations after inbox/quarantine acceptance.
+
+---
+
+# Remote Trust
+
+Remote trust is linked to core state.
+
+Global switch:
+
+```text
+core_state.distributed_sync.enabled
+```
+
+Node registry:
+
+```sql
+create table remote_node_trust (
+  remote_node_uuid uuid primary key default gen_random_uuid(),
+  remote_node_id text not null unique,
+  trust_level text not null default 'unknown',
+  enabled boolean not null default false,
+  public_key text null,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+```
+
+Trust levels:
+
+```text
+unknown
+trusted
+limited
+blocked
+```
+
+Acceptance rule:
+
+```text
+core_state.distributed_sync.enabled = true
+and remote_node_trust.enabled = true
+and trust_level in ('trusted', 'limited')
+→ remote_event may become input_observation(source_kind='remote_event')
+```
+
+Even trusted nodes cannot mutate semantic tables directly.
+
+Remote trust changes are mutations and must pass operation gate.
 
 ---
 
@@ -188,6 +238,5 @@ No independent constraint table.
 # Pending
 
 ```text
-remote node trust registry
 decoder trace / loop guard
 ```
