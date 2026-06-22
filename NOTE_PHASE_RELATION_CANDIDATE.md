@@ -677,6 +677,29 @@ max_chunks_per_idle_window = 500
 include_dormant = true
 ```
 
+In the current core vocabulary, legacy `basis` refinement maps to nearby `vocabulary`, `grammar`, and `grammar_array` path refinement.
+
+This maintenance is not merely storage of alias or merge evidence.
+
+It periodically shapes the search field so future Phase Attention passes need fewer repeated near-neighbor searches.
+
+Attractor basin refinement:
+
+```text
+similar vocabulary candidates
++ similar grammar candidates
++ similar grammar_array paths
+→ generate alias / merge candidates as draft evidence
+→ refine the attractor basin around stable semantic paths
+→ reduce future near-neighbor search count
+→ reduce future Phase Attention exploration count
+→ keep synchronous reply-time lookup cheap
+```
+
+This does not collapse candidates into adopted structures by itself.
+
+It prepares draft evidence for later operation-gated adoption or rejection.
+
 Allowed sleep maintenance outputs:
 
 ```text
@@ -686,6 +709,11 @@ phase candidate score refresh
 decoherence recurrence aggregation
 dormant / cold markers for weak unused candidates
 alias / merge candidates as draft evidence
+vocabulary alias / merge candidates as draft evidence
+grammar alias / merge candidates as draft evidence
+grammar_array path alias / merge candidates as draft evidence
+attractor basin refinement evidence
+future search-count reduction evidence
 promotion queue candidates
 scheduler_job_run evidence
 ```
@@ -714,6 +742,8 @@ It slides across layers.
 It generates grammar_array relation candidates.
 It runs on a schedule.
 Sleep maintenance runs in the same scheduled / idle / preemptible window.
+Sleep maintenance refines nearby vocabulary, grammar, and grammar_array paths as draft evidence.
+Sleep maintenance shapes attractor basins to reduce future search count.
 It supports zk.
 It prevents the system from becoming a mirror of the input.
 ```
