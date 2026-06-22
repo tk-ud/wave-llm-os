@@ -26,9 +26,9 @@ Do not mix UUID and index references in the same semantic link.
 
 Do not define a semantic array as `uuid[]`.
 
-Do not name evidence UUID lists as `*_array`.
+Do not define UUID-array columns in the canonical schema.
 
-Use `*_uuids` for audit/event identity lists.
+If evidence needs to mention multiple UUID identities, store them inside `evidence_json` with explicit naming.
 
 ---
 
@@ -68,6 +68,7 @@ They must not be used for:
 - semantic link position scoring
 - Phase candidate output
 - missing-slot completion
+- canonical UUID-array columns
 
 ---
 
@@ -161,15 +162,9 @@ target_uuid uuid
 
 For non-semantic operational events, UUID event IDs may still be used as event identity.
 
-Evidence UUID lists must be named as UUID lists, not arrays.
+Evidence that mentions multiple UUID identities should be placed inside `evidence_json`.
 
-Example:
-
-```text
-source_current_uuids uuid[]
-```
-
-This is an evidence identity list, not a semantic array.
+It must not become a canonical `uuid[]` column.
 
 ---
 
@@ -201,11 +196,7 @@ The candidate row may have a UUID identity.
 
 The semantic candidate is the `grammar_array` of grammar indexes.
 
-Evidence record IDs should be named as UUID lists:
-
-```text
-source_current_uuids uuid[]
-```
+Evidence record identities should be stored in `evidence_json`, not in a UUID-array column.
 
 ---
 
@@ -236,7 +227,7 @@ Any existing draft text that uses `target_uuid` for semantic table targets is su
 
 Read it as `target_index`.
 
-Any evidence UUID list must be named as `*_uuids`, not `*_array`.
+Any evidence UUID list must be stored in JSONB evidence, not as a UUID-array column.
 
 ---
 
@@ -247,5 +238,6 @@ UUID is identity.
 Index is meaning reference.
 Array is index array.
 Semantic reference never uses UUID.
-Evidence UUID lists are named *_uuids, not *_array.
+Canonical schema does not define uuid[] columns.
+Evidence UUID lists live inside JSONB evidence only.
 ```
