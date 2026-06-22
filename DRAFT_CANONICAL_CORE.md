@@ -41,6 +41,7 @@ The index array is the structural semantic vector.
 # Canonical Tables
 
 ```text
+input_observation
 token
 vocabulary
 grammar
@@ -64,6 +65,45 @@ remote_event_quarantine
 No canonical `constraint_rule` table.
 
 No canonical `adoption_audit` table.
+
+No canonical web-result-only semantic table.
+
+---
+
+# Input Observation
+
+All observations enter the same input pipeline.
+
+Differences are metadata, not separate semantic authority.
+
+```sql
+create table input_observation (
+  observation_uuid uuid primary key default gen_random_uuid(),
+  observation_index bigint generated always as identity unique,
+  source_kind text not null,
+  source_hash text not null,
+  body text not null,
+  raw_text_policy text not null default 'discard_after_ingest',
+  learning_weight numeric not null default 1.0,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now()
+);
+```
+
+Allowed source kinds:
+
+```text
+user
+web
+file
+remote_event
+manual
+system
+```
+
+Web search results are normal input observations with `source_kind = 'web'`.
+
+Remote events are normal input observations after inbox/quarantine acceptance.
 
 ---
 
@@ -113,24 +153,6 @@ Freeze allows read-only lookup, decoder projection, decoder/collapse invariant c
 
 ---
 
-# Input Sources
-
-All observations enter the same input pipeline with source metadata.
-
-```text
-source_kind = user | web | file | remote_event | manual
-source_hash
-raw_text_policy
-learning_weight
-metadata_json
-```
-
-Web search results are not a separate semantic authority.
-
-They are source-kinded input observations.
-
----
-
 # Near Neighbor Search
 
 Primary search is structural over index arrays.
@@ -168,5 +190,4 @@ No independent constraint table.
 ```text
 remote node trust registry
 decoder trace / loop guard
-input source metadata schema details
 ```
