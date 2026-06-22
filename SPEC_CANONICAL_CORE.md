@@ -331,6 +331,59 @@ Phase Attention may generate candidate grammar_relation paths, but core decides 
 
 ---
 
+# Corpus Output / Input Subtraction
+
+Corpus-time output must subtract input.
+
+Mastication, corpus processing, and candidate generation must not treat copied input as meaningful output.
+
+```text
+input grammar path
++ candidate output grammar path
+→ subtract input grammar path
+→ output_delta / relation_delta / residual_delta
+```
+
+If subtraction leaves no meaningful delta, the result is mirror output risk.
+
+```text
+candidate output
+- input grammar
+= empty or reorder-only delta
+→ mirror_output evidence
+→ residual / draft / decoherence evidence
+```
+
+Corpus output must therefore be stored or scored as difference, relation, or residual, not as a raw echo of the input.
+
+Required corpus decision pattern:
+
+```text
+output_delta contains new relation evidence
+→ relation candidate / grammar_relation reinforcement
+
+output_delta contains only copied input
+→ mirror_output evidence
+→ do not reinforce as new relation
+
+output_delta contains missing or unstable slots
+→ residual / decoherence evidence
+
+output_delta bridges input scopes
+→ candidate grammar_relation evidence
+```
+
+This rule applies before Phase candidate generation, before grammar_relation reinforcement, and before decoder/collapse evidence is counted as success.
+
+The purpose is to prevent corpus processing from rewarding parroting.
+
+```text
+meaningful corpus output
+= candidate output - input grammar
+```
+
+---
+
 # Decoherence Bank
 
 `decoherence_bank` is part of the core semantic search space.
