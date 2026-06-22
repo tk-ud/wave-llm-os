@@ -220,6 +220,7 @@ input_observation
 → token / vocabulary / grammar candidates
 → near-neighbor retrieval
 → structural verification
+→ input grammar / grammar_relation diff verification
 → xi coherence hit or yj residual bank
 → coherence relation lookup
 → zk coherence decoder
@@ -233,6 +234,7 @@ A reply-time coherence hit must immediately adopt a new structure or reinforce a
 ```text
 near-neighbor candidate
 → structural verification passes
+→ input grammar / grammar_relation diff verification passes
 → xi coherence hit
 → zk decoder usage
 → core_can_execute('promote.coherence_hit')
@@ -245,6 +247,87 @@ This promotion is automatic and evidence-driven.
 Human review is not part of ordinary reply-time promotion.
 
 Freeze, policy failure, contradiction, or operation gate failure blocks adoption and leaves evidence as draft, residual, rejected, or quarantined state.
+
+---
+
+# Input Grammar / Grammar Relation Diff
+
+Input grammar and candidate grammar_relation must always be diff-compared.
+
+This is mandatory before output collapse, grammar_relation adoption, grammar_relation reinforcement, or decoherence hit promotion.
+
+Near-neighbor similarity alone is not sufficient.
+
+```text
+input grammar candidate
+↔ candidate grammar_relation.grammar_array
+→ structural diff
+→ coherence / residual / decoherence decision
+```
+
+Input grammar means the grammar candidate or grammar path generated from the current input scope.
+
+Candidate grammar_relation means an active `grammar_relation.grammar_array`, a draft `phase_relation_candidate.grammar_array`, or a relation path recovered from `decoherence_bank` fallback search.
+
+The diff must inspect:
+
+```text
+shared grammar indexes
+missing grammar slots
+extra relation path elements
+replaced vocabulary slots
+replaced grammar slots
+order shifts
+scope boundary mismatch
+terminal / sentence-end flag mismatch
+```
+
+The purpose of input is to create and reinforce grammar_relation.
+
+Without this diff, the system may select a nearby relation path while failing to notice that the current input grammar is moth-eaten, shifted, incomplete, or merely mirrored.
+
+Required decision pattern:
+
+```text
+near relation hit
++ input grammar diff passes
+→ coherence relation hit
+→ adopt / reinforce grammar_relation
+
+near relation hit
++ input grammar diff has missing slots
+→ residual / decoherence evidence
+→ possible question notification
+
+near relation hit
++ input grammar diff shows repeated missing vocabulary or unstable slot
+→ moth-eaten evidence
+→ sleep may send vocabulary / slot / relation attachment to decoherence_bank
+
+active relation miss
+→ decoherence_bank fallback search
+→ input grammar / grammar_relation diff verification
+→ promote.decoherence_hit if verified
+```
+
+Diff output must be logged as evidence.
+
+```text
+input_grammar_index or input_grammar_path
+candidate_relation_index or candidate_relation_path
+diff_kind
+missing_slots
+extra_slots
+replaced_slots
+order_shift
+terminal_flag_match
+scope_boundary_match
+decision
+```
+
+This diff is part of core reply-time verification.
+
+Phase Attention may generate candidate grammar_relation paths, but core decides reply-time coherence by comparing current input grammar against the candidate grammar_relation.
 
 ---
 
@@ -265,6 +348,7 @@ active structure search
 → no hit
 → decoherence_bank fallback search
 → structural verification
+→ input grammar / grammar_relation diff verification
 → xi coherence hit if verified
 ```
 
@@ -275,6 +359,7 @@ A decoherence hit must be promoted or reinforced through the operation gate.
 ```text
 decoherence_bank candidate
 → structural verification passes
+→ input grammar / grammar_relation diff verification passes
 → xi coherence hit
 → core_can_execute('promote.decoherence_hit')
 → promote / reinforce
@@ -415,6 +500,8 @@ Active structures are searched first.
 
 `decoherence_bank` is searched only when active structures do not hit, or when explicit UI / maintenance analysis requests it.
 
+Relation candidates returned by near-neighbor search must be verified by input grammar / grammar_relation diff before reply-time use.
+
 ---
 
 # Phase
@@ -467,6 +554,7 @@ Phase Attention candidate search
 near-neighbor expansion
 decoherence_bank pressure
 logs.current pressure
+input grammar / grammar_relation diff evidence
 ```
 
 If repeated search still cannot resolve, the result remains draft/unresolved and may trigger question notification.
