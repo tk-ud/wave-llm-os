@@ -11,6 +11,7 @@ This file tracks migration status only.
 ```text
 observation-derived meaning
 persistent DB semantic memory
+input_observation with source_kind metadata
 logs.coherence
 logs.current
 logs.diff
@@ -30,6 +31,7 @@ logs.adoption_audit view
 ```text
 fallback hierarchy → decoherence notify / offline blend / question notify
 external observation → source_kind input
+web search result → input_observation(source_kind='web')
 pgvector → derived retrieval accelerator only
 wave_signature → optional evidence only
 ```
@@ -50,6 +52,7 @@ constraint layer as independent authority
 dense vector search as semantic authority
 UUID semantic references
 uuid[] canonical columns
+web-result-only semantic table
 ```
 
 ---
@@ -69,5 +72,4 @@ web search result handling → source_kind input pipeline
 ```text
 remote node trust registry
 decoder trace / loop guard
-input source metadata schema details
 ```
