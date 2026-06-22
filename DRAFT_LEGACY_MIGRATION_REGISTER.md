@@ -12,6 +12,7 @@ This file tracks migration status only.
 observation-derived meaning
 persistent DB semantic memory
 input_observation with source_kind metadata
+remote_node_trust linked to core_state.distributed_sync.enabled
 logs.coherence
 logs.current
 logs.diff
@@ -32,6 +33,7 @@ logs.adoption_audit view
 fallback hierarchy → decoherence notify / offline blend / question notify
 external observation → source_kind input
 web search result → input_observation(source_kind='web')
+remote sync → core-gated remote input observation
 pgvector → derived retrieval accelerator only
 wave_signature → optional evidence only
 ```
@@ -53,6 +55,7 @@ dense vector search as semantic authority
 UUID semantic references
 uuid[] canonical columns
 web-result-only semantic table
+trusted remote direct semantic mutation
 ```
 
 ---
@@ -70,6 +73,5 @@ web search result handling → source_kind input pipeline
 # Pending
 
 ```text
-remote node trust registry
 decoder trace / loop guard
 ```
