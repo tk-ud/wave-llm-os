@@ -10,6 +10,10 @@ Meaning is not inside a word, vector, or wave state.
 
 Meaning is the connection form that survives observation, coherence, decoherence, relation, aggregation, adoption, decoding, and collapse.
 
+A word, token, character, table value, status, phrase, event, or grammar fragment is not meaningful by itself.
+
+Meaning appears when those elements are connected through grammar, vocabulary, usage, recurrence, pressure, residuals, relation, and adoption.
+
 ---
 
 # Rejected Legacy Authority
@@ -24,6 +28,10 @@ wave_signature as required retrieval key
 
 These remain historical references only.
 
+The current core is not a continuous spectral matrix update.
+
+It is a layered quaternion-style coherence / decoherence / relation / decoder system.
+
 ---
 
 # Core Equation
@@ -33,13 +41,38 @@ q = w + xi + yj + zk
 ```
 
 ```text
+q  = output candidate state
 w  = input anchor
-xi = coherence lookup
+xi = coherence layer
 yj = decoherence bank
 zk = coherence decoder
 ```
 
-Important property:
+Expanded:
+
+```text
+x = token bundle / hash bundle / segmented input fragments
+i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
+
+xi = coherence layer
+   = search whether x can be absorbed by i
+
+y = unsearchable difference / no-hit residual / low-hit residual
+j = draft grammar candidate and draft accumulation context
+
+yj = decoherence bank
+   = store y into j-side draft accumulation
+
+z = exploration hit bundle, including relation evidence
+k = corrected grammar candidate
+
+zk = coherence decoder
+   = project z through k into an output-capable grammar candidate
+```
+
+This is quaternion-style, not strict Hamilton quaternion algebra.
+
+The important algebraic property is procedural non-commutativity.
 
 ```text
 ij != ji
@@ -47,23 +80,280 @@ ij != ji
 
 Order matters.
 
----
-
-# Authority Order
+Central processing relation:
 
 ```text
-1. Canonical Core
-2. Core State / Operation Gate
-3. Persistent Semantic Tables
-4. Coherence / Decoherence / Relation Runtime
-5. Scheduled Aggregation / Phase Attention / Relation Candidate Generation
-6. Coherence Decoder
-7. Decoder / Collapse Invariants
-8. External / Remote Observation Intake
-9. Legacy Archive
+ij = k
 ```
 
-No independent constraint table.
+Operationally:
+
+```text
+xi finds what can be absorbed.
+yj stores what cannot be absorbed.
+Relation connects divided coherent candidates.
+The composition of i and j produces k.
+zk uses k to decode the surviving hit bundle into corrected grammar.
+```
+
+The system does not start from:
+
+```text
+Which token is closest?
+```
+
+It starts from:
+
+```text
+Which coherence/decoherence/relation path can produce a corrected grammar candidate for output?
+```
+
+---
+
+# Layered Semantic Spaces
+
+The core separates semantic space into layered spaces.
+
+Initial candidate stack:
+
+```text
+input grammar space
+hash space
+adopted grammar space
+adopted vocabulary space
+draft grammar space
+draft vocabulary space
+decoherence_bank
+grammar_relation
+phase_relation_candidate
+residual space
+```
+
+These spaces are not fixed ontologies.
+
+They are observed, updated, and separated by usage, pressure, recurrence, relation, and explicit adoption.
+
+## Input Grammar Space
+
+Input grammar space represents the observed structural form of the current input.
+
+It observes sequence, boundaries, repeated forms, separators, punctuation, line breaks, and local connection patterns.
+
+## Hash Space
+
+Hash space is a language-independent indexing layer.
+
+It is not a semantic embedding model.
+
+It provides stable keys for observed character sequences, chunks, residuals, and candidate bundles.
+
+Character-level identity is only an atomic reference layer.
+
+Meaning aggregation occurs at chunk, candidate, residual, grammar, vocabulary bundle, decoherence-bank, and relation levels.
+
+## Adopted Grammar Space
+
+Adopted grammar space contains grammar bundles that have been repeatedly observed, reinforced, or explicitly adopted.
+
+These bundles represent stable connection forms.
+
+## Adopted Vocabulary Space
+
+Adopted vocabulary space contains vocabulary items that have stabilized through observation, usage, recurrence, and adoption.
+
+A vocabulary item may be a word, phrase, business term, code, label, status, category, or domain-specific expression.
+
+## Draft Grammar Space
+
+Draft grammar space contains grammar candidates that have not yet stabilized.
+
+A draft grammar candidate may emerge from residuals, incomplete matches, repeated unknown structures, near-neighbor mismatches, or Phase-generated relation candidates.
+
+Draft grammar must not automatically become adopted grammar.
+
+## Draft Vocabulary Space
+
+Draft vocabulary space contains residual token hashes, repeated chunks, candidate words, or unknown expressions that have not yet stabilized.
+
+Draft vocabulary is the holding area for unresolved expression.
+
+## Decoherence Bank
+
+The decoherence bank stores no-hit, low-hit, and unabsorbed residuals.
+
+It is not an error table.
+
+It is a structured bank of future vocabulary and grammar candidates.
+
+Repeated entries may become draft vocabulary or draft grammar.
+
+Recurring draft entries may later be promoted into adopted vocabulary or adopted grammar.
+
+## Grammar Relation
+
+`grammar_relation` stores how grammar and vocabulary candidates connect.
+
+It is semantic continuity memory.
+
+Without relation, the system can identify local fragments but cannot connect the beginning and end of a divided input.
+
+Relation is what prevents output from becoming a mirror of local input fragments.
+
+## Phase Relation Candidate Space
+
+`phase_relation_candidate` stores relation candidates generated from normalized aggregate values.
+
+Phase does not primarily inspect raw input.
+
+It works from adopted vocabulary, adopted grammar, draft vocabulary, draft grammar, existing relation, hit counts, relation weights, and co-occurrence aggregates.
+
+Phase-generated candidates are draft candidates.
+
+They must not silently mutate adopted grammar or adopted relation.
+
+---
+
+# xi: Coherence Layer
+
+The `xi` term is the coherence layer.
+
+```text
+x = token bundle / hash bundle / segmented input fragments
+i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
+```
+
+The coherence layer searches whether input fragments can be absorbed by existing spaces.
+
+It checks:
+
+```text
+adopted grammar candidates
+adopted vocabulary candidates
+existing draft vocabulary candidates
+near-neighbor candidates
+partial matches
+incomplete grammar candidates
+```
+
+If `x` hits or nearly hits `i`, the system records coherence evidence.
+
+The result is an exploration hit bundle plus any unabsorbed differences.
+
+---
+
+# yj: Decoherence Bank
+
+The `yj` term is the decoherence bank.
+
+```text
+y = unsearchable difference / no-hit residual / low-hit residual
+j = draft grammar candidate and draft accumulation context
+```
+
+The decoherence bank stores what the coherence layer could not absorb.
+
+This includes:
+
+```text
+new words
+unknown expressions
+no-hit token hashes
+low-hit token hashes
+unresolved grammar fragments
+unmatched grammar slots
+repeated but not-yet-adopted patterns
+```
+
+Unabsorbed differences must not be discarded.
+
+They are stored as draft vocabulary or draft grammar candidates.
+
+A scheduled aggregation job may later inspect the bank.
+
+Example promotion logic:
+
+```sql
+select token_hash, count(*) as observed_count
+from decoherence_bank
+group by token_hash
+having count(*) > 10;
+```
+
+Yesterday's `yj` candidate may become tomorrow's `xi` hit.
+
+---
+
+# ij = k: Procedural Composition
+
+`ij = k` means that the composition of the coherence candidate axis and the decoherence-bank candidate axis produces the coherence decoder axis.
+
+```text
+i = coherence candidate axis
+j = decoherence-bank candidate axis
+k = coherence decoder axis
+```
+
+Operationally:
+
+```text
+known hits
++ stored unknown residuals
+→ output-capable corrected grammar candidate
+```
+
+The order matters.
+
+```text
+ij = k
+ji != k
+```
+
+Searching known candidates first and then banking residuals does not produce the same result as starting from residuals first.
+
+---
+
+# zk: Coherence Decoder
+
+The `zk` term is the coherence decoder.
+
+```text
+z = exploration hit bundle, including relation evidence
+k = corrected grammar candidate
+```
+
+The coherence decoder projects surviving hit bundles into output-capable corrected grammar.
+
+It uses:
+
+```text
+hit bundles from the coherence layer
+relation evidence from grammar_relation
+unresolved slots from incomplete grammar candidates
+promoted candidates from decoherence_bank
+adopted grammar candidates
+adopted vocabulary candidates
+draft candidates that remain relevant
+Phase-generated relation candidates when available
+```
+
+The decoder does not originate meaning.
+
+It projects candidates into usable output grammar.
+
+Operationally:
+
+```text
+exploration hit bundle
++ grammar_relation evidence
+→ corrected grammar candidate
+→ output projection
+→ collapse
+→ emitted output
+```
+
+This decoder is not a next-token predictor.
+
+It is a grammar projection layer over surviving coherence, decoherence, and relation evidence.
 
 ---
 
@@ -97,12 +387,244 @@ logs.current pressure
 
 ---
 
+# Candidate Bundles Must Not Collapse Early
+
+Near-neighbor search must preserve multiple candidates.
+
+The system must not select only one nearest grammar or vocabulary item too early.
+
+Instead, it should operate on bundles:
+
+```text
+grammar_near_candidates = {g1, g2, g3, ...}
+vocabulary_near_candidates = {v1, v2, v3, ...}
+grammar_residual_candidates = {Δg1, Δg2, Δg3, ...}
+relation_candidates = {r1, r2, r3, ...}
+residual_candidates = {d1, d2, d3, ...}
+```
+
+If only one candidate is selected, meaning correction becomes impossible.
+
+If multiple incomplete grammar candidates are preserved, unmatched slots become search openings.
+
+Meaning correction can emerge from incomplete grammar candidates, unresolved vocabulary slots, relation evidence, and the coherence decoder.
+
+---
+
+# Long Context Handling
+
+The system does not need to hold long context as one continuous internal state.
+
+It can absorb long input by distributing it into:
+
+```text
+grammar candidates
+vocabulary candidates
+relation candidates
+decoherence-bank entries
+residuals
+aggregate differences
+```
+
+This is not summarization.
+
+It is semantic distribution.
+
+Known parts reinforce existing grammar and vocabulary spaces through the coherence layer.
+
+Unknown parts are stored in the decoherence bank.
+
+Separated coherent parts are connected through grammar_relation.
+
+Repeated relation patterns increase relation pressure.
+
+Stable residuals may become draft vocabulary or draft grammar.
+
+Stable relation candidates may become adopted relation or adopted grammar paths.
+
+The system stores structured semantic traces instead of relying on one opaque context window.
+
+---
+
+# Summarization as Grammar-Space Projection
+
+Summarization is not merely deletion.
+
+Summarization is projection into a selected grammar space.
+
+When summarization is requested, the system should:
+
+```text
+observe vocabulary pressure
+→ identify strong vocabulary bundles
+→ search grammar space from those vocabulary pressures
+→ include relation evidence
+→ produce multiple summary grammar candidates
+→ select compression level from candidate grammar forms
+→ decode through corrected grammar
+→ generate output
+```
+
+Compression level is not only a token budget.
+
+It is a choice of grammar projection and relation depth.
+
+Examples:
+
+```text
+headline summary
+argument summary
+technical summary
+business summary
+evidence-preserving summary
+video-script summary
+```
+
+Each summary type is a different grammar-space and relation-depth projection.
+
+---
+
+# Tokenization Philosophy
+
+The system should not depend on language-specific morphological analyzers.
+
+Tokenization should not decide meaning at the entrance.
+
+Instead:
+
+```text
+characters receive stable identities
+boundaries are detected through separators, spaces, punctuation, line breaks, code patterns, and repeated structure
+chunks become hash candidates
+hash candidates are compared against grammar and vocabulary spaces
+relations connect adjacent or scope-crossing candidates
+only residual candidates are inserted or reinforced
+```
+
+A tokenizer should act as:
+
+```text
+UUID / index assigner
+boundary splitter
+hash aggregator
+```
+
+not as semantic authority.
+
+One-character UUID assignment is an identity layer, not a meaning aggregation layer.
+
+The system must not aggregate meaning one character at a time.
+
+---
+
+# Event-Driven Runtime
+
+The core runtime should be mostly database-driven.
+
+Primary operations:
+
+```text
+key assignment
+neighbor lookup
+aggregate diff
+candidate bundle update
+residual upsert
+decoherence bank insert/update
+relation insert/update
+pressure calculation
+scheduled aggregation
+Phase relation candidate generation
+notify on hit / no-hit / threshold crossing
+```
+
+The system may notify when:
+
+```text
+a known vocabulary space is hit
+no matching vocabulary candidate exists
+no matching grammar candidate exists
+residual pressure exceeds a threshold
+draft grammar repeatedly appears
+draft vocabulary repeatedly appears
+adopted grammar coherence increases
+relation pressure increases
+Phase relation candidates exceed thresholds
+a summary projection candidate is available
+decoherence-bank entries exceed promotion thresholds
+```
+
+The system should not automatically rewrite adopted meaning.
+
+It should recommend, notify, and preserve evidence.
+
+---
+
+# Relationship to Transformer Attention
+
+This architecture is not Transformer Attention.
+
+Transformer Attention computes weighted relationships inside a learned representation system and typically collapses candidates through softmax-like selection pressure.
+
+The current core preserves candidate bundles and avoids early collapse.
+
+It does not scale meaning through larger parameter matrices.
+
+It reduces computation by using:
+
+```text
+coherence-layer hits
+decoherence-bank accumulation
+grammar_relation continuity
+Phase relation candidate generation
+coherence-decoder projection
+grammar-space near candidates
+vocabulary-space near candidates
+incomplete grammar slot search
+aggregate differences
+residual-only updates
+event-driven notifications
+explicit adoption
+```
+
+In this model, attention and decoder are not fully separate black boxes.
+
+The quaternion-style process attends through `xi`, banks unresolved difference through `yj`, connects coherent candidates through relation, and decodes through `zk`.
+
+Phase uses normalized aggregate values to grow relation candidates outside ordinary reply-time processing.
+
+The goal is not larger context windows.
+
+The goal is structured, inspectable, non-destructive semantic accumulation.
+
+---
+
+# Authority Order
+
+```text
+1. Canonical Core
+2. Core State / Operation Gate
+3. Persistent Semantic Tables
+4. Coherence / Decoherence / Relation Runtime
+5. Scheduled Aggregation / Phase Attention / Relation Candidate Generation
+6. Coherence Decoder
+7. Decoder / Collapse Invariants
+8. External / Remote Observation Intake
+9. Legacy Archive
+```
+
+No independent constraint table.
+
+---
+
 # Short Form
 
 ```text
 Meaning is connection form.
 The DB is semantic memory.
 The decoder does not originate meaning.
+Candidate bundles must not collapse early.
+Long context is distributed into inspectable semantic traces.
+Summarization is grammar-space projection.
 Phase Attention grows relation paths.
 Collapse is explicit.
 Mutation is operation-gated.
