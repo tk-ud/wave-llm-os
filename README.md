@@ -34,6 +34,18 @@ Mutation is operation-gated.
 
 ---
 
+# Phase Attention
+
+Phase Attention is scheduled aggregate-weighted relation candidate generation.
+
+It reads normalized vocabulary, grammar, relation aggregates, and `logs.current` pressure.
+
+It generates draft `phase_relation_candidate.grammar_array` paths for later evidence, review, promotion, or decoder support.
+
+It is not the synchronous reply path.
+
+---
+
 # Canonical Reference Rule
 
 ```text
@@ -54,7 +66,7 @@ Canonical schema does not define `uuid[]` semantic arrays.
 SPEC_CANONICAL_CORE.md                  canonical implementation authority
 NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md PostgreSQL implementation sketch
 NOTE_INDEX_ARRAY_CANONICAL.md           index-array reference rule
-NOTE_PHASE_RELATION_CANDIDATE.md        Phase candidate generation
+NOTE_PHASE_RELATION_CANDIDATE.md        Phase Attention / relation candidate generation
 NOTE_NEAR_NEIGHBOR_SEARCH.md            structural near-neighbor search
 MIGRATION_LEGACY_REGISTER.md            migration / rejection register
 NOTE_QUATERNION_PHILOSOPHY.md           short philosophy note
@@ -104,6 +116,8 @@ uuid[] canonical columns
 Archived legacy documents:
 
 ```text
+legacy_design/LEGACY_PHILOSOPHY.md
+legacy_design/LEGACY_MANIFEST.yaml
 legacy_design/README_LEGACY_WAVE_GEOMETRY.md
 legacy_design/todo_legacy_manifest_wavecore.md
 ```
