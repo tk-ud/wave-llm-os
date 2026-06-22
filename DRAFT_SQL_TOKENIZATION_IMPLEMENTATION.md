@@ -20,6 +20,10 @@ The canonical schema does not define `uuid[]` columns.
 
 If evidence needs to mention multiple UUID identities, it does so inside JSONB evidence fields, not UUID-array columns.
 
+There is no canonical `constraint_rule` table.
+
+Constraint behavior is handled by the existing core operation gate and decoder/collapse invariants.
+
 ---
 
 # 1. Storage Decision
@@ -75,13 +79,6 @@ target_table text
 target_index bigint
 ```
 
-Not:
-
-```text
-target_table text
-target_uuid uuid
-```
-
 UUIDs may still identify rows, jobs, observations, events, queue items, and audit entries.
 
 They are not semantic references.
@@ -95,22 +92,14 @@ create schema if not exists logs;
 
 create table logs.coherence (
   coherence_uuid uuid primary key default gen_random_uuid(),
-
   target_table text not null,
   target_index bigint not null,
-
   source_observation_uuid uuid null,
   source_scope_uuid uuid null,
-
   coherence_kind text not null default 'hit',
-  -- hit | near_hit | partial_hit | relation_hit | eos_hit
-
   coherence_score numeric null,
-
   end_of_sentence_observed boolean not null default false,
-
   context jsonb null,
-
   observed_at timestamptz not null default now()
 );
 
@@ -122,19 +111,13 @@ create index idx_logs_coherence_observed_at
 
 create table logs.current (
   current_uuid uuid primary key default gen_random_uuid(),
-
   target_table text not null,
   target_index bigint not null,
-
   current_value jsonb not null,
-
   aggregation_version bigint not null default 1,
-
   aggregated_from timestamptz null,
   aggregated_to timestamptz not null default now(),
-
   updated_at timestamptz not null default now(),
-
   unique (target_table, target_index)
 );
 
@@ -146,22 +129,15 @@ create index idx_logs_current_value_gin
 
 create table logs.diff (
   diff_uuid uuid primary key default gen_random_uuid(),
-
   target_table text not null,
   target_index bigint null,
-
   operation_key text not null,
-
   status text not null default 'applied',
-  -- applied | rejected | deferred | blocked | queued
-
   before_value jsonb null,
   after_value jsonb null,
   diff_value jsonb null,
-
   reason text null,
   actor text null,
-
   created_at timestamptz not null default now()
 );
 
@@ -183,25 +159,11 @@ where operation_key in (
 );
 ```
 
-`target_index` may be null only for non-semantic operational events that do not target a semantic table row.
-
 Adoption audit is not a separate table.
 
 Adoption is mutation evidence, so `logs.diff` is the source of truth.
 
 `logs.adoption_audit` is a read-only view over `logs.diff`.
-
-Operation key namespace:
-
-```text
-adopt.*      = draft/adopted semantic adoption
-promote.*    = promotion into draft/adopted candidate space
-update.flag.* = observed flag mutation
-remote.*     = remote event decision
-mastication.* = mastication decision
-scheduler.*  = scheduler decision
-notify.*     = notification decision
-```
 
 ---
 
@@ -212,14 +174,10 @@ notify.*     = notification decision
 ```sql
 create table token (
   token_uuid uuid primary key default gen_random_uuid(),
-
   token_index bigint generated always as identity unique,
-
   raw text not null,
-
   split_flag boolean not null default false,
   split_kind text null,
-
   created_at timestamptz not null default now()
 );
 
@@ -232,26 +190,17 @@ create index idx_token_split
 
 ## 4.2 vocabulary
 
-`vocabulary` is an ordered `token_index` bundle.
-
 ```sql
 create table vocabulary (
   vocabulary_uuid uuid primary key default gen_random_uuid(),
-
   vocabulary_index bigint generated always as identity unique,
-
   token_array bigint[] not null,
-
   raw_text text null,
   vocabulary_hash text not null unique,
-
   split_flag boolean not null default false,
   split_kind text null,
-
   draft_flag boolean not null default true,
   status text not null default 'draft',
-  -- draft | adopted | archived | quarantined | rejected | dormant
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -266,7 +215,6 @@ create table vocabulary_token_link (
   vocabulary_index bigint not null references vocabulary(vocabulary_index),
   token_index bigint not null references token(token_index),
   position integer not null,
-
   primary key (vocabulary_index, position)
 );
 
@@ -278,23 +226,15 @@ No UUID column is used in the semantic link table.
 
 ## 4.3 grammar
 
-`grammar` is an ordered `vocabulary_index` bundle.
-
 ```sql
 create table grammar (
   grammar_uuid uuid primary key default gen_random_uuid(),
-
   grammar_index bigint generated always as identity unique,
-
   vocabulary_array bigint[] not null,
-
   grammar_hash text not null unique,
-
   end_of_sentence_flag boolean not null default false,
-
   draft_flag boolean not null default true,
   status text not null default 'draft',
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -312,7 +252,6 @@ create table grammar_vocabulary_link (
   grammar_index bigint not null references grammar(grammar_index),
   vocabulary_index bigint not null references vocabulary(vocabulary_index),
   position integer not null,
-
   primary key (grammar_index, position)
 );
 
@@ -324,25 +263,16 @@ No UUID column is used in the semantic link table.
 
 ## 4.4 grammar_relation
 
-`grammar_relation` is an ordered `grammar_index` bundle.
-
 ```sql
 create table grammar_relation (
   grammar_relation_uuid uuid primary key default gen_random_uuid(),
-
   grammar_relation_index bigint generated always as identity unique,
-
   grammar_array bigint[] not null,
-
   relation_hash text not null unique,
-
   end_of_sentence_flag boolean not null default false,
-
   draft_flag boolean not null default true,
   status text not null default 'draft',
-
   relation_weight numeric not null default 0,
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -360,7 +290,6 @@ create table grammar_relation_link (
   grammar_relation_index bigint not null references grammar_relation(grammar_relation_index),
   grammar_index bigint not null references grammar(grammar_index),
   position integer not null,
-
   primary key (grammar_relation_index, position)
 );
 
@@ -374,32 +303,20 @@ No UUID column is used in the semantic link table.
 
 # 5. Decoherence Bank
 
-`decoherence_bank` stores no-hit, low-hit, and unabsorbed residuals.
-
-Residual arrays use semantic indexes.
-
 ```sql
 create table decoherence_bank (
   decoherence_uuid uuid primary key default gen_random_uuid(),
-
   residual_hash text not null unique,
   residual_kind text not null,
-  -- token | vocabulary | grammar | grammar_relation | external | remote
-
   raw_text text null,
   token_array bigint[] null,
   vocabulary_array bigint[] null,
   grammar_array bigint[] null,
-
   source_observation_uuid uuid null,
   source_scope_uuid uuid null,
-
   observed_count bigint not null default 1,
   pressure numeric not null default 0,
-
   status text not null default 'draft',
-  -- draft | queued | promoted | quarantined | rejected | dormant
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -445,38 +362,27 @@ frequent unresolved residual → notify.question_requested
 ```sql
 create table core_state (
   state_uuid uuid primary key default gen_random_uuid(),
-
   state_key text not null unique,
   state_kind text not null,
-  -- bool | int | numeric | text | json
-
   bool_value boolean null,
   int_value bigint null,
   numeric_value numeric null,
   text_value text null,
   json_value jsonb null,
-
   authority text not null default 'core',
   description text null,
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table core_operation_policy (
   policy_uuid uuid primary key default gen_random_uuid(),
-
   state_key text not null references core_state(state_key),
   expected_bool boolean not null,
-
   operation_key text not null,
-
   allowed boolean not null,
-
   reason text null,
-
   created_at timestamptz not null default now(),
-
   unique (state_key, expected_bool, operation_key)
 );
 
@@ -507,8 +413,7 @@ values
   ('external_observation.enabled', 'bool', true, 'web search notification switch'),
   ('distributed_sync.enabled', 'bool', false, 'remote event intake switch'),
   ('question_notify.enabled', 'bool', true, 'question notification switch'),
-  ('near_blend.enabled', 'bool', true, 'offline near-neighbor replacement switch'),
-  ('constraint.enabled', 'bool', true, 'post-decoder pre-collapse stabilizer switch');
+  ('near_blend.enabled', 'bool', true, 'offline near-neighbor replacement switch');
 ```
 
 Freeze-block policies include:
@@ -529,25 +434,49 @@ generate.phase_relation_candidate
 
 ---
 
-# 7. Notify Queue
+# 7. Decoder / Collapse Invariants
+
+There is no `constraint_rule` table.
+
+The current core already provides the required guardrails through:
+
+```text
+core_state
+core_operation_policy
+core_can_execute()
+logs.diff
+decoder invariants
+collapse invariants
+```
+
+Decoder/collapse invariants are fixed runtime invariants, not mutable semantic records.
+
+They include:
+
+- decoder must not originate meaning
+- decoder must not adopt candidates
+- decoder must not promote candidates
+- decoder must not mutate grammar_relation
+- decoder must not mutate core_state
+- decoder must not erase decoherence evidence
+- collapse must not silently convert draft candidates into adopted meaning
+- freeze must still block semantic mutation
+
+A separate constraint table is rejected because it would duplicate the operation policy layer and create a second rule authority.
+
+---
+
+# 8. Notify Queue
 
 ```sql
 create table core_notify_queue (
   notify_uuid uuid primary key default gen_random_uuid(),
-
   notify_kind text not null,
-  -- web_search_requested | question_requested | promotion_candidate_detected
-  -- phase_relation_candidate_ready | freeze_blocked_mutation
-
   source_operation text not null,
   source_table text null,
   source_index bigint null,
-
   status text not null default 'queued',
-  -- queued | processing | consumed | failed | cancelled
-
   payload_json jsonb null,
-
   created_at timestamptz not null default now(),
   consumed_at timestamptz null
 );
@@ -558,7 +487,7 @@ create index idx_core_notify_queue_status
 
 ---
 
-# 8. Scheduler Worker Registry
+# 9. Scheduler Worker Registry
 
 SQL does not run scheduled jobs by itself.
 
@@ -567,58 +496,32 @@ A backend worker, cron process, or external job runner must wake up and call dat
 ```sql
 create table scheduler_job (
   job_uuid uuid primary key default gen_random_uuid(),
-
   job_key text not null unique,
-
   operation_key text not null,
-
   enabled boolean not null default true,
-
   schedule_kind text not null,
-  -- interval | cron | manual
-
   interval_seconds integer null,
   cron_expr text null,
-
   status text not null default 'idle',
-  -- idle | running | failed | disabled
-
   locked_by text null,
   locked_until timestamptz null,
-
   last_run_at timestamptz null,
   next_run_at timestamptz null,
-
   run_count bigint not null default 0,
   fail_count bigint not null default 0,
-
   config_json jsonb null,
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-create index idx_scheduler_job_due
-  on scheduler_job (enabled, next_run_at, status);
-
-create index idx_scheduler_job_lock
-  on scheduler_job (locked_until);
-
 create table scheduler_job_run (
   run_uuid uuid primary key default gen_random_uuid(),
-
   job_uuid uuid not null references scheduler_job(job_uuid),
-
   operation_key text not null,
-
   status text not null,
-  -- running | completed | failed | skipped | blocked
-
   started_at timestamptz not null default now(),
   finished_at timestamptz null,
-
   affected_count bigint null,
-
   result_json jsonb null,
   error_json jsonb null
 );
@@ -630,39 +533,21 @@ Before executing a job, the DB-owned runner function must call:
 select core_can_execute(operation_key);
 ```
 
-If false:
-
-```text
-scheduler_job_run.status = blocked
-logs.diff.operation_key = operation_key
-logs.diff.status = blocked
-```
-
 ---
 
-# 9. Phase Relation Candidate
-
-Phase relation candidate output is a `grammar_index` array.
+# 10. Phase Relation Candidate
 
 ```sql
 create table phase_relation_candidate (
   phase_relation_candidate_uuid uuid primary key default gen_random_uuid(),
-
   phase_relation_candidate_index bigint generated always as identity unique,
-
   grammar_array bigint[] not null,
-
   relation_hash text not null unique,
-
   evidence_json jsonb not null,
-
   score numeric not null default 0,
   pressure numeric not null default 0,
-
   draft_flag boolean not null default true,
   status text not null default 'draft',
-  -- draft | promoted | adopted | rejected | dormant
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -683,12 +568,8 @@ create table phase_relation_candidate_link (
   phase_relation_candidate_index bigint not null references phase_relation_candidate(phase_relation_candidate_index),
   grammar_index bigint not null references grammar(grammar_index),
   position integer not null,
-
   primary key (phase_relation_candidate_index, position)
 );
-
-create index idx_phase_relation_candidate_link_grammar
-  on phase_relation_candidate_link (grammar_index, position);
 ```
 
 No UUID column is used in the semantic link table.
@@ -697,7 +578,7 @@ Evidence record UUID identities may appear inside `evidence_json`, not as UUID-a
 
 ---
 
-# 10. Structural Vector Index
+# 11. Structural Vector Index
 
 A derived vector index may be used for large-scale candidate retrieval.
 
@@ -708,53 +589,30 @@ It is not semantic authority.
 ```sql
 create table structural_vector_index (
   index_uuid uuid primary key default gen_random_uuid(),
-
   target_table text not null,
   target_index bigint not null,
-
   index_kind text not null,
-  -- vocabulary | grammar | grammar_relation | phase_relation_candidate
-
   source_hash text not null,
-
   derived_vector vector null,
-
   metadata_json jsonb null,
-
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-
   unique (target_table, target_index, index_kind)
 );
 ```
 
-Rules:
-
-```text
-source_hash must be derived from canonical index-array fields.
-derived_vector is invalid if source_hash is stale.
-structural verification must run after vector retrieval.
-```
-
 ---
 
-# 11. Mastication Jobs
+# 12. Mastication Jobs
 
 ```sql
 create table mastication_job (
   job_uuid uuid primary key default gen_random_uuid(),
-
   source_kind text not null,
-  -- web | file | user_supplied | remote_event
-
   source_hash text not null,
   status text not null default 'queued',
-  -- queued | processing | completed | failed | quarantined | blocked
-
   raw_text_policy text not null default 'discard_after_ingest',
-
   learning_weight numeric not null default 0.10,
-
   created_at timestamptz not null default now(),
   started_at timestamptz null,
   finished_at timestamptz null
@@ -762,58 +620,41 @@ create table mastication_job (
 
 create table mastication_observation_result (
   result_uuid uuid primary key default gen_random_uuid(),
-
   job_uuid uuid not null references mastication_job(job_uuid),
-
   observation_uuid uuid null,
-
   inserted_token_count bigint not null default 0,
   decoherence_insert_count bigint not null default 0,
   relation_candidate_count bigint not null default 0,
   adopted_update_count bigint not null default 0,
-
   raw_text_discarded boolean not null default true,
-
   created_at timestamptz not null default now()
 );
 ```
 
-Mastication queueing may be allowed during freeze.
-
-Mastication learning must be blocked during freeze.
-
 ---
 
-# 12. Remote Event Intake
+# 13. Remote Event Intake
 
 Remote events are observation candidates, not semantic updates.
 
 ```sql
 create table remote_event_inbox (
   event_uuid uuid primary key default gen_random_uuid(),
-
   remote_node_id text not null,
   event_hash text not null unique,
   signature text null,
   payload_hash text not null,
-
   status text not null default 'received',
-  -- received | rejected | quarantined | queued_for_mastication | accepted_observation
-
   decision text null,
   reason text null,
-
   created_at timestamptz not null default now()
 );
 
 create table remote_event_quarantine (
   quarantine_uuid uuid primary key default gen_random_uuid(),
-
   event_uuid uuid not null references remote_event_inbox(event_uuid),
-
   reason text not null,
   released boolean not null default false,
-
   created_at timestamptz not null default now(),
   released_at timestamptz null
 );
@@ -827,7 +668,7 @@ Remote events must not directly mutate adopted vocabulary, adopted grammar, adop
 
 ---
 
-# 13. Scheduled Aggregation
+# 14. Scheduled Aggregation
 
 Scheduled aggregation reads `logs.coherence` and upserts `logs.current`.
 
@@ -849,13 +690,9 @@ select
     'hit_count', count(*) filter (where coherence_kind = 'hit'),
     'near_hit_count', count(*) filter (where coherence_kind = 'near_hit'),
     'partial_hit_count', count(*) filter (where coherence_kind = 'partial_hit'),
-    'end_of_sentence_count', count(*) filter (
-      where end_of_sentence_observed = true
-    ),
+    'end_of_sentence_count', count(*) filter (where end_of_sentence_observed = true),
     'end_of_sentence_score',
-      100.0
-      * count(*) filter (where end_of_sentence_observed = true)
-      / nullif(count(*), 0)
+      100.0 * count(*) filter (where end_of_sentence_observed = true) / nullif(count(*), 0)
   ) as current_value,
   now(),
   now()
@@ -876,24 +713,11 @@ coherence_count >= 20
 end_of_sentence_score >= 70
 ```
 
-```sql
-update grammar g
-set
-  end_of_sentence_flag = true,
-  updated_at = now()
-from logs.current c
-where c.target_table = 'grammar'
-  and c.target_index = g.grammar_index
-  and (c.current_value->>'coherence_count')::int >= 20
-  and (c.current_value->>'end_of_sentence_score')::numeric >= 70
-  and g.end_of_sentence_flag = false;
-```
-
-The update must be recorded in `logs.diff` using `target_index`.
+The flag update must be recorded in `logs.diff` using `target_index`.
 
 ---
 
-# 14. Canonical Runtime Path
+# 15. Canonical Runtime Path
 
 ```text
 input
@@ -911,14 +735,14 @@ input
    frequent unresolved residual → question_requested notify
 → grammar_relation lookup/upsert using grammar_index array
 → zk coherence decoder
-→ constraint apply
+→ decoder/collapse invariant check
 → collapse/output
 → mutation-capable updates only through core_can_execute()
 ```
 
 ---
 
-# 15. Minimal Function List
+# 16. Minimal Function List
 
 ```text
 core_get_state(state_key)
@@ -948,7 +772,7 @@ The application should call database functions rather than reimplement policy de
 
 ---
 
-# 16. Short Form
+# 17. Short Form
 
 ```text
 UUID is identity.
@@ -956,6 +780,8 @@ Index is semantic reference.
 Array is index array.
 Canonical schema does not define uuid[] columns.
 Adoption audit is a view over logs.diff, not a table.
+Constraint tables are not canonical.
+Decoder/collapse invariants are absorbed into the current core.
 Near-neighbor search runs over index arrays.
 pgvector may accelerate derived retrieval.
 Structural verification decides.
