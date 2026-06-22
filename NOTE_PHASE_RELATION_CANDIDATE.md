@@ -50,6 +50,7 @@ raw input reasoning
 next-token prediction
 decoder logic
 one-shot semantic search
+reply-time adoption authority
 ```
 
 It must not be treated as:
@@ -63,6 +64,8 @@ That would make the system heavy and structurally similar to ordinary attention 
 Phase Attention is a scheduled relation-growth mechanism.
 
 The normal reply path should read Phase-generated candidates, not generate the full relation search from scratch.
+
+Reply-time coherence promotion belongs to the canonical core reply path, not to Phase Attention.
 
 ---
 
@@ -147,6 +150,7 @@ input
 → coherence relation lookup
 → zk coherence decoder
 → output collapse
+→ core-owned coherence promotion when structural verification passes
 ```
 
 Scheduled Phase path:
@@ -159,10 +163,14 @@ normalized vocabulary
 + hit / recurrence / promotion weights
 → Phase Attention
 → phase_relation_candidate
-→ later promotion or decoder support
+→ scheduled verification / promotion or decoder support
 ```
 
 This keeps ordinary response generation light.
+
+Phase Attention is cron-like scheduled work.
+
+It must not own the synchronous reply-time adoption path.
 
 ---
 
@@ -299,7 +307,7 @@ attended semantic field / selected grammar path
 → test scope-crossing continuity
 → generate expanded grammar_array
 → store as phase_relation_candidate
-→ wait for recurrence / decoder evidence / review
+→ wait for recurrence / decoder evidence / scheduled verification
 → promote through core_can_execute('promote.phase_relation')
 ```
 
@@ -411,7 +419,7 @@ create table phase_relation_candidate (
 );
 ```
 
-A candidate becomes useful only after recurrence, decoder usage evidence, or reply-time coherence evidence.
+A Phase candidate becomes useful only after recurrence, scheduled structural verification, or decoder usage evidence.
 
 `relation_array` is optional and must reference relation indexes, not UUIDs.
 
@@ -421,13 +429,13 @@ A candidate becomes useful only after recurrence, decoder usage evidence, or rep
 
 # 14. Promotion
 
-Promotion is automatic and evidence-driven.
+Phase promotion is scheduled and evidence-driven.
+
+It is not reply-time promotion.
 
 Human review is not part of ordinary promotion.
 
-If a candidate is used during reply generation and passes structural verification, it has cohered.
-
-A reply-time coherence hit must immediately adopt a new structure or reinforce an existing adopted structure, unless blocked by freeze, policy, contradiction, or operation gate failure.
+Reply-time coherence promotion belongs to `SPEC_CANONICAL_CORE.md` and the core reply path.
 
 State examples:
 
@@ -441,10 +449,9 @@ rejected
 archived
 ```
 
-Promotion evidence may include:
+Phase promotion evidence may include:
 
 ```text
-reply-time structural coherence hit
 recurrence
 coherence weight
 successful decoder usage
@@ -452,18 +459,7 @@ low contradiction rate
 stable scope-crossing appearance
 mirror-output reduction
 near-neighbor stability
-```
-
-Reply-time promotion path:
-
-```text
-near-neighbor candidate
-→ structural verification passes
-→ xi coherence hit
-→ zk decoder usage
-→ core_can_execute('promote.coherence_hit')
-→ adopt or reinforce immediately
-→ logs.diff
+scheduled structural verification
 ```
 
 Scheduled Phase promotion path:
@@ -484,8 +480,9 @@ Contradiction or policy failure blocks promotion and keeps evidence as draft, re
 This preserves the principle:
 
 ```text
-adoption must be explicit, gated, and logged;
-it must not require human review.
+Phase grows candidates on schedule;
+core owns reply-time coherence adoption;
+adoption must be explicit, gated, logged, and automatic when evidence passes.
 ```
 
 ---
@@ -820,7 +817,8 @@ It reads logs.current as pressure.
 It slides across layers.
 It generates grammar_array relation candidates.
 It runs on a schedule.
-Reply-time coherence hits are adopted or reinforced immediately through the operation gate.
+Phase is cron-like maintenance, not reply generation.
+Core owns reply-time coherence adoption.
 Human review is not required for ordinary promotion.
 Sleep maintenance runs in the same scheduled / idle / preemptible window.
 Sleep maintenance refines nearby vocabulary, grammar, and grammar_array paths as draft evidence.
