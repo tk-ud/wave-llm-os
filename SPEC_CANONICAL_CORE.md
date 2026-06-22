@@ -247,6 +247,96 @@ Freeze, policy failure, contradiction, or operation gate failure blocks adoption
 
 ---
 
+# Core Expansion / Draft / Sleep Consolidation
+
+Core expands semantic space during reply generation.
+
+Sleep contracts and cleans semantic space during scheduled maintenance.
+
+```text
+reply-time core = expansion
+sleep / cron    = consolidation, pruning, decoherence
+```
+
+Context-local names, file names, branch names, issue numbers, commit identifiers, and other proper nouns must be usable immediately during reply generation.
+
+They must not wait for scheduled Phase confirmation before they can participate in output.
+
+```text
+context-local observation
+→ temporary vocabulary / grammar candidates
+→ reply-time usage
+→ logs.coherence evidence
+→ sleep decides whether to retain, merge, cool, or decohere
+```
+
+Draft is not a human-review queue.
+
+Draft is not the primary promotion target.
+
+Draft is an unconfirmed candidate filter and anti-pattern evidence store.
+
+```text
+draft
+= unconfirmed candidate shape
+= weak or unstable relation evidence
+= candidate-generation anti-pattern
+= Phase Attention negative pressure
+```
+
+Candidate generation must read Draft evidence as negative pressure.
+
+If a new Phase candidate is structurally close to an unresolved Draft anti-pattern, candidate score must be reduced unless fresh coherence evidence overcomes that penalty.
+
+```text
+new candidate
++ similar draft anti-pattern
++ no new coherence evidence
+→ lower phase_score
+→ keep draft / residual / rejected
+```
+
+Sleep runs through `scheduler_job` / cron-like maintenance.
+
+Sleep reads aggregate usage windows from `logs.current`, `logs.coherence`, and `logs.diff`.
+
+Sleep may decohere vocabulary or relation edges when usage evidence shows instability.
+
+Unused vocabulary:
+
+```text
+vocabulary unused for configured window
+→ cool / dormant / decoherence evidence
+→ weaken candidate generation priority
+→ do not hard-delete semantic basis
+```
+
+Moth-eaten vocabulary inside active upper structures:
+
+```text
+parent_structure_usage_count is high
+and vocabulary_missing_slot_count / parent_structure_usage_count is high
+→ vocabulary decoheres from that parent grammar or relation path
+→ store decoherence evidence
+→ weaken future candidate generation for that attachment
+```
+
+Here, `parent_structure_usage_count` may refer to an active grammar, grammar_relation, or grammar_array path.
+
+`vocabulary_missing_slot_count` counts repeated cases where the parent structure is used but the vocabulary slot is missing, replaced, unresolved, or pushed into residual.
+
+Sleep does not make reply generation stricter.
+
+Sleep makes future search cheaper by pruning, cooling, merging, or decohering unstable structures after the fact.
+
+```text
+Core first expands.
+Sleep later cuts.
+Draft filters future Phase candidates as anti-pattern evidence.
+```
+
+---
+
 # Near Neighbor Search
 
 Primary search is structural over index arrays.
@@ -267,6 +357,8 @@ Phase reads aggregate pressure and evidence.
 
 Phase reads `logs.current` as the scheduled pressure surface.
 
+Phase reads Draft evidence as unconfirmed candidate filters and anti-pattern pressure.
+
 Phase writes draft relation paths to `phase_relation_candidate`.
 
 Phase outputs grammar_index arrays only.
@@ -276,6 +368,8 @@ Promotion must pass operation gate.
 Phase is not the synchronous raw-input reply path.
 
 Phase must not define reply-time adoption semantics; reply-time coherence promotion belongs to the core reply path.
+
+Phase candidate generation must reduce or reject candidates that reproduce unresolved Draft anti-patterns without new coherence evidence.
 
 ---
 
