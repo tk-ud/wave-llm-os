@@ -21,6 +21,7 @@ migrate      = move into the new canonical core
 reinterpret = preserve wording or intent but change mechanism
 archive      = keep as historical reference only
 reject       = explicitly exclude from canonical authority
+absorbed     = handled by an already-canonical mechanism, with no new table/layer
 pending      = not yet decided
 ```
 
@@ -35,7 +36,7 @@ pending      = not yet decided
 | Persistent semantic state | migrate | PostgreSQL persistent tables |
 | Inspectable semantic state | migrate | token / vocabulary / grammar / relation / logs |
 | Expandable semantic state | migrate | draft/adopted spaces, decoherence bank, Phase candidates |
-| Decoder does not originate meaning | migrate | coherence decoder section |
+| Decoder does not originate meaning | migrate | coherence decoder + decoder/collapse invariants |
 | Explicit collapse | migrate | runtime pipeline |
 | Non-destructive learning | migrate | logs.coherence, logs.current, logs.diff, adoption gates |
 | Local semantic sovereignty | migrate | distributed observation section |
@@ -83,9 +84,11 @@ It does not define canonical runtime authority.
 | canonical index arrays | migrate | DRAFT_INDEX_ARRAY_CANONICAL.md; semantic reference is index only |
 | adoption audit table | reject | adoption is mutation evidence; separate table would duplicate logs.diff |
 | adoption audit view | migrate | logs.adoption_audit view over logs.diff |
+| constraint_rule table | reject | current core already has operation policy and decoder/collapse invariants |
+| constraint layer as independent authority | reject | would create a second rule authority after decoder |
+| decoder/collapse invariants | absorbed | handled by current core runtime invariants, not a table |
 | dense embedding vector search as semantic authority | reject | dense vectors erase structural meaning when treated as source of truth |
 | pgvector derived retrieval index | reinterpret | allowed only as acceleration over derived structural vectors; not semantic authority |
-| constraint layer | migrate | post-decoder pre-collapse stabilizer |
 
 Snapshot note:
 
@@ -114,6 +117,22 @@ adoption_audit is not a table.
 logs.diff is the source of truth for adoption/promotion mutation evidence.
 
 logs.adoption_audit is a view over logs.diff.
+```
+
+Constraint note:
+
+```text
+constraint_rule is not a canonical table.
+
+Current core mechanisms are sufficient:
+- core_state
+- core_operation_policy
+- core_can_execute()
+- logs.diff
+- decoder invariants
+- collapse invariants
+
+The decoder/collapse stage must not originate meaning, promote candidates, adopt candidates, mutate grammar_relation, mutate core_state, or erase decoherence evidence.
 ```
 
 Scheduler note:
@@ -165,7 +184,7 @@ Freeze allows:
 - coherence lookup
 - relation lookup
 - decoder projection
-- constraint apply, if read-only
+- decoder/collapse invariant check
 - output collapse
 
 Freeze blocks:
@@ -443,7 +462,6 @@ Rules:
 
 The following still need detailed canonical table/function specs:
 
-- constraint rule table
 - web search result mastication schema
 - remote node trust registry
 - decoder trace / loop guard equivalent
