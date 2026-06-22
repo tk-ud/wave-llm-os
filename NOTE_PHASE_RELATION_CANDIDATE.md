@@ -267,9 +267,13 @@ This allows the system to generate relation candidates that are not directly pre
 
 ---
 
-# 9. Current-Driven Grammar Expansion
+# 9. Pressure-Guided Grammar Expansion
 
 Phase Attention reads `logs.current` as the scheduled aggregate pressure surface.
+
+`logs.current` does not create grammar arrays and is not the parent of new `grammar_array` rows.
+
+It exposes pressure used to select attended grammar paths and exploration budgets.
 
 `logs.current` may expose:
 
@@ -287,9 +291,10 @@ decoder-success relation usage
 Expansion process:
 
 ```text
-logs.current pressure
-→ select high-pressure grammar path
+attended semantic field / selected grammar path
++ logs.current pressure
 → identify terminal grammar slot or missing slot
+→ slide vocabulary / grammar / grammar_relation arrays
 → search near grammar arrays
 → test scope-crossing continuity
 → generate expanded grammar_array
@@ -300,7 +305,7 @@ logs.current pressure
 
 Phase Attention therefore does not merely search similar grammar.
 
-It grows candidate grammar paths from accumulated unresolved pressure.
+It grows candidate grammar paths through structural search guided by accumulated unresolved pressure.
 
 ---
 
@@ -596,7 +601,99 @@ A smaller database with strong relation may produce better connected output.
 
 ---
 
-# 20. Short Form
+# 20. Preemptible Sleep Scheduler / Phase Maintenance
+
+Legacy sleep scheduling belongs to the same timing class as Phase Attention.
+
+It is not synchronous reply-time work.
+
+It runs as scheduled, idle-window, preemptible maintenance alongside Phase Attention.
+
+Semantic invariant:
+
+```text
+sleep / maintenance tasks must not block user-facing inference
+sleep / maintenance tasks must pause on user input
+sleep / maintenance tasks must not directly adopt semantic structures
+sleep / maintenance tasks may refresh aggregates, pressure surfaces, candidate scores, dormant markers, and maintenance queues through operation-gated paths
+```
+
+Recommended timing model:
+
+```text
+user-facing path
+→ never waits for sleep maintenance
+
+idle / low-activity window
+→ refresh logs.current pressure
+→ run Phase Attention candidate generation
+→ run sleep maintenance tasks
+→ update maintenance evidence
+→ queue promotion candidates, not adopted mutations
+```
+
+Preemption rule:
+
+```text
+on user input
+→ pause sleep maintenance immediately
+→ keep current chunk boundary
+→ resume only after idle threshold
+```
+
+Legacy parameters preserved as implementation guidance:
+
+```text
+pause_on_user_input = true
+resume_after_seconds_idle = 30
+cpu_nice = low
+io_nice = low
+max_cpu_percent = 15
+max_io_ops_per_sec = 100
+usage window = hour_of_day histogram
+window_days = 14
+smoothing = ema(alpha = 0.25)
+select lowest-activity hours by percentile
+require_continuous_idle_minutes = 10
+hard_preempt = true
+```
+
+Band / relation refinement may run as chunked background work:
+
+```text
+max_wall_ms_per_chunk = 120
+max_chunks_per_idle_window = 500
+include_dormant = true
+```
+
+Allowed sleep maintenance outputs:
+
+```text
+logs.current refresh
+relation pressure refresh
+phase candidate score refresh
+decoherence recurrence aggregation
+dormant / cold markers for weak unused candidates
+alias / merge candidates as draft evidence
+promotion queue candidates
+scheduler_job_run evidence
+```
+
+Rejected sleep maintenance outputs:
+
+```text
+direct adopted grammar mutation
+direct adopted vocabulary mutation
+direct adopted relation mutation
+blocking inference
+permanent removal of semantic basis / seed structures
+```
+
+Sleep maintenance is therefore the low-power background metabolism of the Phase system.
+
+---
+
+# 21. Short Form
 
 ```text
 Phase Attention does not read raw text first.
@@ -605,6 +702,7 @@ It reads logs.current as pressure.
 It slides across layers.
 It generates grammar_array relation candidates.
 It runs on a schedule.
+Sleep maintenance runs in the same scheduled / idle / preemptible window.
 It supports zk.
 It prevents the system from becoming a mirror of the input.
 ```
@@ -614,3 +712,5 @@ Legacy mastication produces the material.
 Relation connects the material.
 
 Phase grows new relation paths.
+
+Sleep maintenance keeps Phase metabolism cheap, idle-aware, and non-blocking.
