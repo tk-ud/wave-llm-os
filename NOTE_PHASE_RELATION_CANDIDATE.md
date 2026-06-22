@@ -411,7 +411,7 @@ create table phase_relation_candidate (
 );
 ```
 
-A candidate becomes useful only after recurrence, review, promotion, or decoder usage evidence.
+A candidate becomes useful only after recurrence, decoder usage evidence, or reply-time coherence evidence.
 
 `relation_array` is optional and must reference relation indexes, not UUIDs.
 
@@ -421,7 +421,13 @@ A candidate becomes useful only after recurrence, review, promotion, or decoder 
 
 # 14. Promotion
 
-Phase-generated candidates follow explicit promotion rules.
+Promotion is automatic and evidence-driven.
+
+Human review is not part of ordinary promotion.
+
+If a candidate is used during reply generation and passes structural verification, it has cohered.
+
+A reply-time coherence hit must immediately adopt a new structure or reinforce an existing adopted structure, unless blocked by freeze, policy, contradiction, or operation gate failure.
 
 State examples:
 
@@ -438,20 +444,34 @@ archived
 Promotion evidence may include:
 
 ```text
+reply-time structural coherence hit
 recurrence
 coherence weight
 successful decoder usage
-manual review
 low contradiction rate
 stable scope-crossing appearance
 mirror-output reduction
+near-neighbor stability
 ```
 
-Promotion path:
+Reply-time promotion path:
+
+```text
+near-neighbor candidate
+→ structural verification passes
+→ xi coherence hit
+→ zk decoder usage
+→ core_can_execute('promote.coherence_hit')
+→ adopt or reinforce immediately
+→ logs.diff
+```
+
+Scheduled Phase promotion path:
 
 ```text
 phase_relation_candidate
 → near-neighbor selection
+→ structural verification passes
 → core_can_execute('promote.phase_relation')
 → grammar_relation
 → logs.diff
@@ -459,10 +479,13 @@ phase_relation_candidate
 
 Freeze blocks candidate generation and promotion.
 
+Contradiction or policy failure blocks promotion and keeps evidence as draft, rejected, or quarantined state.
+
 This preserves the principle:
 
 ```text
-adoption must be explicit
+adoption must be explicit, gated, and logged;
+it must not require human review.
 ```
 
 ---
@@ -797,6 +820,8 @@ It reads logs.current as pressure.
 It slides across layers.
 It generates grammar_array relation candidates.
 It runs on a schedule.
+Reply-time coherence hits are adopted or reinforced immediately through the operation gate.
+Human review is not required for ordinary promotion.
 Sleep maintenance runs in the same scheduled / idle / preemptible window.
 Sleep maintenance refines nearby vocabulary, grammar, and grammar_array paths as draft evidence.
 Sleep maintenance shapes attractor basins to reduce future search count.
