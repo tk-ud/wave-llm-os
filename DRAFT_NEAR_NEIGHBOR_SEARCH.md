@@ -41,6 +41,8 @@ decoherence_bank pressure
 status / draft_flag / relation_weight
 ```
 
+Loop-like repetition is treated as pressure, not a separate guard state.
+
 ---
 
 # pgvector
@@ -76,3 +78,19 @@ grammar_array
 ```
 
 Do not start from raw tokens when higher-level context exists.
+
+---
+
+# Loop Escape
+
+No dedicated `loop_guard` table.
+
+Repeated grammar return expands search through:
+
+```text
+grammar_array alternatives
+phase_relation_candidate.grammar_array
+near-neighbor candidates
+decoherence pressure
+logs.current pressure
+```
