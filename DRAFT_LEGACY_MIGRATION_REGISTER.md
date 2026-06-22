@@ -34,6 +34,7 @@ fallback hierarchy → decoherence notify / offline blend / question notify
 external observation → source_kind input
 web search result → input_observation(source_kind='web')
 remote sync → core-gated remote input observation
+loop guard → grammar-array / Phase / near-neighbor / pressure handling
 pgvector → derived retrieval accelerator only
 wave_signature → optional evidence only
 ```
@@ -51,6 +52,8 @@ semantic_snapshot / restore
 adoption_audit table
 constraint_rule table
 constraint layer as independent authority
+decoder_trace table
+loop_guard table
 dense vector search as semantic authority
 UUID semantic references
 uuid[] canonical columns
@@ -66,6 +69,7 @@ trusted remote direct semantic mutation
 decoder/collapse constraints → current core invariants
 adoption audit → logs.diff view
 web search result handling → source_kind input pipeline
+loop-like repetition → unresolved exploration pressure
 ```
 
 ---
@@ -73,5 +77,5 @@ web search result handling → source_kind input pipeline
 # Pending
 
 ```text
-decoder trace / loop guard
+none
 ```
