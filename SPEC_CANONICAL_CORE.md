@@ -185,6 +185,7 @@ where operation_key in (
   'adopt.grammar',
   'adopt.relation',
   'promote.coherence_hit',
+  'promote.decoherence_hit',
   'promote.decoherence_to_draft',
   'promote.phase_relation'
 );
@@ -247,6 +248,56 @@ Freeze, policy failure, contradiction, or operation gate failure blocks adoption
 
 ---
 
+# Decoherence Bank
+
+`decoherence_bank` is part of the core semantic search space.
+
+It is not an external trash bin.
+
+Core does not remove decohered structures from possible future use.
+
+Primary reply-time search checks active coherent structures first.
+
+If active near-neighbor search does not hit, core may search `decoherence_bank` as a fallback layer.
+
+```text
+active structure search
+→ no hit
+→ decoherence_bank fallback search
+→ structural verification
+→ xi coherence hit if verified
+```
+
+If `decoherence_bank` search hits and structural verification passes, the candidate has cohered again.
+
+A decoherence hit must be promoted or reinforced through the operation gate.
+
+```text
+decoherence_bank candidate
+→ structural verification passes
+→ xi coherence hit
+→ core_can_execute('promote.decoherence_hit')
+→ promote / reinforce
+→ logs.diff
+```
+
+Sleep may send structures to `decoherence_bank`, but sleep must not hard-delete them.
+
+Deletion from `decoherence_bank` is explicit UI action only.
+
+```text
+sleep / cron
+→ send unused or unstable structures to decoherence_bank
+→ keep searchable as fallback
+→ explicit UI deletion only
+```
+
+`decoherence_bank` and Draft collections should be visible to UI tooling for token assignment and human-readable analysis.
+
+This UI analysis is not ordinary promotion review.
+
+---
+
 # Core Expansion / Draft / Sleep Consolidation
 
 Core expands semantic space during reply generation.
@@ -267,7 +318,7 @@ context-local observation
 → temporary vocabulary / grammar candidates
 → reply-time usage
 → logs.coherence evidence
-→ sleep decides whether to retain, merge, cool, or decohere
+→ sleep decides whether to retain, merge, or send to decoherence_bank
 ```
 
 Draft is not a human-review queue.
@@ -300,15 +351,15 @@ Sleep runs through `scheduler_job` / cron-like maintenance.
 
 Sleep reads aggregate usage windows from `logs.current`, `logs.coherence`, and `logs.diff`.
 
-Sleep may decohere vocabulary or relation edges when usage evidence shows instability.
+Sleep sends unused or unstable vocabulary, grammar, grammar slots, and relation paths to `decoherence_bank`.
 
 Unused vocabulary:
 
 ```text
 vocabulary unused for configured window
-→ cool / dormant / decoherence evidence
-→ weaken candidate generation priority
-→ do not hard-delete semantic basis
+→ send to decoherence_bank
+→ keep searchable as fallback
+→ explicit UI deletion only
 ```
 
 Moth-eaten vocabulary inside active upper structures:
@@ -317,22 +368,35 @@ Moth-eaten vocabulary inside active upper structures:
 parent_structure_usage_count is high
 and vocabulary_missing_slot_count / parent_structure_usage_count is high
 → vocabulary decoheres from that parent grammar or relation path
-→ store decoherence evidence
-→ weaken future candidate generation for that attachment
+→ send decoherence evidence to decoherence_bank
+→ keep searchable as fallback
+```
+
+Moth-eaten grammar slots:
+
+```text
+parent_structure_usage_count is high
+and slot_missing_or_replaced_count / parent_structure_usage_count is high
+→ grammar slot decoheres from that parent grammar or relation path
+→ send decoherence evidence to decoherence_bank
+→ keep searchable as fallback
 ```
 
 Here, `parent_structure_usage_count` may refer to an active grammar, grammar_relation, or grammar_array path.
 
 `vocabulary_missing_slot_count` counts repeated cases where the parent structure is used but the vocabulary slot is missing, replaced, unresolved, or pushed into residual.
 
+`slot_missing_or_replaced_count` counts repeated cases where a grammar slot itself remains unstable even when the parent structure is active.
+
 Sleep does not make reply generation stricter.
 
-Sleep makes future search cheaper by pruning, cooling, merging, or decohering unstable structures after the fact.
+Sleep makes future search cheaper by sending unstable structures to the fallback search layer and letting Phase avoid Draft anti-patterns.
 
 ```text
 Core first expands.
-Sleep later cuts.
+Sleep later sends unstable structures to decoherence_bank.
 Draft filters future Phase candidates as anti-pattern evidence.
+Decoherence remains searchable by fallback.
 ```
 
 ---
@@ -347,6 +411,10 @@ Primary search is structural over index arrays.
 
 Structural verification decides.
 
+Active structures are searched first.
+
+`decoherence_bank` is searched only when active structures do not hit, or when explicit UI / maintenance analysis requests it.
+
 ---
 
 # Phase
@@ -358,6 +426,10 @@ Phase reads aggregate pressure and evidence.
 Phase reads `logs.current` as the scheduled pressure surface.
 
 Phase reads Draft evidence as unconfirmed candidate filters and anti-pattern pressure.
+
+Phase may read `decoherence_bank` as a source of Draft candidates.
+
+When Phase generates a Draft grammar_relation from `decoherence_bank` evidence, its child vocabulary, grammar, and grammar_relation elements must also be assigned Draft status for that candidate path.
 
 Phase writes draft relation paths to `phase_relation_candidate`.
 
