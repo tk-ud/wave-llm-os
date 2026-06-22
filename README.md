@@ -1,11 +1,11 @@
 # Wave LLMOS
 
-Wave LLMOS is now defined by the PostgreSQL-backed canonical core draft.
+Wave LLMOS is now defined by the PostgreSQL-backed canonical core specification.
 
 Current implementation authority:
 
 ```text
-DRAFT_CANONICAL_CORE.md
+SPEC_CANONICAL_CORE.md
 ```
 
 Legacy wave-geometry / psi / spectral-band design notes are archived under:
@@ -48,16 +48,16 @@ Canonical schema does not define `uuid[]` semantic arrays.
 
 ---
 
-# Main Draft Files
+# Main Specification Files
 
 ```text
-DRAFT_CANONICAL_CORE.md              canonical implementation authority
-DRAFT_SQL_TOKENIZATION_IMPLEMENTATION.md  PostgreSQL implementation sketch
-DRAFT_INDEX_ARRAY_CANONICAL.md       index-array reference rule
-DRAFT_PHASE_RELATION_CANDIDATE.md    Phase candidate generation
-DRAFT_NEAR_NEIGHBOR_SEARCH.md        structural near-neighbor search
-DRAFT_LEGACY_MIGRATION_REGISTER.md   migration / rejection register
-DRAFT_QUATERNION_PHILOSOPHY.md       short philosophy note
+SPEC_CANONICAL_CORE.md                  canonical implementation authority
+NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md PostgreSQL implementation sketch
+NOTE_INDEX_ARRAY_CANONICAL.md           index-array reference rule
+NOTE_PHASE_RELATION_CANDIDATE.md        Phase candidate generation
+NOTE_NEAR_NEIGHBOR_SEARCH.md            structural near-neighbor search
+MIGRATION_LEGACY_REGISTER.md            migration / rejection register
+NOTE_QUATERNION_PHILOSOPHY.md           short philosophy note
 ```
 
 ---
@@ -82,7 +82,7 @@ remote_node_trust
 
 # Explicit Rejections
 
-The current draft rejects these as canonical authority:
+The current spec rejects these as canonical authority:
 
 ```text
 WaveCore.psi primary semantic state
@@ -110,4 +110,4 @@ legacy_design/todo_legacy_manifest_wavecore.md
 
 These files are not implementation authority.
 
-If legacy files conflict with `DRAFT_CANONICAL_CORE.md`, the canonical core wins.
+If legacy files conflict with `SPEC_CANONICAL_CORE.md`, the canonical core spec wins.
