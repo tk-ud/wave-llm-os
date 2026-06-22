@@ -31,6 +31,8 @@ It outputs grammar-index arrays.
 
 UUIDs may identify rows, but UUIDs are not semantic references.
 
+Evidence UUID lists must be named as `*_uuids`, not `*_array`.
+
 ---
 
 # 2. Canonical Output
@@ -73,7 +75,7 @@ create table phase_relation_candidate (
 
   relation_hash text not null unique,
 
-  source_current_array uuid[] not null,
+  source_current_uuids uuid[] not null,
 
   evidence_json jsonb not null,
 
@@ -98,7 +100,9 @@ create index idx_phase_relation_candidate_score
   on phase_relation_candidate (score, pressure);
 ```
 
-`source_current_array` remains UUID-based because it identifies evidence rows in `logs.current`, not semantic structure.
+`source_current_uuids` identifies evidence rows in `logs.current`.
+
+It is not a semantic array.
 
 ---
 
@@ -265,6 +269,7 @@ Example:
 ```json
 {
   "source": "logs.current",
+  "source_current_uuids": ["..."],
   "coherence_count": 84,
   "relation_pressure": 32,
   "near_selection_count": 17,
@@ -307,4 +312,5 @@ Phase outputs grammar_index arrays.
 Grammar_index arrays determine vocabulary/token references through hierarchy.
 Missing slots are completed in reverse hierarchy.
 Promotion happens only after near-neighbor selection and operation-gated promotion.
+Evidence UUID lists are named *_uuids, not *_array.
 ```
