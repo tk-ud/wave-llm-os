@@ -1,62 +1,89 @@
 # Wave LLMOS
 
-Wave LLMOS is now defined by the PostgreSQL-backed canonical core specification.
-
-Current implementation authority:
+Wave LLMOS is defined by the PostgreSQL-backed canonical core specification.
 
 ```text
+Implementation authority:
 SPEC_CANONICAL_CORE.md
 ```
 
-Legacy wave-geometry / psi / spectral-band design notes are archived under:
-
-```text
-legacy_design/
-```
-
-They are historical context only.
+Legacy wave-geometry / psi / spectral-band design notes are archived under `legacy_design/` as historical context.
 
 ---
 
-# Current Core
+# Design Philosophy: Wave and Quaternion
 
-The current core treats meaning as persistent connection structure, not as a spectral wave state, dense vector, or model weight.
+Wave LLMOS treats meaning as something that moves, interferes, resonates, and sometimes collapses.
+
+A conversation is not only a sequence of tokens.
+
+It is a wave field formed by vocabulary, grammar, relation, residuals, and accumulated pressure.
+
+When a new input arrives, Wave does not immediately jump to an answer.
+
+It fixes an anchor, then sweeps the surrounding semantic field.
+
+Vocabulary candidates appear.
+
+Grammar candidates bend around them.
+
+Relation paths connect distant fragments.
+
+Residuals remain as unresolved difference.
+
+Nearby waves may be absorbed into the same basin.
+
+Distant waves remain separate.
+
+Similar but structurally different waves become alias, branch, or parent-child candidates.
+
+This is why the system is described as quaternion-like.
+
+The expression is not a claim that the runtime literally computes physical quaternions.
+
+It is a way to describe one output scope as a composition of multiple semantic axes:
 
 ```text
-meaning = connection form
+q = w + xi + yj + zk
 ```
-
-The database is semantic memory.
-
-The decoder does not originate meaning.
-
-Mutation is operation-gated.
-
----
-
-# Phase Attention
-
-Phase Attention is scheduled aggregate-weighted relation candidate generation.
-
-It reads normalized vocabulary, grammar, relation aggregates, and `logs.current` pressure.
-
-It generates draft `phase_relation_candidate.grammar_array` paths for later evidence, review, promotion, or decoder support.
-
-It is not the synchronous reply path.
-
----
-
-# Canonical Reference Rule
 
 ```text
-UUID  = internal row / event identity only
-index = semantic reference key
-array = bigint[] index array only
+w  = input anchor
+xi = vocabulary-side coherence search
+yj = grammar-side residual and draft exploration
+zk = relation-guided correction and decode
+q  = output candidate state
 ```
 
-Semantic references use indexes.
+In implementation, these steps are computed in order.
 
-Canonical schema does not define `uuid[]` semantic arrays.
+In one conversation scope, they form a single composed output state.
+
+Wave therefore uses two complementary views:
+
+```text
+implementation view:
+anchor-fixed phase sweep
+
+conversation-scope view:
+quaternion-like output composition
+```
+
+Sleep maintenance then reshapes the field.
+
+It does not merely clean data.
+
+It refines attractor basins.
+
+It lets nearby waves be absorbed.
+
+It leaves distant waves alone.
+
+It keeps ambiguous waves as draft evidence instead of collapsing them too early.
+
+The goal is not to make meaning mysterious.
+
+The goal is to keep meaning inspectable while still allowing it to move.
 
 ---
 
@@ -82,8 +109,6 @@ Supporting notes may explain parts of this machine, but they do not replace the 
 
 ## `SPEC_CANONICAL_CORE.md`
 
-Role:
-
 ```text
 Single implementation authority.
 Defines canonical tables, reference rules, logs, operation gate, Phase, decoder/collapse boundary.
@@ -99,17 +124,9 @@ Which mutations require operation gate?
 What wins on conflict?
 ```
 
-Do not use this file as:
-
-```text
-A complete algorithm implementation manual.
-A legacy philosophy explanation.
-A replacement for supporting notes.
-```
+Do not use this file as a complete algorithm implementation manual.
 
 ## `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`
-
-Role:
 
 ```text
 PostgreSQL implementation sketch.
@@ -124,17 +141,9 @@ Which columns are expected in sketches?
 How do input_observation, semantic arrays, logs, and Phase candidates map to storage?
 ```
 
-Do not use this file as:
-
-```text
-The source of truth when it conflicts with SPEC_CANONICAL_CORE.md.
-A full migration script.
-A full runtime algorithm.
-```
+Do not use this file as the source of truth when it conflicts with `SPEC_CANONICAL_CORE.md`.
 
 ## `NOTE_INDEX_ARRAY_CANONICAL.md`
-
-Role:
 
 ```text
 Reference rule note.
@@ -150,17 +159,7 @@ Which arrays are canonical?
 Why is uuid[] rejected for semantic paths?
 ```
 
-Do not use this file as:
-
-```text
-A relation-growth algorithm.
-A Phase Attention specification.
-A decoder specification.
-```
-
 ## `NOTE_PHASE_RELATION_CANDIDATE.md`
-
-Role:
 
 ```text
 Phase Attention and phase_relation_candidate supporting specification.
@@ -177,24 +176,14 @@ How does logs.current pressure drive grammar_array expansion?
 What is a phase_relation_candidate?
 How are draft candidates promoted?
 What is mirror output?
-```
-
-Do not use this file as:
-
-```text
-The synchronous reply path.
-A Transformer Attention description.
-A raw-input reasoning algorithm.
-The canonical authority over SPEC_CANONICAL_CORE.md.
+How does sleep maintenance refine attractor basins?
 ```
 
 ## `NOTE_NEAR_NEIGHBOR_SEARCH.md`
 
-Role:
-
 ```text
 Structural near-neighbor search note.
-Explains search over index arrays and derived-vector acceleration boundaries.
+Explains search over index arrays, SQL join diff verification, and derived-vector acceleration boundaries.
 ```
 
 Use this file to answer:
@@ -203,44 +192,11 @@ Use this file to answer:
 How are similar grammar_array paths searched?
 What does structural verification mean?
 How can pgvector be used without becoming semantic authority?
+How does SQL join diff expose shared structure and residuals?
 How does repeated grammar return expand search?
 ```
 
-Do not use this file as:
-
-```text
-A meaning authority.
-A dense-vector-first retrieval spec.
-A Phase promotion rule.
-```
-
-## `MIGRATION_LEGACY_REGISTER.md`
-
-Role:
-
-```text
-Migration and rejection register.
-Tracks which legacy concepts were migrated, reinterpreted, rejected, or absorbed.
-```
-
-Use this file to answer:
-
-```text
-What happened to legacy wave_geometry, psi, spectral matrix, loop guard, web search, remote sync, and adoption audit?
-Which legacy terms survive under new canonical meanings?
-```
-
-Do not use this file as:
-
-```text
-An implementation authority.
-A runtime flow definition.
-A place to introduce new canonical behavior.
-```
-
 ## `NOTE_QUATERNION_PHILOSOPHY.md`
-
-Role:
 
 ```text
 Short philosophy note.
@@ -255,104 +211,23 @@ Why is meaning treated as connection form?
 How does Phase Attention fit the exploration philosophy?
 ```
 
-Do not use this file as:
+## `MIGRATION_LEGACY_REGISTER.md`
 
 ```text
-Implementation authority.
-A table schema.
-A mathematical proof obligation.
-A replacement for SPEC_CANONICAL_CORE.md.
+Migration and rejection register.
+Tracks which legacy concepts were migrated, reinterpreted, rejected, or absorbed.
+```
+
+Use this file to answer:
+
+```text
+What happened to legacy wave_geometry, psi, spectral matrix, loop guard, web search, remote sync, and adoption audit?
+Which legacy terms survive under new canonical meanings?
 ```
 
 ## `legacy_design/`
 
-Role:
-
 ```text
 Historical archive.
-Contains legacy wave-geometry / psi / spectral-band design context.
+Useful for tracing old design intent, not for overriding the canonical core.
 ```
-
-Use these files to answer:
-
-```text
-Where did the current design come from?
-Which legacy principles were preserved or reinterpreted?
-What historical ideas were rejected as canonical authority?
-```
-
-Do not use these files as:
-
-```text
-Current implementation authority.
-Canonical schema source.
-Canonical semantic authority.
-```
-
----
-
-# Main Specification Files
-
-```text
-SPEC_CANONICAL_CORE.md                  canonical implementation authority
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md PostgreSQL implementation sketch
-NOTE_INDEX_ARRAY_CANONICAL.md           index-array reference rule
-NOTE_PHASE_RELATION_CANDIDATE.md        Phase Attention / relation candidate generation
-NOTE_NEAR_NEIGHBOR_SEARCH.md            structural near-neighbor search
-MIGRATION_LEGACY_REGISTER.md            migration / rejection register
-NOTE_QUATERNION_PHILOSOPHY.md           short philosophy note
-```
-
----
-
-# Canonical Runtime Surfaces
-
-```text
-input_observation
-core_state
-core_operation_policy
-logs.coherence
-logs.current
-logs.diff
-scheduler_job
-scheduler_job_run
-phase_relation_candidate
-structural_vector_index
-remote_node_trust
-```
-
----
-
-# Explicit Rejections
-
-The current spec rejects these as canonical authority:
-
-```text
-WaveCore.psi primary semantic state
-wave_geometry primary semantic authority
-spectral band basis as meaning authority
-SQLite canonical schema
-constraint_rule table
-adoption_audit table
-decoder_trace table
-loop_guard table
-semantic UUID references
-uuid[] canonical columns
-```
-
----
-
-# Legacy Design Archive
-
-Archived legacy documents:
-
-```text
-legacy_design/LEGACY_PHILOSOPHY.md
-legacy_design/LEGACY_MANIFEST.yaml
-legacy_design/README_LEGACY_WAVE_GEOMETRY.md
-legacy_design/todo_legacy_manifest_wavecore.md
-```
-
-These files are not implementation authority.
-
-If legacy files conflict with `SPEC_CANONICAL_CORE.md`, the canonical core spec wins.
