@@ -182,23 +182,23 @@ The system may recognize local vocabulary and grammar, but it cannot connect div
 Example:
 
 ```text
-scope 1: 冷えない
-scope 2: 荷物が溶けそう
-scope 3: 明日までに直したい
+scope 1: account access failed
+scope 2: recovery link expired
+scope 3: deadline is today
 ```
 
 Without relation:
 
 ```text
-冷えない
-荷物
-明日
+account
+recovery link
+today
 ```
 
 With relation:
 
 ```text
-冷却不良 → 実害リスク → 期限要求
+access failure → expired recovery path → urgent deadline
 ```
 
 The second form is not merely a mirror of the input.
