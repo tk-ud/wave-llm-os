@@ -97,12 +97,103 @@ Trusted nodes still cannot mutate semantic tables directly.
 
 # Semantic Tables
 
+## token
+
+`token` is the canonical token-level seed table.
+
+Long raw spans must be split before becoming normal semantic tokens.
+
+```sql
+create table token (
+  token_uuid uuid primary key default gen_random_uuid(),
+  token_index bigint generated always as identity unique,
+  raw text not null,
+  raw_length integer generated always as (char_length(raw)) stored,
+  split_flag boolean not null default false,
+  split_kind text null,
+  split_parent_token_index bigint null references token(token_index),
+  split_position integer null,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now()
+);
+```
+
+Split rule:
+
 ```text
-token(token_uuid, token_index, raw)
-vocabulary(vocabulary_uuid, vocabulary_index, token_array)
-grammar(grammar_uuid, grammar_index, vocabulary_array)
-grammar_relation(grammar_relation_uuid, grammar_relation_index, grammar_array)
-phase_relation_candidate(phase_relation_candidate_uuid, phase_relation_candidate_index, grammar_array, relation_array, relation_hash, evidence_json, pressure)
+raw having length > 1000
+→ split_flag = true
+→ split_kind = 'length_gt_1000'
+→ child token rows preserve split_parent_token_index and split_position
+```
+
+`split_flag` means the token row is part of a controlled split process.
+
+It is not semantic authority by itself.
+
+Semantic references still use `token_index`.
+
+## vocabulary
+
+```sql
+create table vocabulary (
+  vocabulary_uuid uuid primary key default gen_random_uuid(),
+  vocabulary_index bigint generated always as identity unique,
+  token_array bigint[] not null,
+  raw_text text null,
+  vocabulary_hash text not null unique,
+  draft_flag boolean not null default true,
+  status text not null default 'draft'
+);
+```
+
+## grammar
+
+```sql
+create table grammar (
+  grammar_uuid uuid primary key default gen_random_uuid(),
+  grammar_index bigint generated always as identity unique,
+  vocabulary_array bigint[] not null,
+  grammar_hash text not null unique,
+  end_of_sentence_flag boolean not null default false,
+  draft_flag boolean not null default true,
+  status text not null default 'draft'
+);
+```
+
+## grammar_relation
+
+```sql
+create table grammar_relation (
+  grammar_relation_uuid uuid primary key default gen_random_uuid(),
+  grammar_relation_index bigint generated always as identity unique,
+  grammar_array bigint[] not null,
+  relation_hash text not null unique,
+  relation_weight numeric not null default 0,
+  draft_flag boolean not null default true,
+  status text not null default 'draft'
+);
+```
+
+## phase_relation_candidate
+
+```sql
+create table phase_relation_candidate (
+  phase_relation_candidate_uuid uuid primary key default gen_random_uuid(),
+  phase_relation_candidate_index bigint generated always as identity unique,
+  grammar_array bigint[] not null,
+  relation_array bigint[] null,
+  relation_hash text not null unique,
+  evidence_json jsonb not null,
+  phase_score numeric not null default 0,
+  pressure numeric not null default 0,
+  evidence_count bigint not null default 0,
+  draft_flag boolean not null default true,
+  status text not null default 'draft',
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
 ```
 
 All semantic arrays are `bigint[]` index arrays.
@@ -165,6 +256,7 @@ PostgreSQL is canonical storage.
 All input enters through input_observation.
 Remote trust is gated by core_state.
 Index arrays are semantic structure.
+Token split flags preserve controlled long-span splitting.
 logs.current is Phase pressure.
 logs.diff is mutation evidence.
 Everything mutable goes through core_can_execute().
