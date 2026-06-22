@@ -8,7 +8,7 @@ Phase is not synchronous raw-input reasoning.
 
 Phase is scheduled relation candidate generation from normalized aggregate values.
 
-Its canonical output is a grammar array.
+Its canonical output is a grammar index array.
 
 ---
 
@@ -17,17 +17,19 @@ Its canonical output is a grammar array.
 The semantic hierarchy is:
 
 ```text
-token
-→ vocabulary
-→ grammar
-→ grammar array
+token_index
+→ vocabulary_index
+→ grammar_index
+→ grammar_index array
 ```
 
-Because grammar is already an ordered vocabulary bundle, and vocabulary is already an ordered token bundle, a decided grammar array determines the vocabulary and token levels by hierarchical reference.
+Because grammar is already an ordered vocabulary-index bundle, and vocabulary is already an ordered token-index bundle, a decided grammar-index array determines the vocabulary and token levels by hierarchical index traversal.
 
-Therefore, Phase relation candidate output does not need to carry token arrays or vocabulary arrays as canonical output.
+Therefore, Phase relation candidate output does not carry token arrays or vocabulary arrays as canonical output.
 
-It outputs grammar arrays.
+It outputs grammar-index arrays.
+
+UUIDs may identify rows, but UUIDs are not semantic references.
 
 ---
 
@@ -38,7 +40,13 @@ Phase generates candidates for `grammar_relation`.
 Canonical candidate form:
 
 ```text
-grammar_array[]
+grammar_array bigint[]
+```
+
+Where:
+
+```text
+grammar_array = ordered grammar.grammar_index values
 ```
 
 A Phase candidate is a draft relation candidate until promoted.
@@ -59,9 +67,9 @@ core_can_execute('promote.phase_relation')
 create table phase_relation_candidate (
   phase_relation_candidate_uuid uuid primary key default gen_random_uuid(),
 
-  candidate_index bigint not null unique,
+  phase_relation_candidate_index bigint generated always as identity unique,
 
-  grammar_array uuid[] not null,
+  grammar_array bigint[] not null,
 
   relation_hash text not null unique,
 
@@ -90,6 +98,8 @@ create index idx_phase_relation_candidate_score
   on phase_relation_candidate (score, pressure);
 ```
 
+`source_current_array` remains UUID-based because it identifies evidence rows in `logs.current`, not semantic structure.
+
 ---
 
 # 4. Link Table
@@ -98,18 +108,22 @@ The array is the ordered canonical bundle.
 
 The link table exists for search, aggregation, and positional lookup.
 
+It uses indexes as semantic references.
+
 ```sql
 create table phase_relation_candidate_link (
-  phase_relation_candidate_uuid uuid not null references phase_relation_candidate(phase_relation_candidate_uuid),
-  grammar_uuid uuid not null references grammar(grammar_uuid),
+  phase_relation_candidate_index bigint not null references phase_relation_candidate(phase_relation_candidate_index),
+  grammar_index bigint not null references grammar(grammar_index),
   position integer not null,
 
-  primary key (phase_relation_candidate_uuid, position)
+  primary key (phase_relation_candidate_index, position)
 );
 
 create index idx_phase_relation_candidate_link_grammar
-  on phase_relation_candidate_link (grammar_uuid, position);
+  on phase_relation_candidate_link (grammar_index, position);
 ```
+
+No UUID column is used in the semantic link table.
 
 ---
 
@@ -150,17 +164,17 @@ Phase generates a candidate when aggregate evidence suggests that grammar candid
 Examples:
 
 ```text
-grammar A → grammar B
-grammar B → grammar C
-grammar A + grammar C recur under nearby scopes
-grammar A and grammar B repeatedly appear around the same residual pressure
+grammar_index A → grammar_index B
+grammar_index B → grammar_index C
+grammar_index A + grammar_index C recur under nearby scopes
+grammar_index A and grammar_index B repeatedly appear around the same residual pressure
 a decoherence residual repeatedly appears between known grammar candidates
 ```
 
 The result is always represented as:
 
 ```text
-{grammar A, grammar B, grammar C, ...}
+{grammar_index A, grammar_index B, grammar_index C, ...}
 ```
 
 ---
@@ -172,19 +186,19 @@ If a relation candidate has a missing slot, the system fills it by reverse hiera
 Reverse completion order:
 
 ```text
-grammar array
-→ grammar near-neighbor search
-→ vocabulary near-neighbor search
-→ token near-neighbor search
+grammar index array
+→ grammar-index near-neighbor search
+→ vocabulary-index near-neighbor search
+→ token-index near-neighbor search
 ```
 
 The system starts from the highest available structure.
 
-If the grammar array candidate is partially known, missing grammar candidates are searched first.
+If the grammar array candidate is partially known, missing grammar indexes are searched first.
 
-If grammar cannot be resolved, vocabulary candidates inside nearby grammar candidates are searched.
+If grammar cannot be resolved, vocabulary indexes inside nearby grammar candidates are searched.
 
-If vocabulary cannot be resolved, token-level identity is searched last.
+If vocabulary cannot be resolved, token indexes are searched last.
 
 This keeps relation completion aligned with the hierarchy.
 
@@ -221,7 +235,28 @@ freeze.enabled = true
 
 ---
 
-# 9. Evidence
+# 9. Derived Vector Acceleration
+
+Phase candidate search may use a derived vector index for large-scale retrieval.
+
+The derived vector must be generated from:
+
+```text
+grammar_array bigint[]
++ positional features
++ logs.current pressure
++ evidence_json features
+```
+
+The derived vector is only a retrieval accelerator.
+
+It is not semantic authority.
+
+Final candidate selection must verify the grammar-index array structurally.
+
+---
+
+# 10. Evidence
 
 `evidence_json` should preserve why the candidate exists.
 
@@ -248,12 +283,13 @@ It is promotion material.
 
 ---
 
-# 10. Non-Goals
+# 11. Non-Goals
 
 Phase relation candidate generation is not:
 
 - synchronous reply-time reasoning
 - raw token attention
+- UUID-array relation building
 - a replacement for grammar relation
 - direct mutation of adopted relation
 - global semantic consensus
@@ -263,12 +299,12 @@ It is scheduled candidate generation from aggregate evidence.
 
 ---
 
-# 11. Short Form
+# 12. Short Form
 
 ```text
 Phase reads current aggregate pressure.
-Phase outputs grammar arrays.
-Grammar arrays determine vocabulary/token references through hierarchy.
+Phase outputs grammar_index arrays.
+Grammar_index arrays determine vocabulary/token references through hierarchy.
 Missing slots are completed in reverse hierarchy.
 Promotion happens only after near-neighbor selection and operation-gated promotion.
 ```
