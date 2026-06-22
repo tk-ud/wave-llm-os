@@ -8,7 +8,7 @@ Near-neighbor search is structural.
 
 It does not use external embedding vectors as semantic authority.
 
-The ordered arrays already are the semantic vectors.
+The ordered index arrays already are the semantic vectors.
 
 For large-scale search, a derived vector index may be used as an acceleration layer.
 
@@ -27,22 +27,26 @@ token
 → grammar_relation
 ```
 
-Each layer is represented by ordered UUID arrays:
+Each layer is represented by ordered bigint index arrays:
 
 ```text
-vocabulary.token_array
-grammar.vocabulary_array
-grammar_relation.grammar_array
-phase_relation_candidate.grammar_array
+vocabulary.token_array        bigint[] of token.token_index
+grammar.vocabulary_array      bigint[] of vocabulary.vocabulary_index
+grammar_relation.grammar_array bigint[] of grammar.grammar_index
+phase_relation_candidate.grammar_array bigint[] of grammar.grammar_index
 ```
 
 These arrays are not merely storage fields.
 
 They are the structural semantic vectors of the system.
 
+UUIDs are internal row identities only.
+
+They are not semantic reference keys.
+
 The meaning of a candidate is preserved by:
 
-- which elements are present
+- which indexes are present
 - their order
 - their repetition
 - their gaps
@@ -66,10 +70,10 @@ Dense vectorization can erase structural meaning when treated as the source of t
 The canonical core must preserve the hierarchy:
 
 ```text
-token array
-→ vocabulary array
-→ grammar array
-→ grammar relation array
+token index array
+→ vocabulary index array
+→ grammar index array
+→ grammar relation index array
 ```
 
 External embedding vectors may collapse order, gaps, position, relation path, and table identity into a derived distance.
@@ -88,7 +92,7 @@ Do not make dense embedding vectors semantic authority.
 
 Large-scale search may require stronger approximate-nearest-neighbor indexes.
 
-A derived vector index is allowed if it is generated from canonical structural arrays and aggregate fields.
+A derived vector index is allowed if it is generated from canonical index arrays and aggregate fields.
 
 Allowed role:
 
@@ -105,7 +109,7 @@ semantic source of truth
 The source of truth remains:
 
 ```text
-UUID array
+index array
 + position/link table
 + logs.current pressure
 + logs.diff history
@@ -114,7 +118,7 @@ UUID array
 
 A derived vector may be stored in a read-model table or generated index table.
 
-It must be reproducible from canonical structural state.
+It must be reproducible from canonical index-array state.
 
 If the derived vector disagrees with structural verification, structural verification wins.
 
@@ -125,14 +129,14 @@ If the derived vector disagrees with structural verification, structural verific
 The minimal source structure is:
 
 ```text
-UUID array + position + logs.current pressure + logs.diff history
+index array + position + logs.current pressure + logs.diff history
 ```
 
 This is sufficient because the arrays already encode the semantic path.
 
 A separate vector layer is not required to define meaning.
 
-The array is the vector.
+The index array is the vector.
 
 The link table is the positional index.
 
@@ -200,19 +204,19 @@ The recommended shape is two-stage search:
 
 The retrieval stage may use a derived vector index at scale.
 
-The verification/ranking stage must use canonical arrays, link positions, and aggregate pressure.
+The verification/ranking stage must use canonical index arrays, link positions, and aggregate pressure.
 
 ---
 
 # 7. Vocabulary Near-Neighbor Search
 
-Vocabulary near-neighbor search operates on `token_array`.
+Vocabulary near-neighbor search operates on `token_array bigint[]`.
 
 Signals:
 
 ```text
-token overlap
-ordered token overlap
+token_index overlap
+ordered token_index overlap
 position distance
 raw_text exact / partial match if present
 split_flag / split_kind compatibility
@@ -220,7 +224,7 @@ logs.current pressure if available
 derived vocabulary index as retrieval accelerator
 ```
 
-The primary signal is structural token-array similarity.
+The primary signal is structural token-index-array similarity.
 
 Raw text similarity is secondary evidence only.
 
@@ -230,13 +234,13 @@ Derived vector retrieval is allowed only to gather a candidate bundle.
 
 # 8. Grammar Near-Neighbor Search
 
-Grammar near-neighbor search operates on `vocabulary_array`.
+Grammar near-neighbor search operates on `vocabulary_array bigint[]`.
 
 Signals:
 
 ```text
-vocabulary overlap
-ordered vocabulary overlap
+vocabulary_index overlap
+ordered vocabulary_index overlap
 position distance
 gap distance
 end_of_sentence_flag compatibility
@@ -255,13 +259,13 @@ Derived vector retrieval must be followed by structural verification.
 
 # 9. Grammar Relation Near-Neighbor Search
 
-Grammar relation near-neighbor search operates on `grammar_array`.
+Grammar relation near-neighbor search operates on `grammar_array bigint[]`.
 
 Signals:
 
 ```text
-grammar overlap
-ordered grammar overlap
+grammar_index overlap
+ordered grammar_index overlap
 relation path continuity
 prefix / suffix continuity
 relation_weight
@@ -273,13 +277,13 @@ derived relation index as retrieval accelerator
 
 This is the main search space for relation completion and Phase promotion.
 
-Derived vector retrieval must not replace grammar-array scoring.
+Derived vector retrieval must not replace grammar-index-array scoring.
 
 ---
 
 # 10. Phase Candidate Near-Neighbor Search
 
-Phase candidate search also operates on `grammar_array`.
+Phase candidate search also operates on `grammar_array bigint[]`.
 
 It compares `phase_relation_candidate.grammar_array` against existing `grammar_relation.grammar_array` and other Phase candidates.
 
@@ -288,7 +292,7 @@ Signals:
 ```text
 grammar_array overlap
 ordered grammar path similarity
-source_current_array evidence
+source_current evidence
 score
 pressure
 evidence_json selection counts
@@ -314,9 +318,9 @@ grammar_relation / grammar_array
 
 Rules:
 
-- if grammar-array context exists, search missing grammar first
-- if grammar cannot be resolved, search vocabulary candidates inside nearby grammar candidates
-- if vocabulary cannot be resolved, search token candidates last
+- if grammar-array context exists, search missing grammar_index first
+- if grammar cannot be resolved, search vocabulary_index candidates inside nearby grammar candidates
+- if vocabulary cannot be resolved, search token_index candidates last
 - do not start from raw token similarity when higher-level relation context exists
 
 This preserves structural meaning.
@@ -334,7 +338,7 @@ create table structural_vector_index (
   index_uuid uuid primary key default gen_random_uuid(),
 
   target_table text not null,
-  target_uuid uuid not null,
+  target_index bigint not null,
 
   index_kind text not null,
   -- vocabulary | grammar | grammar_relation | phase_relation_candidate
@@ -348,14 +352,14 @@ create table structural_vector_index (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
 
-  unique (target_table, target_uuid, index_kind)
+  unique (target_table, target_index, index_kind)
 );
 ```
 
 Rules:
 
 ```text
-source_hash must be derived from canonical structural fields.
+source_hash must be derived from canonical index-array fields.
 derived_vector is invalid if source_hash is stale.
 structural verification must run after vector retrieval.
 ```
@@ -409,7 +413,7 @@ It is candidate ordering evidence.
 Canonical requirements:
 
 ```text
-uuid[] arrays
+bigint[] index arrays
 GIN indexes over arrays
 link tables with position
 JSONB for current/evidence fields
@@ -445,7 +449,7 @@ Structural near-neighbor search is not:
 - raw text fuzzy matching as primary semantic authority
 - early collapse to one nearest item
 
-It is candidate selection over observed hierarchical arrays.
+It is candidate selection over observed hierarchical index arrays.
 
 At scale, derived vector indexes may accelerate candidate retrieval, but final ranking remains structural.
 
@@ -454,7 +458,7 @@ At scale, derived vector indexes may accelerate candidate retrieval, but final r
 # 16. Short Form
 
 ```text
-The array is the semantic vector.
+The index array is the semantic vector.
 The hierarchy is the meaning.
 The link table is the position index.
 logs.current is the pressure field.
