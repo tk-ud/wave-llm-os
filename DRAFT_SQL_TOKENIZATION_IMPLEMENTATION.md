@@ -40,6 +40,7 @@ scheduler_job_run
 phase_relation_candidate
 structural_vector_index
 mastication_job
+remote_node_trust
 remote_event_inbox
 remote_event_quarantine
 ```
@@ -72,6 +73,36 @@ remote_event
 manual
 system
 ```
+
+---
+
+# Remote Trust
+
+Remote trust is gated by `core_state.distributed_sync.enabled`.
+
+```sql
+create table remote_node_trust (
+  remote_node_uuid uuid primary key default gen_random_uuid(),
+  remote_node_id text not null unique,
+  trust_level text not null default 'unknown',
+  enabled boolean not null default false,
+  public_key text null,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+```
+
+Acceptance:
+
+```text
+distributed_sync.enabled = true
+enabled = true
+trust_level in ('trusted', 'limited')
+→ input_observation(source_kind='remote_event')
+```
+
+Trusted nodes still cannot mutate semantic tables directly.
 
 ---
 
@@ -190,6 +221,7 @@ Use current core gates and decoder/collapse invariants.
 ```text
 PostgreSQL is canonical storage.
 All input enters through input_observation.
+Remote trust is gated by core_state.
 Index arrays are semantic structure.
 logs.diff is mutation evidence.
 Everything mutable goes through core_can_execute().
