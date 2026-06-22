@@ -609,6 +609,17 @@ It is not synchronous reply-time work.
 
 It runs as scheduled, idle-window, preemptible maintenance alongside Phase Attention.
 
+Core rule:
+
+```text
+Phase Attention timing
+= scheduled / idle / preemptible maintenance timing
+```
+
+Sleep maintenance runs in that same window.
+
+It is the low-power background metabolism around Phase Attention.
+
 Semantic invariant:
 
 ```text
