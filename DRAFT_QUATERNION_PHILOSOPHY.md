@@ -69,10 +69,14 @@ The canonical runtime authority is ordered as follows:
 4. Coherence / Decoherence / Relation Runtime
 5. Scheduled Aggregation and Phase Candidate Generation
 6. Coherence Decoder
-7. Constraint Layer
+7. Decoder / Collapse Invariants
 8. External / Remote Observation Intake
 9. Legacy Archive
 ```
+
+There is no independent canonical constraint table.
+
+Constraint behavior is absorbed into the existing core operation policy and decoder/collapse invariants.
 
 The backend must not become semantic authority.
 
@@ -258,7 +262,7 @@ It records draft-to-adopted changes, normalization, flag changes, core state cha
 
 The `xi` term is the coherence layer.
 
-It checks whether input fragments can be absorbed by existing spaces:
+It searches:
 
 - adopted vocabulary
 - adopted grammar
@@ -340,7 +344,6 @@ external_observation.enabled
 distributed_sync.enabled
 question_notify.enabled
 near_blend.enabled
-constraint.enabled
 ```
 
 Mutation-capable operations must pass through `core_can_execute(operation_key)`.
@@ -358,7 +361,6 @@ mastication.observe
 mastication.learn
 external_observation.ingest
 remote_event.ingest
-constraint.apply
 ```
 
 `freeze.enabled = true` prohibits semantic mutation.
@@ -525,24 +527,43 @@ It is a choice of grammar projection and relation depth.
 
 ---
 
-# 15. Constraint Layer
+# 15. Decoder / Collapse Invariants
 
-The constraint layer is a form stabilizer only.
+There is no independent canonical constraint table.
 
-It must not originate meaning.
-
-It must not mutate adopted semantic spaces.
-
-It must not override core_state.
-
-It should run after coherence decoding and before collapse.
+The current core already provides the necessary constraints through:
 
 ```text
-stage: post_decoder_pre_collapse
-authority: form_stabilizer_only
+core_state
+core_operation_policy
+core_can_execute()
+logs.diff
+decoder invariants
+collapse invariants
 ```
 
-Constraint rule updates are mutation-capable operations and must pass the operation gate.
+Decoder/collapse invariants are not a separate mutable semantic authority.
+
+They are fixed runtime invariants that prevent the decoder from becoming the origin of meaning.
+
+They include:
+
+- decoder must not originate meaning
+- decoder must not adopt candidates
+- decoder must not promote candidates
+- decoder must not mutate grammar_relation
+- decoder must not mutate core_state
+- decoder must not erase decoherence evidence
+- collapse must not silently convert draft candidates into adopted meaning
+- freeze must still block semantic mutation
+
+Mutation guard belongs to `core_operation_policy`.
+
+Mutation evidence belongs to `logs.diff`.
+
+Output projection belongs to the decoder/collapse runtime.
+
+A separate `constraint_rule` table is rejected because it would duplicate the current core and introduce a second rule authority.
 
 ---
 
@@ -564,7 +585,7 @@ input
 → online/offline branch
 → grammar_relation lookup/upsert
 → zk coherence decoder
-→ constraint apply
+→ decoder/collapse invariant check
 → collapse/output
 → mutation-capable updates only through core_can_execute()
 ```
@@ -646,4 +667,7 @@ Phase candidate generation,
 operation-gated adoption,
 corrected grammar decoding,
 and explicit collapse.
+
+Constraint tables are not canonical.
+Decoder/collapse invariants are absorbed into the current core.
 ```
