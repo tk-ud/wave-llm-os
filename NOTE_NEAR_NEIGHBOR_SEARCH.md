@@ -28,6 +28,8 @@ All are `bigint[]` index arrays.
 
 # Scoring Inputs
 
+Use:
+
 ```text
 array overlap
 ordered overlap
@@ -39,17 +41,32 @@ decoherence_bank pressure
 status / draft_flag / relation_weight
 ```
 
-Loop-like repetition is pressure, not a separate state.
+Loop-like repetition is treated as pressure, not a separate guard state.
 
 ---
 
-# Derived Vector Search
+# pgvector
 
-`pgvector` may retrieve candidates.
+Allowed:
 
-Structural verification decides.
+```text
+pgvector as derived retrieval accelerator
+```
 
-Dense vectors are not semantic authority.
+Rejected:
+
+```text
+pgvector as semantic authority
+```
+
+Flow:
+
+```text
+pgvector retrieves candidates
+structural verification decides
+```
+
+Dense vector similarity may help candidate retrieval, but index-array verification decides semantic fit.
 
 ---
 
@@ -62,9 +79,15 @@ grammar_array
 → token_index search
 ```
 
+Do not start from raw tokens when higher-level context exists.
+
+Token-level descent is last resort.
+
 ---
 
 # Loop Escape
+
+No dedicated `loop_guard` table.
 
 Repeated grammar return expands search through:
 
