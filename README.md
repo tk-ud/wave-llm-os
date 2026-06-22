@@ -80,8 +80,32 @@ Sleep maintenance は、この意味場を整えます。
 
 意味が動ける状態を保ちながら、検査可能にすることです。
 
----
+探索量の直感は、次のように読めます。
+```text
+expected_search_cost
+≈ near_candidate_topK
++ Σ(missing_slot_i_candidate_topK × verification_cost_i)
++ scope_crossing_verification_cost
+```
+たとえば、一回の会話入力が約100文字で、出力候補が3文法程度の場合を考えます。
+```text
+near_candidate_topK = 3
+missing_slot_count = 2
+missing_slot_i_candidate_topK = 2
+verification_cost_i = 1
+scope_crossing_verification_cost = 1
+```
+この場合、
+```text
+expected_search_cost
+≈ 3 + (2 × 2 × 1) + 1
+≈ 8
+```
+つまり、3文法程度の短い応答であれば、探索は全文法・全語彙の自由組み合わせではなく、固定された語彙アンカーと文法配列の周辺にある未解決 slot の補完として収まります。
 
+Wave LLMOS の探索は、すべての候補を総当たりするのではなく、近傍候補、虫食い slot、構造検証、scope-crossing continuity によって局所化されます。
+
+---
 # Document Agenda
 
 以下は、上記の設計を説明するためのファイルです。
