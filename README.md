@@ -1,47 +1,50 @@
 # Wave LLMOS
 
-Wave LLMOS is defined by the PostgreSQL-backed canonical core specification.
+このリポジトリは、LLMとの対話で発生しやすい「意味の使い捨て」「候補の早期collapse」「仕様や判断根拠の喪失」を、検査可能なデータベース構造として扱うために作りました。
+
+この目的を達成するためのアプローチとして、観測・語彙・文法・文法連携・残差・圧力を PostgreSQL 上の永続構造として保持し、LLM的な意味探索を固定重みではなく、成長する意味構造として外部化しています。
+
+実装上の正本は以下です。
 
 ```text
-Implementation authority:
 SPEC_CANONICAL_CORE.md
 ```
 
-Legacy wave-geometry / psi / spectral-band design notes are archived under `legacy_design/` as historical context.
+過去の wave-geometry / psi / spectral-band 設計は `legacy_design/` に historical context として残しています。
 
 ---
 
-# Design Philosophy: Wave and Quaternion
+# 波動と四元数
 
-Wave LLMOS treats meaning as something that moves, interferes, resonates, and sometimes collapses.
+Wave LLMOS では、意味を単なる出力テキストではなく、接続・差分・候補・履歴として扱います。
 
-A conversation is not only a sequence of tokens.
+会話は token の列だけではありません。
 
-It is a wave field formed by vocabulary, grammar, relation, residuals, and accumulated pressure.
+語彙、文法、関係、残差、蓄積された圧力によってできる意味の波です。
 
-When a new input arrives, Wave does not immediately jump to an answer.
+新しい入力が来たとき、Wave はすぐに答えへ飛びません。
 
-It fixes an anchor, then sweeps the surrounding semantic field.
+入力を起点として固定し、その周囲の意味場を探索します。
 
-Vocabulary candidates appear.
+語彙候補が現れます。
 
-Grammar candidates bend around them.
+文法候補がその周囲で曲がります。
 
-Relation paths connect distant fragments.
+文法連携が離れた断片を接続します。
 
-Residuals remain as unresolved difference.
+解決されなかった差分は残差として残ります。
 
-Nearby waves may be absorbed into the same basin.
+近い波は同じ盆地へ吸収されます。
 
-Distant waves remain separate.
+遠い波は別の盆地として残ります。
 
-Similar but structurally different waves become alias, branch, or parent-child candidates.
+似ているが構造が違う波は、alias、branch、parent-child 候補になります。
 
-This is why the system is described as quaternion-like.
+このため、Wave LLMOS は四元数風に説明されます。
 
-The expression is not a claim that the runtime literally computes physical quaternions.
+これは、実行時に物理的な四元数をそのまま計算するという意味ではありません。
 
-It is a way to describe one output scope as a composition of multiple semantic axes:
+一回の会話 scope において、複数の意味軸を合成して出力候補状態を作るための説明モデルです。
 
 ```text
 q = w + xi + yj + zk
@@ -55,11 +58,9 @@ zk = relation-guided correction and decode
 q  = output candidate state
 ```
 
-In implementation, these steps are computed in order.
+実装上は、これらの処理は順序立てて計算されます。
 
-In one conversation scope, they form a single composed output state.
-
-Wave therefore uses two complementary views:
+ただし、一回の会話 scope で見れば、それらはひとつの出力候補状態として合成されます。
 
 ```text
 implementation view:
@@ -69,165 +70,74 @@ conversation-scope view:
 quaternion-like output composition
 ```
 
-Sleep maintenance then reshapes the field.
+Sleep maintenance は、この意味場を整えます。
 
-It does not merely clean data.
+単なるデータ整理ではありません。
 
-It refines attractor basins.
+近い波を吸収し、遠い波を残し、曖昧な波を draft evidence として保持します。
 
-It lets nearby waves be absorbed.
+目的は、意味を神秘化することではありません。
 
-It leaves distant waves alone.
-
-It keeps ambiguous waves as draft evidence instead of collapsing them too early.
-
-The goal is not to make meaning mysterious.
-
-The goal is to keep meaning inspectable while still allowing it to move.
+意味が動ける状態を保ちながら、検査可能にすることです。
 
 ---
 
 # Document Agenda
 
-Read documents by responsibility, not by file order.
+以下は、上記の設計を説明するためのファイルです。
 
-The canonical runtime flow must be understood as one connected machine:
-
-```text
-observation
-→ token / vocabulary / grammar mastication
-→ coherence / decoherence
-→ grammar_relation
-→ logs.current
-→ Phase Attention
-→ phase_relation_candidate
-→ promotion gate
-→ decoder / collapse
-```
-
-Supporting notes may explain parts of this machine, but they do not replace the canonical flow.
+詳細は各ファイルをご確認ください。
 
 ## `SPEC_CANONICAL_CORE.md`
 
-```text
-Single implementation authority.
-Defines canonical tables, reference rules, logs, operation gate, Phase, decoder/collapse boundary.
-```
+実装上の正本です。
 
-Use this file to answer:
-
-```text
-What is canonical?
-Which tables exist?
-Which references are allowed?
-Which mutations require operation gate?
-What wins on conflict?
-```
-
-Do not use this file as a complete algorithm implementation manual.
+canonical tables、reference rules、logs、operation gate、Phase、decoder/collapse boundary を定義します。
 
 ## `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`
 
-```text
-PostgreSQL implementation sketch.
-Shows table-shape examples and storage conventions.
-```
+PostgreSQL 実装スケッチです。
 
-Use this file to answer:
-
-```text
-How might the canonical tables be represented in SQL?
-Which columns are expected in sketches?
-How do input_observation, semantic arrays, logs, and Phase candidates map to storage?
-```
-
-Do not use this file as the source of truth when it conflicts with `SPEC_CANONICAL_CORE.md`.
+input observation、token、vocabulary、grammar、logs、Phase candidates などのSQL上の表現を説明します。
 
 ## `NOTE_INDEX_ARRAY_CANONICAL.md`
 
-```text
-Reference rule note.
-Explains why semantic references use bigint index arrays and not UUID arrays.
-```
+semantic reference rule の説明です。
 
-Use this file to answer:
-
-```text
-What is identity?
-What is semantic reference?
-Which arrays are canonical?
-Why is uuid[] rejected for semantic paths?
-```
+なぜ UUID ではなく `bigint[]` index array を意味参照として使うのかを説明します。
 
 ## `NOTE_PHASE_RELATION_CANDIDATE.md`
 
-```text
-Phase Attention and phase_relation_candidate supporting specification.
-Explains scheduled aggregate-weighted relation candidate generation.
-```
+Phase Attention と `phase_relation_candidate` の説明です。
 
-Use this file to answer:
-
-```text
-What is Phase Attention?
-What does Phase read?
-What does Phase write?
-How does logs.current pressure drive grammar_array expansion?
-What is a phase_relation_candidate?
-How are draft candidates promoted?
-What is mirror output?
-How does sleep maintenance refine attractor basins?
-```
+`logs.current` pressure、grammar_array expansion、sleep maintenance、attractor basin refinement を扱います。
 
 ## `NOTE_NEAR_NEIGHBOR_SEARCH.md`
 
-```text
-Structural near-neighbor search note.
-Explains search over index arrays, SQL join diff verification, and derived-vector acceleration boundaries.
-```
+構造的近傍探索の説明です。
 
-Use this file to answer:
-
-```text
-How are similar grammar_array paths searched?
-What does structural verification mean?
-How can pgvector be used without becoming semantic authority?
-How does SQL join diff expose shared structure and residuals?
-How does repeated grammar return expand search?
-```
+index array search、SQL join diff、pgvector acceleration、decode-time verification の役割分担を説明します。
 
 ## `NOTE_QUATERNION_PHILOSOPHY.md`
 
-```text
-Short philosophy note.
-Explains the q = w + xi + yj + zk framing and why order matters.
-```
+Wave LLMOS の四元数風説明です。
 
-Use this file to answer:
-
-```text
-What is the conceptual role of w, xi, yj, zk?
-Why is meaning treated as connection form?
-How does Phase Attention fit the exploration philosophy?
-```
+`q = w + xi + yj + zk` の考え方と、起点固定の phase sweep を説明します。
 
 ## `MIGRATION_LEGACY_REGISTER.md`
 
-```text
-Migration and rejection register.
-Tracks which legacy concepts were migrated, reinterpreted, rejected, or absorbed.
-```
-
-Use this file to answer:
-
-```text
-What happened to legacy wave_geometry, psi, spectral matrix, loop guard, web search, remote sync, and adoption audit?
-Which legacy terms survive under new canonical meanings?
-```
+legacy design から current core への移行・再解釈・棄却の記録です。
 
 ## `legacy_design/`
 
-```text
-Historical archive.
-Useful for tracing old design intent, not for overriding the canonical core.
-```
+過去設計のアーカイブです。
+
+現在の実装 authority ではありませんが、設計意図を追うための historical context として残しています。
+
+---
+
+# Contribution
+
+Issue / PR 発行は大歓迎です！
+
+設計上の違和感、実装上の改善案、仕様の読みづらさ、説明不足などがあれば、遠慮なく投げてください。
