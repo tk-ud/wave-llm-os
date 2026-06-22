@@ -20,6 +20,7 @@ core_state
 core_operation_policy
 scheduler_job / scheduler_job_run
 phase_relation_candidate
+Phase Attention as scheduled aggregate-weighted relation candidate generation
 structural near-neighbor search
 canonical index arrays
 logs.adoption_audit view
@@ -33,8 +34,9 @@ logs.adoption_audit view
 fallback hierarchy → decoherence notify / offline blend / question notify
 external observation → source_kind input
 web search result → input_observation(source_kind='web')
+legacy mastication → token-table mastication / normalized aggregate growth
 remote sync → core-gated remote input observation
-loop guard → grammar-array / Phase / near-neighbor / pressure handling
+loop guard → grammar-array / Phase Attention / near-neighbor / pressure handling
 pgvector → derived retrieval accelerator only
 wave_signature → optional evidence only
 ```
@@ -70,6 +72,7 @@ decoder/collapse constraints → current core invariants
 adoption audit → logs.diff view
 web search result handling → source_kind input pipeline
 loop-like repetition → unresolved exploration pressure
+input mirroring failure → relation-growth / Phase Attention metrics
 ```
 
 ---

@@ -52,11 +52,11 @@ Order matters.
 # Authority Order
 
 ```text
-1. Quaternion Exploration Core
+1. Canonical Core
 2. Core State / Operation Gate
 3. Persistent Semantic Tables
 4. Coherence / Decoherence / Relation Runtime
-5. Scheduled Aggregation and Phase Candidate Generation
+5. Scheduled Aggregation / Phase Attention / Relation Candidate Generation
 6. Coherence Decoder
 7. Decoder / Collapse Invariants
 8. External / Remote Observation Intake
@@ -84,6 +84,17 @@ input with source_kind
 → mutation only through core_can_execute()
 ```
 
+Scheduled Phase path:
+
+```text
+logs.current pressure
++ grammar_relation aggregates
++ decoherence_bank recurrence
+→ Phase Attention
+→ phase_relation_candidate.grammar_array
+→ later promotion or decoder support
+```
+
 ---
 
 # Short Form
@@ -92,6 +103,7 @@ input with source_kind
 Meaning is connection form.
 The DB is semantic memory.
 The decoder does not originate meaning.
+Phase Attention grows relation paths.
 Collapse is explicit.
 Mutation is operation-gated.
 ```
