@@ -17,7 +17,7 @@ Indexes are the only semantic reference keys.
 ```text
 semantic reference = index only
 semantic array     = index array only
-UUID               = internal row identity only
+UUID               = internal row identity / event identity only
 ```
 
 Do not use UUIDs as semantic references.
@@ -25,6 +25,10 @@ Do not use UUIDs as semantic references.
 Do not mix UUID and index references in the same semantic link.
 
 Do not define a semantic array as `uuid[]`.
+
+Do not name evidence UUID lists as `*_array`.
+
+Use `*_uuids` for audit/event identity lists.
 
 ---
 
@@ -44,7 +48,7 @@ The array elements are indexes.
 
 # 3. UUID Rule
 
-UUID columns may exist only as internal row identity.
+UUID columns may exist only as internal row identity or event/audit identity.
 
 Examples:
 
@@ -53,6 +57,7 @@ token.token_uuid
 vocabulary.vocabulary_uuid
 grammar.grammar_uuid
 grammar_relation.grammar_relation_uuid
+logs.current.current_uuid
 ```
 
 They must not be used for:
@@ -136,9 +141,9 @@ If an implementation keeps UUIDs for internal tooling, they must not be treated 
 
 # 7. Logs
 
-Logs may identify events with UUIDs.
+Logs may identify events and records with UUIDs.
 
-But semantic targets should use indexes when the target belongs to a semantic table.
+But semantic targets use indexes when the target belongs to a semantic table.
 
 Canonical target form:
 
@@ -155,6 +160,16 @@ target_uuid uuid
 ```
 
 For non-semantic operational events, UUID event IDs may still be used as event identity.
+
+Evidence UUID lists must be named as UUID lists, not arrays.
+
+Example:
+
+```text
+source_current_uuids uuid[]
+```
+
+This is an evidence identity list, not a semantic array.
 
 ---
 
@@ -186,6 +201,12 @@ The candidate row may have a UUID identity.
 
 The semantic candidate is the `grammar_array` of grammar indexes.
 
+Evidence record IDs should be named as UUID lists:
+
+```text
+source_current_uuids uuid[]
+```
+
 ---
 
 # 10. Derived Vector Index
@@ -215,6 +236,8 @@ Any existing draft text that uses `target_uuid` for semantic table targets is su
 
 Read it as `target_index`.
 
+Any evidence UUID list must be named as `*_uuids`, not `*_array`.
+
 ---
 
 # 12. Short Form
@@ -224,4 +247,5 @@ UUID is identity.
 Index is meaning reference.
 Array is index array.
 Semantic reference never uses UUID.
+Evidence UUID lists are named *_uuids, not *_array.
 ```
