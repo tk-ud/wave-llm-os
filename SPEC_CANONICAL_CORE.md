@@ -184,6 +184,7 @@ where operation_key in (
   'adopt.vocabulary',
   'adopt.grammar',
   'adopt.relation',
+  'promote.coherence_hit',
   'promote.decoherence_to_draft',
   'promote.phase_relation'
 );
@@ -205,6 +206,47 @@ Freeze allows read-only lookup, decoder projection, decoder/collapse invariant c
 
 ---
 
+# Core Reply Path
+
+Reply generation is core synchronous work.
+
+It is not Phase Attention and must not wait for scheduled Phase jobs.
+
+Core reply flow:
+
+```text
+input_observation
+→ token / vocabulary / grammar candidates
+→ near-neighbor retrieval
+→ structural verification
+→ xi coherence hit or yj residual bank
+→ coherence relation lookup
+→ zk coherence decoder
+→ output collapse
+```
+
+If near-neighbor retrieval hits and structural verification passes, the candidate has cohered.
+
+A reply-time coherence hit must immediately adopt a new structure or reinforce an existing adopted structure through the operation gate.
+
+```text
+near-neighbor candidate
+→ structural verification passes
+→ xi coherence hit
+→ zk decoder usage
+→ core_can_execute('promote.coherence_hit')
+→ adopt or reinforce immediately
+→ logs.diff
+```
+
+This promotion is automatic and evidence-driven.
+
+Human review is not part of ordinary reply-time promotion.
+
+Freeze, policy failure, contradiction, or operation gate failure blocks adoption and leaves evidence as draft, residual, rejected, or quarantined state.
+
+---
+
 # Near Neighbor Search
 
 Primary search is structural over index arrays.
@@ -219,7 +261,7 @@ Structural verification decides.
 
 # Phase
 
-Phase Attention is scheduled aggregate-weighted relation candidate generation.
+Phase Attention is cron-like scheduled aggregate-weighted relation candidate generation.
 
 Phase reads aggregate pressure and evidence.
 
@@ -232,6 +274,8 @@ Phase outputs grammar_index arrays only.
 Promotion must pass operation gate.
 
 Phase is not the synchronous raw-input reply path.
+
+Phase must not define reply-time adoption semantics; reply-time coherence promotion belongs to the core reply path.
 
 ---
 
