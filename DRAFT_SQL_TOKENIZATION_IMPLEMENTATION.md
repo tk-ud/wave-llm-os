@@ -23,6 +23,7 @@ No `uuid[]` columns.
 # Core Tables
 
 ```text
+input_observation
 token
 vocabulary
 grammar
@@ -41,6 +42,35 @@ structural_vector_index
 mastication_job
 remote_event_inbox
 remote_event_quarantine
+```
+
+---
+
+# Input Observation
+
+```sql
+create table input_observation (
+  observation_uuid uuid primary key default gen_random_uuid(),
+  observation_index bigint generated always as identity unique,
+  source_kind text not null,
+  source_hash text not null,
+  body text not null,
+  raw_text_policy text not null default 'discard_after_ingest',
+  learning_weight numeric not null default 1.0,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now()
+);
+```
+
+Allowed source kinds:
+
+```text
+user
+web
+file
+remote_event
+manual
+system
 ```
 
 ---
@@ -147,22 +177,6 @@ Freeze blocks semantic mutation.
 
 ---
 
-# Input Sources
-
-All observations enter the same input pipeline with source metadata.
-
-```text
-source_kind = user | web | file | remote_event | manual
-source_hash
-raw_text_policy
-learning_weight
-metadata_json
-```
-
-No separate semantic table for web results.
-
----
-
 # Decoder / Collapse
 
 No `constraint_rule` table.
@@ -175,6 +189,7 @@ Use current core gates and decoder/collapse invariants.
 
 ```text
 PostgreSQL is canonical storage.
+All input enters through input_observation.
 Index arrays are semantic structure.
 logs.diff is mutation evidence.
 Everything mutable goes through core_can_execute().
