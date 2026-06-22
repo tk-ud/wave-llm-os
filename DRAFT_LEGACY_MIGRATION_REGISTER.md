@@ -51,7 +51,7 @@ pending      = not yet decided
 | `psi` as primary semantic state | reject | new core has no single semantic state vector/matrix |
 | Euler-integrated wave update | archive | historical mechanism only |
 | STFT / spectral observer | archive | optional feature channel only, not canonical core |
-| spectral basis as meaning basis | reject | replaced by vocabulary / grammar / grammar_relation |
+| spectral basis as meaning basis | reject | replaced by token/vocabulary/grammar/grammar_relation hierarchy |
 | wave_signature retrieval | reinterpret | may become optional evidence, not required retrieval key |
 | coherence/decoherence vocabulary | migrate | redefined as DB/log/decoherence-bank behavior |
 | collapse language | migrate | explicit output collapse and adoption gate |
@@ -78,9 +78,11 @@ It does not define canonical runtime authority.
 | semantic freeze | migrate | core_state + operation gate |
 | semantic snapshot / restore | reject | unnecessary in canonical core because freeze/function gates prevent coherence/current/draft mutation |
 | scheduler / maintenance loop | migrate | backend-triggered scheduler_job / scheduler_job_run with DB-owned lock and operation gate |
-| Phase relation candidate generation | migrate | DRAFT_PHASE_RELATION_CANDIDATE.md; outputs grammar arrays only |
-| structural near-neighbor search | migrate | DRAFT_NEAR_NEIGHBOR_SEARCH.md; arrays are structural vectors |
-| dense embedding vector search as semantic authority | reject | pgvector-style dense vectors erase structural meaning |
+| Phase relation candidate generation | migrate | DRAFT_PHASE_RELATION_CANDIDATE.md; outputs grammar_index arrays only |
+| structural near-neighbor search | migrate | DRAFT_NEAR_NEIGHBOR_SEARCH.md; index arrays are structural semantic vectors |
+| canonical index arrays | migrate | DRAFT_INDEX_ARRAY_CANONICAL.md; semantic reference is index only |
+| dense embedding vector search as semantic authority | reject | dense vectors erase structural meaning when treated as source of truth |
+| pgvector derived retrieval index | reinterpret | allowed only as acceleration over derived structural vectors; not semantic authority |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
 
 Snapshot note:
@@ -91,6 +93,15 @@ The canonical core does not need semantic_snapshot / restore as a separate seman
 When freeze.enabled is true and operation gates are enforced, logs.coherence, logs.current, draft spaces, adopted spaces, and relation spaces do not mutate through semantic write functions.
 
 Therefore snapshot/restore is not migrated into the canonical runtime.
+```
+
+Index-array note:
+
+```text
+UUID is identity.
+Index is semantic reference.
+Array is index array.
+Semantic reference never uses UUID.
 ```
 
 Scheduler note:
@@ -106,9 +117,9 @@ The database owns job registry, lock, operation gate, blocked/skipped decisions,
 Phase note:
 
 ```text
-Phase relation candidate generation outputs grammar arrays.
+Phase relation candidate generation outputs grammar_index arrays.
 
-Because token → vocabulary → grammar → grammar array is hierarchical, a decided grammar array determines the vocabulary and token references.
+Because token_index → vocabulary_index → grammar_index → grammar_index array is hierarchical, a decided grammar_index array determines the vocabulary and token references.
 
 Missing slots are completed by reverse hierarchical near-neighbor search.
 ```
@@ -116,11 +127,13 @@ Missing slots are completed by reverse hierarchical near-neighbor search.
 Near-neighbor note:
 
 ```text
-The array is the vector.
+The index array is the semantic vector.
 
 The hierarchy is the meaning.
 
-Dense embedding vectors are not canonical because they erase structural meaning.
+Dense embedding vectors are not canonical authority.
+
+pgvector may accelerate retrieval over derived structural vectors, but structural verification decides.
 ```
 
 ---
@@ -269,6 +282,7 @@ logs.diff
 Rules:
 
 - `logs.coherence` is append-only observation evidence
+- semantic log targets use `target_index`, not `target_uuid`
 - `logs.current` is scheduled aggregate read model
 - `logs.diff` is mutation/change/time-series evidence
 
@@ -294,7 +308,8 @@ Migrated with mechanism change.
 Canonical rule:
 
 - no language-specific morphological analyzer as semantic authority
-- tokenizer creates raw atomic references and boundary signals
+- tokenizer creates raw atomic records and boundary signals
+- `token_index` is the semantic token reference
 - meaning aggregation begins at vocabulary, grammar, relation, decoherence, and adoption layers
 
 Canonical tables:
@@ -309,6 +324,8 @@ grammar_relation
 grammar_relation_link
 ```
 
+All semantic arrays and semantic links use indexes.
+
 ---
 
 # 11. SQLite
@@ -316,7 +333,7 @@ grammar_relation_link
 | Legacy / draft element | Class | Reason |
 |---|---:|---|
 | SQLite MVP profile | reject | lacks canonical near-neighbor/policy/function/notify requirements |
-| text UUID fallback | reject | canonical target is PostgreSQL UUID |
+| text UUID fallback | reject | canonical target is PostgreSQL UUID for row identity and BIGINT index for semantic reference |
 | JSON as text | reject | canonical target is JSONB |
 
 Canonical storage is PostgreSQL.
@@ -375,8 +392,8 @@ Rules:
 
 - Phase reads `logs.current` and other normalized aggregate evidence
 - Phase does not inspect raw input as its primary source
-- Phase outputs grammar arrays only
-- grammar arrays determine vocabulary/token levels through hierarchy
+- Phase outputs grammar_index arrays only
+- grammar_index arrays determine vocabulary/token levels through hierarchy
 - missing slots are filled by reverse hierarchical near-neighbor search
 - Phase candidates must not directly mutate `grammar_relation`
 - promotion must pass `core_can_execute('promote.phase_relation')`
@@ -385,22 +402,25 @@ Rules:
 
 # 14. Structural Near-Neighbor Search
 
-Migrated as array-based structural search.
+Migrated as index-array-based structural search.
 
 Canonical object:
 
 ```text
 DRAFT_NEAR_NEIGHBOR_SEARCH.md
+DRAFT_INDEX_ARRAY_CANONICAL.md
 ```
 
 Rules:
 
-- ordered UUID arrays are structural semantic vectors
-- link tables preserve position
+- ordered BIGINT index arrays are structural semantic vectors
+- semantic reference uses index only
+- UUID is internal row identity only
+- link tables preserve position using indexes
 - `logs.current` supplies pressure
 - `logs.diff` supplies mutation/adoption evidence
 - dense embedding vectors are rejected as semantic authority
-- pgvector is not canonical
+- pgvector may be used only as derived retrieval acceleration
 - pg_trgm may only support raw-text fallback and is not semantic authority
 
 ---
