@@ -69,6 +69,8 @@ No canonical `adoption_audit` table.
 
 No canonical web-result-only semantic table.
 
+No canonical `decoder_trace` or `loop_guard` table.
+
 ---
 
 # Input Observation
@@ -233,10 +235,20 @@ Decoder/collapse invariants are handled by the current core.
 
 No independent constraint table.
 
----
+No decoder trace table.
 
-# Pending
+No loop guard table.
+
+Looping is unresolved exploration pressure, not a separate error state.
+
+Repeated return to the same grammar path is handled by:
 
 ```text
-decoder trace / loop guard
+grammar_array structure
+Phase candidate search
+near-neighbor expansion
+decoherence_bank pressure
+logs.current pressure
 ```
+
+If repeated search still cannot resolve, the result remains draft/unresolved and may trigger question notification.
