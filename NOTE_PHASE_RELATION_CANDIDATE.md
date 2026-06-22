@@ -700,6 +700,60 @@ This does not collapse candidates into adopted structures by itself.
 
 It prepares draft evidence for later operation-gated adoption or rejection.
 
+Vector / SQL role split:
+
+```text
+vector geometry
+= basin shape / scale / density error inspection for sleep-time integration
+
+SQL join diff
+= shared structure / residual / missing / excess inspection for decode-time and verification
+```
+
+Sleep integration uses both:
+
+```text
+vector geometry finds candidate basins
+SQL join diff verifies structural compatibility
+merge / alias / dormant decisions remain draft evidence until operation-gated adoption
+```
+
+Recommended decision pattern:
+
+```text
+vector shape close + scale error small + SQL residual small
+→ merge candidate
+
+vector shape close + scale error large + SQL overlap high
+→ alias candidate or parent-child candidate
+
+vector shape close + SQL residual large
+→ false attractor / polysemy risk
+
+vector shape far + SQL overlap high
+→ boundary split issue or vocabulary segmentation issue
+```
+
+Canonical reference stays unchanged:
+
+```text
+grammar.vocabulary_array = semantic reference
+```
+
+Derived retrieval projections may include:
+
+```text
+grammar_structural_vector
+grammar_expanded_token_array
+grammar_shape_metrics
+grammar_scale_metrics
+join_diff_cache
+```
+
+Decode should prefer SQL join diff because it exposes where structures match, diverge, disappear, or remain unresolved.
+
+Sleep integration should prefer vector geometry first because it exposes basin shape and scale error before structural verification.
+
 Allowed sleep maintenance outputs:
 
 ```text
@@ -714,6 +768,8 @@ grammar alias / merge candidates as draft evidence
 grammar_array path alias / merge candidates as draft evidence
 attractor basin refinement evidence
 future search-count reduction evidence
+vector geometry basin candidate evidence
+SQL join diff verification evidence
 promotion queue candidates
 scheduler_job_run evidence
 ```
@@ -744,6 +800,8 @@ It runs on a schedule.
 Sleep maintenance runs in the same scheduled / idle / preemptible window.
 Sleep maintenance refines nearby vocabulary, grammar, and grammar_array paths as draft evidence.
 Sleep maintenance shapes attractor basins to reduce future search count.
+Vector geometry is useful for sleep-time basin integration.
+SQL join diff is useful for decode-time structural verification.
 It supports zk.
 It prevents the system from becoming a mirror of the input.
 ```
