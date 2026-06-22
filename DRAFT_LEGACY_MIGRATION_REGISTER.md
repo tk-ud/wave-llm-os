@@ -81,6 +81,8 @@ It does not define canonical runtime authority.
 | Phase relation candidate generation | migrate | DRAFT_PHASE_RELATION_CANDIDATE.md; outputs grammar_index arrays only |
 | structural near-neighbor search | migrate | DRAFT_NEAR_NEIGHBOR_SEARCH.md; index arrays are structural semantic vectors |
 | canonical index arrays | migrate | DRAFT_INDEX_ARRAY_CANONICAL.md; semantic reference is index only |
+| adoption audit table | reject | adoption is mutation evidence; separate table would duplicate logs.diff |
+| adoption audit view | migrate | logs.adoption_audit view over logs.diff |
 | dense embedding vector search as semantic authority | reject | dense vectors erase structural meaning when treated as source of truth |
 | pgvector derived retrieval index | reinterpret | allowed only as acceleration over derived structural vectors; not semantic authority |
 | constraint layer | migrate | post-decoder pre-collapse stabilizer |
@@ -102,6 +104,16 @@ UUID is identity.
 Index is semantic reference.
 Array is index array.
 Semantic reference never uses UUID.
+```
+
+Adoption audit note:
+
+```text
+adoption_audit is not a table.
+
+logs.diff is the source of truth for adoption/promotion mutation evidence.
+
+logs.adoption_audit is a view over logs.diff.
 ```
 
 Scheduler note:
@@ -277,6 +289,7 @@ Migrated / newly canonical:
 logs.coherence
 logs.current
 logs.diff
+logs.adoption_audit view
 ```
 
 Rules:
@@ -285,6 +298,7 @@ Rules:
 - semantic log targets use `target_index`, not `target_uuid`
 - `logs.current` is scheduled aggregate read model
 - `logs.diff` is mutation/change/time-series evidence
+- `logs.adoption_audit` is a view, not a table
 
 End-of-sentence behavior is derived from coherence aggregation:
 
@@ -430,7 +444,6 @@ Rules:
 The following still need detailed canonical table/function specs:
 
 - constraint rule table
-- adoption audit table, or explicit use of logs.diff for adoption audit
 - web search result mastication schema
 - remote node trust registry
 - decoder trace / loop guard equivalent
