@@ -102,9 +102,14 @@ token(token_uuid, token_index, raw)
 vocabulary(vocabulary_uuid, vocabulary_index, token_array)
 grammar(grammar_uuid, grammar_index, vocabulary_array)
 grammar_relation(grammar_relation_uuid, grammar_relation_index, grammar_array)
+phase_relation_candidate(phase_relation_candidate_uuid, phase_relation_candidate_index, grammar_array, relation_array, relation_hash, evidence_json, pressure)
 ```
 
 All semantic arrays are `bigint[]` index arrays.
+
+`phase_relation_candidate.grammar_array` is the Phase Attention output path.
+
+`phase_relation_candidate.relation_array` is optional and references relation indexes only.
 
 ---
 
@@ -115,6 +120,8 @@ logs.coherence = observation evidence
 logs.current   = scheduled aggregate read model
 logs.diff      = mutation / decision evidence
 ```
+
+`logs.current` is the scheduled pressure surface for Phase Attention.
 
 Adoption audit is a view over `logs.diff`, not a table.
 
@@ -134,6 +141,23 @@ Freeze blocks semantic mutation.
 
 ---
 
+# Phase Attention Sketch
+
+```text
+logs.current pressure
++ grammar_relation aggregates
++ decoherence_bank recurrence
+→ scheduled Phase Attention
+→ phase_relation_candidate.grammar_array
+→ core_can_execute('promote.phase_relation')
+→ grammar_relation
+→ logs.diff
+```
+
+Phase Attention is not the synchronous reply path.
+
+---
+
 # Short Form
 
 ```text
@@ -141,6 +165,7 @@ PostgreSQL is canonical storage.
 All input enters through input_observation.
 Remote trust is gated by core_state.
 Index arrays are semantic structure.
+logs.current is Phase pressure.
 logs.diff is mutation evidence.
 Everything mutable goes through core_can_execute().
 ```
