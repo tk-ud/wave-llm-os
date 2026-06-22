@@ -219,11 +219,19 @@ Structural verification decides.
 
 # Phase
 
+Phase Attention is scheduled aggregate-weighted relation candidate generation.
+
 Phase reads aggregate pressure and evidence.
+
+Phase reads `logs.current` as the scheduled pressure surface.
+
+Phase writes draft relation paths to `phase_relation_candidate`.
 
 Phase outputs grammar_index arrays only.
 
 Promotion must pass operation gate.
+
+Phase is not the synchronous raw-input reply path.
 
 ---
 
@@ -245,7 +253,7 @@ Repeated return to the same grammar path is handled by:
 
 ```text
 grammar_array structure
-Phase candidate search
+Phase Attention candidate search
 near-neighbor expansion
 decoherence_bank pressure
 logs.current pressure
