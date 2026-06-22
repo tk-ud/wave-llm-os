@@ -64,3 +64,23 @@ grammar_index array
 → vocabulary-index near search
 → token-index near search
 ```
+
+---
+
+# Loop Absorption
+
+Repeated return to the same grammar path is not a separate loop error.
+
+It is unresolved exploration pressure.
+
+Phase handles it through:
+
+```text
+grammar_array alternatives
+near-neighbor expansion
+missing-slot completion
+decoherence pressure
+logs.current pressure
+```
+
+No dedicated `decoder_trace` or `loop_guard` table is canonical.
