@@ -1,10 +1,12 @@
-# Supporting Note: Agent Metaphor Mapping
+# Supporting Note: Agent Abstract Runtime Mapping
 
 Canonical authority: `SPEC_CANONICAL_CORE.md`.
 
-This document defines how agents should translate Wave LLMOS metaphors into runtime behavior.
+This document defines how agents should translate Wave LLMOS abstract behavior labels into runtime behavior and concrete inspectable structures.
 
 It is not implementation authority over the canonical core.
+
+In this document, "metaphor" means an abstract runtime behavior label, not poetic decoration.
 
 ---
 
@@ -14,9 +16,27 @@ Wave LLMOS uses terms such as wave, coherence, decoherence, pressure, Phase Atte
 
 Agents must not treat these terms as mystical, poetic, or physical-wave claims.
 
-They are runtime behavior names.
+They are abstract runtime behavior names.
 
-This document maps those names to inspectable database behavior, neural-network-like behavior, and agent interpretation rules.
+Concrete PostgreSQL structures are projections of those behaviors into inspectable state.
+
+They are not semantic authority by themselves.
+
+Agents must preserve this mapping direction:
+
+```text
+abstract runtime behavior
+→ concrete inspectable PostgreSQL projection
+```
+
+Agents must not reverse it into:
+
+```text
+database table / row
+→ semantic authority
+```
+
+This document maps those abstract names to inspectable database behavior, neural-network-like behavior, and agent interpretation rules.
 
 ---
 
@@ -24,7 +44,7 @@ This document maps those names to inspectable database behavior, neural-network-
 
 Wave LLMOS is not a rejection of neural-network-like structure.
 
-It can be read as an open hierarchical neural-network-like system whose nodes, relations, parameters, failures, and corrections are stored as inspectable PostgreSQL data.
+It can be read as an open hierarchical neural-network-like system whose nodes, relations, parameters, failures, and corrections are projected into inspectable PostgreSQL data.
 
 ```text
 NN-like physical structure
@@ -33,6 +53,10 @@ NN-like physical structure
 + SQL-verifiable structural correction
 = Wave LLMOS runtime
 ```
+
+The database state makes the runtime behavior inspectable, reproducible, and operation-gated.
+
+It does not replace the abstract behavior.
 
 The current design rejects the legacy single-waveform / single-psi authority model.
 
@@ -56,13 +80,13 @@ operation-gated promotion
 
 # Mapping Table
 
-| Metaphor | Runtime Meaning | Wave LLMOS Structure | NN / Neural Analogy | Agent Rule |
+| Abstract Label / Metaphor | Runtime Meaning | Concrete Inspectable Projection | NN / Neural Analogy | Agent Rule |
 |---|---|---|---|---|
-| wave | Candidate movement through coherence, decoherence, pressure, and relation | candidate paths, residuals, logs, pressure | activation pattern over a network | Do not interpret as a physical wave equation |
+| wave | Candidate movement through coherence, decoherence, pressure, and relation | candidate paths, residuals, logs, pressure | activation pattern over a network | Do not interpret as a physical wave equation; do not reduce to a table name |
 | single waveform | Legacy single-state semantic authority | legacy psi / spectral basis | one global latent state | Treat as rejected legacy model |
 | open wave field | Expandable candidate space | vocabulary, grammar, relation, decoherence_bank | growing neural graph | Nodes and parameters may increase |
-| node | Addressable semantic unit | token, vocabulary, grammar, grammar_relation | neuron / feature node | Node identity is an index, not a semantic UUID |
-| parameter | Inspectable state data | observed_count, relation_weight, pressure, phase_score, logs | learned weight / activation history | Parameters are data, not hidden matrix weights |
+| node | Addressable semantic unit in an open node set | token, vocabulary, grammar, grammar_relation | neuron / feature node | Node identity is an index, not a semantic UUID; node set is not closed |
+| parameter | Inspectable state data in an open parameter set | observed_count, relation_weight, pressure, phase_score, logs | learned weight / activation history | Parameters are data projections, not hidden matrix weights |
 | edge | Semantic continuity | grammar_relation, relation_array, phase_relation_candidate | connection weight / pathway | Relation is not optional metadata |
 | activation | Candidate hit during Reply | near-neighbor hit, coherence hit | forward activation | Hit does not equal promotion |
 | forward pass | Reply candidate generation | Core Reply Path | inference pass | Reply is synchronous core work |
@@ -77,7 +101,7 @@ operation-gated promotion
 | sleep | Scheduled consolidation | sleep_consolidation | sleep replay / pruning | Must not block Reply |
 | Phase Attention | Scheduled relation candidate generation | phase_relation_candidate | offline association growth | Not Transformer attention |
 | zk decoder | Relation-guided output projection | decoder/collapse path | readout layer | Decoder does not originate meaning |
-| collapse | Final reply fixation | output collapse | final output selection | Collapse is not semantic authority |
+| collapse | Delayed fixation of surviving output candidate | output collapse | final output selection | Collapse is not semantic authority |
 | mirror output | Input copied without meaningful delta | output_delta empty / reorder-only | overfit echo / no useful prediction | Must be logged as failure evidence |
 | moth-eaten | Repeated missing/replaced slots | moth_eaten_score | degraded pathway | Sleep may decohere unstable structure |
 | fallback | Retry from unresolved memory | decoherence_bank fallback search | recall from weak memory | Fallback can cohere again if verified |
@@ -118,6 +142,10 @@ This means Reply is not simple similarity selection.
 
 It is candidate retrieval followed by structural survival.
 
+The concrete tables are the inspectable projection of this behavior.
+
+They are not a replacement for the behavior.
+
 ---
 
 # Backprop-Like Interpretation
@@ -146,7 +174,7 @@ candidate / output structural mismatch
 
 The correction target is not a hidden weight matrix.
 
-The correction target is the inspectable database state:
+The correction target is the inspectable projection of runtime state:
 
 ```text
 node candidates
@@ -157,6 +185,8 @@ draft flags
 promotion logs
 decoherence fallback entries
 ```
+
+These projections are concrete storage surfaces for abstract correction behavior.
 
 ---
 
@@ -182,13 +212,21 @@ decoherence fallback entries
 
 10. Do not invent a human approval workflow. Promotion is automatic and evidence-gated when policy allows it.
 
+11. Do not reduce abstract behavior labels to implementation artifacts. Database rows make behavior inspectable; they do not replace the behavior.
+
+12. Do not reverse the mapping direction. Read from abstract runtime behavior to concrete inspectable projection, not from table names to semantic authority.
+
+13. Do not treat metaphor mapping as poetic translation. In this document, metaphor mapping is abstraction-to-concretion mapping.
+
+14. Do not collapse Wave LLMOS into “just a database model.” PostgreSQL is the inspection and mutation surface for an open candidate runtime.
+
 ---
 
 # Short Form
 
 ```text
 Wave = candidate dynamics
-Node = semantic DB row
+Node = open semantic index row
 Parameter = inspectable DB state
 Forward = Reply candidate path
 Backprop = structural diff correction
@@ -199,10 +237,17 @@ Sleep = scheduled consolidation
 Phase = scheduled relation growth
 ```
 
+```text
+Abstract behavior = runtime semantics
+Concrete DB state = inspectable projection
+Mapping direction = abstract → concrete
+Agent failure = concrete → authority
+```
+
 Wave LLMOS should be read as:
 
 ```text
 an open hierarchical neural-network-like system
 whose nodes, parameters, failures, and corrections
-are stored as inspectable PostgreSQL structures.
+are projected into inspectable PostgreSQL structures.
 ```
