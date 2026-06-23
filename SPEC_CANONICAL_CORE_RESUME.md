@@ -6,7 +6,9 @@ This file replaces the previous monolithic `SPEC_CANONICAL_CORE.md` as the routi
 
 It defines canonical routing, invariants, and section-level flow.
 
-Detailed authority lives in the distributed specification files listed below.
+Detailed authority lives in distributed `SPEC_*` files.
+
+Implementation SQL and DDL detail may live in mapped `NOTE_*` files.
 
 ---
 
@@ -22,22 +24,58 @@ array = bigint[] index array only
 
 Operation-capable semantic mutation must pass the operation gate.
 
-Logs, aggregate tables, and archive registries are not semantic authority.
+Logs, aggregate tables, archive registries, and implementation notes are not semantic authority.
 
 ---
 
 # Document Routing
 
 ```text
-Reference model        -> SPEC_REFERENCE_MODEL.md
+Reference model         -> SPEC_REFERENCE_MODEL.md
 Log / aggregate/archive -> SPEC_LOG_AGGREGATE_ARCHIVE.md
-Reply pipeline         -> SPEC_REPLY_PIPELINE.md
-Cron pipeline          -> SPEC_CRON_PIPELINE.md
-Semantic tables        -> SPEC_SEMANTIC_TABLES.md
-Search / verification  -> SPEC_SEARCH_AND_VERIFICATION.md
-Scale / cost model     -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit -> SPEC_CANONICALIZATION_AUDIT.md
+Reply pipeline          -> SPEC_REPLY_PIPELINE.md
+Cron pipeline           -> SPEC_CRON_PIPELINE.md
+Semantic tables         -> SPEC_SEMANTIC_TABLES.md
+Search / verification   -> SPEC_SEARCH_AND_VERIFICATION.md
+Scale / cost model      -> SPEC_SCALE_AND_COST_MODEL.md
+Canonicalization audit  -> SPEC_CANONICALIZATION_AUDIT.md
+SQL implementation map  -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
+
+---
+
+# SQL / NOTE Wiring
+
+```text
+SPEC_REFERENCE_MODEL.md
+-> NOTE_INDEX_ARRAY_CANONICAL.md
+
+SPEC_SEMANTIC_TABLES.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+
+SPEC_REPLY_PIPELINE.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+-> NOTE_NEAR_NEIGHBOR_SEARCH.md
+
+SPEC_CRON_PIPELINE.md
+-> NOTE_PHASE_RELATION_CANDIDATE.md
+
+SPEC_SEARCH_AND_VERIFICATION.md
+-> NOTE_NEAR_NEIGHBOR_SEARCH.md
+
+SPEC_SCALE_AND_COST_MODEL.md
+-> NOTE_QUATERNION_PHILOSOPHY.md
+
+SPEC_LOG_AGGREGATE_ARCHIVE.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+-> SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md
+```
+
+`SPEC_*` files own meaning and processing authority.
+
+`NOTE_*` files may preserve SQL, DDL, implementation sketches, and explanatory detail.
+
+If a NOTE conflicts with a SPEC, the SPEC wins.
 
 ---
 
@@ -47,15 +85,15 @@ Reply Path handles input-time semantic search and output collapse.
 
 ```text
 input_observation
-→ token
-→ vocabulary
-→ grammar
-→ coherence search
-→ structural verification
-→ relation or residual handling
-→ decoder projection
-→ collapse
-→ evidence logs
+-> token
+-> vocabulary
+-> grammar
+-> coherence search
+-> structural verification
+-> relation or residual handling
+-> decoder projection
+-> collapse
+-> evidence logs
 ```
 
 Detailed authority: `SPEC_REPLY_PIPELINE.md`.
@@ -68,11 +106,11 @@ Cron Path handles scheduled maintenance, pressure refresh, relation candidate ge
 
 ```text
 current_refresh
-→ aggregate.current upsert
-→ optional logs.current snapshot
-→ phase_candidate_generation
-→ sleep_consolidation
-→ archive_rolloff
+-> aggregate.current upsert
+-> optional logs.current snapshot
+-> phase_candidate_generation
+-> sleep_consolidation
+-> archive_rolloff
 ```
 
 Detailed authority: `SPEC_CRON_PIPELINE.md`.
@@ -147,7 +185,7 @@ Detailed authority: `SPEC_SCALE_AND_COST_MODEL.md`.
 
 # Notes After Canonicalization
 
-`NOTE_*` files are explanatory unless explicitly promoted into a `SPEC_*` file.
+`NOTE_*` files are implementation or explanatory notes unless explicitly promoted into a `SPEC_*` file.
 
 If a `NOTE_*` file conflicts with a `SPEC_*` file, the `SPEC_*` file wins.
 
