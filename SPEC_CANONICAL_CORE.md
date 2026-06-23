@@ -7,6 +7,93 @@ This file is the single implementation authority for the current core.
 Supporting files may explain details, but this file wins on conflict.
 
 ---
+# Canonical Interpretation Rules
+
+Repository-defined meanings take priority over common implementation patterns.
+
+Terms including `current`, `promotion`, `verification`, `scheduler`, `draft`, `coherence`, and `decoherence` must be interpreted from this specification first.
+
+Do not split canonical concepts because a common database, workflow, approval, queue, or review-process pattern suggests doing so.
+
+## `logs.current`
+
+`logs.current` is the canonical scheduled aggregate pressure surface.
+
+It may be implemented as a table or materialized view.
+
+Its canonical identity remains `logs.current`.
+
+Sleep, Phase Attention, operator actions, and scheduled maintenance may read `logs.current` as the aggregate comparison surface.
+
+Do not introduce a separate canonical `current` table plus `logs.current` history view unless this specification explicitly defines that split.
+
+## Promotion
+
+Promotion is not a scheduler job.
+
+Promotion is a mutation operation after coherence / structural verification evidence passes and `core_can_execute(operation_key)` allows the operation.
+
+The scheduler may generate candidates or consolidate evidence, but it does not replace coherence as the promotion decision axis.
+
+Do not add `phase_candidate_verification`, `phase_candidate_promotion`, or any promotion-eligibility scheduler job.
+
+## Namespace split
+
+`operation_key` and `scheduler_job.job_kind` are separate namespaces.
+
+Canonical scheduler job kinds are:
+
+```text
+current_refresh
+sleep_consolidation
+phase_candidate_generation
+```
+
+## Phase
+
+Phase Attention is scheduled relation-candidate generation.
+
+Phase reads aggregate pressure, Draft evidence, decoherence fallback pressure, and relation evidence.
+
+Phase writes draft relation paths to `phase_relation_candidate`.
+
+Phase does not own reply-time promotion semantics.
+
+Phase does not become an approval queue.
+
+## Draft
+
+Draft is not a human-review queue.
+
+Draft is not an approval waiting room.
+
+Draft is an unconfirmed candidate shape, weak or unstable relation evidence, candidate-generation anti-pattern, and Phase Attention negative pressure.
+
+Do not reinterpret Draft through ordinary review workflow language.
+
+## Coherence
+
+Coherence is the promotion axis.
+
+When a candidate coheres through the required structural verification path, it may promote or reinforce through the operation gate.
+
+A verified coherence hit is not merely a recommendation for later human or scheduler review.
+
+A decoherence-bank fallback hit can cohere again if verified against the current input grammar.
+
+## Decoherence
+
+Decoherence is fallback pressure, not trash.
+
+`decoherence_bank` is part of the core semantic search space.
+
+Sleep may send unused, unstable, moth-eaten, or unresolved structures to `decoherence_bank`, but this keeps them searchable as fallback.
+
+Hard deletion remains explicit manual/operator deletion only.
+
+---
+
+---
 
 # Core Rules
 
