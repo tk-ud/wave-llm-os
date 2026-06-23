@@ -1,10 +1,10 @@
 # Supporting Note: Agent Abstract Runtime Mapping
 
-Canonical authority: `SPEC_CANONICAL_CORE.md`.
+Canonical authority: `SPEC_RUNTIME_BEHAVIOR_MODEL.md`.
 
-This document defines how agents should translate Wave LLMOS abstract behavior labels into runtime behavior and concrete inspectable structures.
+This document is explanatory background only.
 
-It is not implementation authority over the canonical core.
+Runtime behavior authority lives in routed SPEC files.
 
 In this document, "metaphor" means an abstract runtime behavior label, not poetic decoration.
 
