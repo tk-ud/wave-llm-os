@@ -179,15 +179,48 @@ Draft vocabulary is the holding area for unresolved expression.
 
 ## Decoherence Bank
 
-The decoherence bank stores no-hit, low-hit, and unabsorbed residuals.
+The decoherence bank stores no-hit, low-hit, unabsorbed, unused, unstable, moth-eaten, or unresolved residual structures.
 
 It is not an error table.
 
-It is a structured bank of future vocabulary and grammar candidates.
+It is not an external trash bin.
 
-Repeated entries may become draft vocabulary or draft grammar.
+It remains part of the core semantic search space.
 
-Recurring draft entries may later be promoted into adopted vocabulary or adopted grammar.
+Active structures are searched first.
+
+If active search misses, `decoherence_bank` may be searched as a fallback layer.
+
+```text
+active structure search
+→ no hit
+→ decoherence_bank fallback search
+→ structural verification
+→ input grammar / grammar_relation diff verification
+→ xi coherence hit if verified
+```
+
+If fallback search verifies the candidate against the current input grammar, the result may be promoted or reinforced through the operation gate.
+
+```text
+decoherence_bank candidate
+→ structural verification passes
+→ input grammar / grammar_relation diff verification passes
+→ xi coherence hit
+→ core_can_execute('promote.decoherence_hit')
+→ promote / reinforce
+→ logs.diff
+```
+
+Repeated entries may become Draft evidence, but Draft is not the canonical promotion queue.
+
+Draft remains an unconfirmed candidate filter and anti-pattern surface for Phase Attention.
+
+Sleep may send structures to `decoherence_bank`.
+
+Sleep must not hard-delete them.
+
+Hard deletion is explicit UI action only.
 
 ## Grammar Relation
 
@@ -197,31 +230,34 @@ It is semantic continuity memory.
 
 Without relation, the system can identify local fragments but cannot connect the beginning and end of a divided input.
 
-Relation is what prevents output from becoming a mirror of local input fragments.
-
 Relation is necessary, but relation alone is not sufficient to prevent mirror output.
 
-Relation prevents local mirroring only when the current input grammar is diff-checked against candidate "grammar_relation", and corpus / candidate output is treated as:
+Relation prevents local mirroring only when the current input grammar is diff-checked against candidate `grammar_relation`, and corpus / candidate output is treated as:
 
+```text
 meaningful output
 = candidate output - input grammar
+```
 
 If the remaining delta is empty or reorder-only, the result is mirror_output evidence rather than relation evidence.
 
 In quaternion-style terms:
 
+```text
 xi finds active coherence hits
 yj stores unresolved difference and decoherence fallback material
 grammar_relation connects coherent candidates
 zk projects only surviving relation delta into output grammar
+```
 
-If "zk" projects only the input anchor without surviving relation delta, the result is mirror output risk.
+If `zk` projects only the input anchor without surviving relation delta, the result is mirror output risk.
 
+```text
 zk output
 - input grammar
 = empty or reorder-only delta
 → mirror_output evidence
-
+```
 ## Phase Relation Candidate Space
 
 `phase_relation_candidate` stores relation candidates generated from normalized aggregate values.
