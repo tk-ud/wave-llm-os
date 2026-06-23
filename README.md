@@ -154,7 +154,7 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 ## Runtime Behavior Bundle
 
 ```text
-wave、coherence、pressure、Phase、Sleep、collapse の runtime 名を定義する bundle。
+wave、coherence、decoherence、pressure、Phase、Sleep、collapse を定義する bundle。
 ```
 
 - spec **`SPEC_RUNTIME_BEHAVIOR_MODEL.md`**
