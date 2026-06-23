@@ -564,30 +564,45 @@ grows inspectable relation candidates in persistent tables
 
 ---
 
-# 18. Failure Mode: Mirror Output
+18. Failure Mode: Mirror Output
 
-If relation is insufficient, the system cannot generate meaningful continuity.
+Mirror output is not merely weak relation.
+
+Mirror output is evidence that the system failed to extract meaningful relation delta from input.
 
 Failure pattern:
 
 input contains A, B, C
-output repeats A, B, C in a cleaned-up order
+candidate output repeats A, B, C in cleaned or reordered form
+candidate output - input grammar = empty or reorder-only delta
+→ mirror_output evidence
+→ do not reinforce as new relation
 
-This is mirror output.
+Mirror output can occur when:
 
-It indicates that vocabulary and grammar may be present, but relation is weak.
+active relation search misses
+input grammar / grammar_relation diff is skipped
+input grammar / grammar_relation diff fails
+candidate output - input grammar is empty
+candidate output - input grammar is reorder-only
+decoherence_bank fallback fails to re-cohere
 
-Possible causes:
+Relation weakness is one cause, not the full definition.
 
-coherence relation layer is sparse
-Phase candidates are not mature
-scope split is too coarse
-mastication has not run enough passes
-promotion thresholds are wrong
-grammar candidates are local but not connected
+Vocabulary and grammar may be present, and relation may even be nearby, but the output is still mirror output if input subtraction leaves no meaningful relation delta.
+
+Phase Attention should read mirror-output indicators as pressure, but it does not fix mirror output during reply-time.
+
+Core reply-time verification owns:
+
+input grammar / grammar_relation diff
+candidate output - input grammar
+active search miss handling
+decoherence_bank fallback search
+
+Phase uses the aggregated evidence later to avoid generating candidates that reproduce the same draft anti-patterns.
 
 This failure should be logged, not hidden.
-
 ---
 
 # 19. Growth Metrics
