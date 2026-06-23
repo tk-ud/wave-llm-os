@@ -561,21 +561,53 @@ If those pieces are not reconnected, the system only mirrors nearby fragments.
 Example:
 
 ```text
-scope 1: refrigeration does not cool
-scope 2: cargo may be damaged
-scope 3: customer wants repair by tomorrow
+scope 1: account access failed
+scope 2: recovery link expired
+scope 3: deadline is today
 ```
 
 Without relation:
 
 ```text
 three local hits
+candidate output - input grammar = empty or reorder-only
+→ mirror_output evidence
 ```
 
 With relation:
 
 ```text
-cooling failure → customer damage risk → deadline requirement
+access failure → expired recovery path → urgent deadline
+```
+
+The connected form is not meaningful merely because it looks different from the input.
+
+The relation path must still be verified by input grammar / grammar_relation diff.
+
+Corpus-time output must also subtract input grammar:
+
+```text
+meaningful corpus output
+= candidate output - input grammar
+```
+
+If the subtraction leaves no meaningful delta, the result is mirror_output evidence and must not reinforce `grammar_relation`.
+
+Decision pattern:
+
+```text
+output_delta contains new relation evidence
+→ relation candidate / grammar_relation reinforcement
+
+output_delta contains only copied input
+→ mirror_output evidence
+→ do not reinforce as new relation
+
+output_delta contains missing or unstable slots
+→ residual / decoherence evidence
+
+output_delta bridges input scopes
+→ candidate grammar_relation evidence
 ```
 
 ---
