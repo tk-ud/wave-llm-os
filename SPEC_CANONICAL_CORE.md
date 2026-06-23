@@ -2,7 +2,7 @@
 
 ## Authority
 
-This file is the single implementation authority for the new core.
+This file is the single implementation authority for the current core.
 
 Supporting files may explain details, but this file wins on conflict.
 
@@ -18,9 +18,9 @@ array = bigint[] index array only
 
 Semantic references never use UUID.
 
-Canonical schema does not define `uuid[]` columns.
+Canonical schema does not define `uuid[]` semantic arrays.
 
-Evidence UUIDs live in JSONB evidence only.
+Evidence UUIDs may live in JSONB evidence only.
 
 ---
 
@@ -161,6 +161,8 @@ Remote trust changes are mutations and must pass operation gate.
 
 # Logs
 
+Canonical log roles:
+
 ```text
 logs.coherence = append-only observation evidence
 logs.current   = scheduled aggregate read model
@@ -174,7 +176,140 @@ target_table
 target_index
 ```
 
-Adoption audit is a view:
+## `logs.coherence`
+
+`logs.coherence` stores append-only evidence from lookup, verification, decoder usage, residual detection, mirror-output detection, and fallback hits.
+
+```sql
+create table logs.coherence (
+  coherence_uuid uuid primary key default gen_random_uuid(),
+  coherence_index bigint generated always as identity unique,
+  observation_index bigint null references input_observation(observation_index),
+  source_path text not null,
+  event_kind text not null,
+  target_table text null,
+  target_index bigint null,
+  target_path bigint[] null,
+  input_grammar_path bigint[] null,
+  candidate_path bigint[] null,
+  near_neighbor_score numeric null,
+  structural_verification_result text null,
+  input_relation_diff_result text null,
+  output_delta_kind text null,
+  residual_count bigint not null default 0,
+  mirror_output_flag boolean not null default false,
+  contradiction_flag boolean not null default false,
+  decoder_usage_flag boolean not null default false,
+  evidence_json jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+```
+
+Allowed `source_path` values:
+
+```text
+core_reply_path
+decoherence_bank_fallback
+scheduled_phase
+sleep_consolidation
+manual_ui
+remote_event_intake
+```
+
+Allowed `event_kind` values:
+
+```text
+coherence_hit
+near_hit
+partial_hit
+no_hit
+low_hit
+residual
+moth_eaten
+mirror_output
+decoherence_fallback_hit
+phase_candidate_evidence
+sleep_decoherence_evidence
+question_notification_evidence
+```
+
+## `logs.diff`
+
+`logs.diff` stores mutation and decision evidence.
+
+```sql
+create table logs.diff (
+  diff_uuid uuid primary key default gen_random_uuid(),
+  diff_index bigint generated always as identity unique,
+  operation_key text not null,
+  operation_status text not null,
+  target_table text not null,
+  target_index bigint null,
+  target_path bigint[] null,
+  previous_status text null,
+  next_status text null,
+  policy_result text not null,
+  policy_reason text null,
+  evidence_json jsonb not null,
+  created_at timestamptz not null default now()
+);
+```
+
+Allowed `operation_status` values:
+
+```text
+allowed
+blocked
+applied
+rejected
+quarantined
+```
+
+## `logs.current`
+
+`logs.current` is a scheduled aggregate read model.
+
+It may be a table or materialized view, but it must be reproducible from `logs.coherence`, `logs.diff`, and canonical semantic tables.
+
+Minimum aggregate surface:
+
+```sql
+create table logs.current (
+  current_uuid uuid primary key default gen_random_uuid(),
+  target_table text not null,
+  target_index bigint null,
+  target_path bigint[] null,
+  aggregate_window text not null,
+  observed_count bigint not null default 0,
+  hit_count bigint not null default 0,
+  near_hit_count bigint not null default 0,
+  partial_hit_count bigint not null default 0,
+  residual_count bigint not null default 0,
+  contradiction_count bigint not null default 0,
+  mirror_output_count bigint not null default 0,
+  decoder_success_count bigint not null default 0,
+  scope_transition_count bigint not null default 0,
+  relation_frequency bigint not null default 0,
+  parent_structure_usage_count bigint not null default 0,
+  missing_slot_count bigint not null default 0,
+  replaced_slot_count bigint not null default 0,
+  slot_missing_or_replaced_rate numeric not null default 0,
+  moth_eaten_score numeric not null default 0,
+  draft_antipattern_score numeric not null default 0,
+  phase_score numeric not null default 0,
+  pressure numeric not null default 0,
+  refreshed_at timestamptz not null default now(),
+  unique (target_table, target_index, aggregate_window)
+);
+```
+
+`logs.current` is not a semantic authority.
+
+It is an inspectable pressure surface used by Sleep, Phase Attention, UI, and scheduled maintenance.
+
+## Adoption audit view
+
+Adoption audit is a view over `logs.diff`.
 
 ```sql
 create view logs.adoption_audit as
@@ -186,7 +321,6 @@ where operation_key in (
   'adopt.relation',
   'promote.coherence_hit',
   'promote.decoherence_hit',
-  'promote.decoherence_to_draft',
   'promote.phase_relation'
 );
 ```
@@ -204,6 +338,229 @@ core_can_execute(operation_key)
 Freeze blocks semantic mutation.
 
 Freeze allows read-only lookup, decoder projection, decoder/collapse invariant check, and output collapse.
+
+## Canonical operation keys
+
+```text
+promote.coherence_hit
+promote.decoherence_hit
+promote.phase_relation
+sleep.decohere_structure
+adopt.vocabulary
+adopt.grammar
+adopt.relation
+reject.candidate
+quarantine.remote_event
+```
+
+## Required operation evidence
+
+`core_can_execute(operation_key)` must evaluate policy against explicit evidence.
+
+Near-neighbor similarity alone is never sufficient promotion evidence.
+
+### `promote.coherence_hit`
+
+Allowed only if all are true:
+
+```text
+freeze = false
+structural_verification_result = 'pass'
+input_relation_diff_result in ('pass', 'compatible_delta')
+contradiction_flag = false
+mirror_output_flag = false
+policy_result = 'allowed'
+```
+
+Required evidence fields:
+
+```text
+operation_key
+source_path = core_reply_path
+input_observation_index
+input_grammar_path
+candidate_table
+candidate_index or candidate_path
+near_neighbor_score
+structural_verification_result
+input_relation_diff_result
+output_delta_kind
+decoder_usage_flag
+contradiction_flag
+mirror_output_flag
+policy_result
+```
+
+### `promote.decoherence_hit`
+
+Allowed only if all are true:
+
+```text
+freeze = false
+source_path = decoherence_bank_fallback
+structural_verification_result = 'pass'
+input_relation_diff_result in ('pass', 'compatible_delta')
+contradiction_flag = false
+policy_result = 'allowed'
+```
+
+Required evidence fields:
+
+```text
+decoherence_bank_index or fallback_candidate_path
+fallback_hit_score
+structural_verification_result
+input_relation_diff_result
+residual_origin
+moth_eaten_flag
+mirror_output_flag
+policy_result
+```
+
+A decoherence-bank candidate may cohere again only after verification against the current input grammar.
+
+### `promote.phase_relation`
+
+Allowed only if all are true:
+
+```text
+freeze = false
+phase_score >= policy.phase_relation.min_phase_score
+pressure >= policy.phase_relation.min_pressure
+evidence_count >= policy.phase_relation.min_evidence_count
+scheduled_structural_verification_result = 'pass'
+contradiction_count <= policy.phase_relation.max_contradiction_count
+mirror_output_reduction = true
+policy_result = 'allowed'
+```
+
+Default policy values:
+
+```text
+policy.phase_relation.min_phase_score = 0.70
+policy.phase_relation.min_pressure = 0.50
+policy.phase_relation.min_evidence_count = 3
+policy.phase_relation.max_contradiction_count = 0
+```
+
+### `sleep.decohere_structure`
+
+Allowed only if all are true:
+
+```text
+freeze = false
+target_table in ('vocabulary', 'grammar', 'grammar_relation', 'phase_relation_candidate')
+reason in ('unused', 'unstable', 'moth_eaten', 'unresolved', 'mirror_output')
+policy_result = 'allowed'
+```
+
+Sleep never hard-deletes semantic structures.
+
+Hard deletion is explicit UI action only.
+
+---
+
+# Scoring and Thresholds
+
+Scores are inspectable aggregate calculations, not neural parameters.
+
+Implementations may tune policy values through `core_operation_policy`, but must preserve input evidence and output score components.
+
+## Phase score
+
+Default Phase score:
+
+```text
+phase_score = clamp01(
+  0.25 * recurrence_score
++ 0.20 * coherence_score
++ 0.20 * relation_density_score
++ 0.15 * scope_crossing_score
++ 0.10 * decoder_success_score
++ 0.10 * output_delta_score
+- 0.20 * contradiction_penalty
+- 0.20 * mirror_output_penalty
+- 0.15 * draft_antipattern_penalty
+)
+```
+
+Default component normalization:
+
+```text
+recurrence_score        = min(1, observed_count / 10)
+coherence_score         = min(1, hit_count / 5)
+relation_density_score  = min(1, relation_frequency / 5)
+scope_crossing_score    = min(1, scope_transition_count / 3)
+decoder_success_score   = min(1, decoder_success_count / 3)
+output_delta_score      = 1 if output_delta_kind in ('new_relation', 'scope_bridge') else 0
+contradiction_penalty   = min(1, contradiction_count / 2)
+mirror_output_penalty   = min(1, mirror_output_count / 3)
+draft_antipattern_penalty = draft_antipattern_score
+```
+
+## Draft anti-pattern score
+
+Draft anti-pattern score:
+
+```text
+draft_antipattern_score = clamp01(
+  0.35 * similarity_to_unresolved_draft
++ 0.25 * mirror_output_rate
++ 0.20 * contradiction_rate
++ 0.20 * unresolved_slot_rate
+- 0.30 * fresh_coherence_score
+)
+```
+
+Candidate generation rule:
+
+```text
+new candidate
++ draft_antipattern_score >= 0.60
++ fresh_coherence_score < 0.30
+→ reduce phase_score or reject candidate
+```
+
+Default rejection threshold:
+
+```text
+phase_score_after_penalty < 0.40
+→ keep draft / residual / rejected
+```
+
+## Moth-eaten score
+
+Moth-eaten detection is based on repeated missing or replaced slots inside an otherwise active parent structure.
+
+```text
+missing_rate = missing_slot_count / greatest(parent_structure_usage_count, 1)
+replaced_rate = replaced_slot_count / greatest(parent_structure_usage_count, 1)
+slot_missing_or_replaced_rate = (missing_slot_count + replaced_slot_count) / greatest(parent_structure_usage_count, 1)
+```
+
+Default moth-eaten score:
+
+```text
+moth_eaten_score = clamp01(
+  0.50 * missing_rate
++ 0.35 * replaced_rate
++ 0.15 * residual_rate
+)
+```
+
+Default moth-eaten decision:
+
+```text
+parent_structure_usage_count >= 5
+and (missing_slot_count + replaced_slot_count) >= 3
+and slot_missing_or_replaced_rate >= 0.30
+→ moth_eaten evidence
+→ sleep.decohere_structure may send the unstable slot or attachment to decoherence_bank
+```
+
+Moth-eaten evidence is not immediate deletion.
+
+It is scheduled decoherence evidence.
 
 ---
 
@@ -284,8 +641,6 @@ terminal / sentence-end flag mismatch
 
 The purpose of input is to create and reinforce grammar_relation.
 
-Without this diff, the system may select a nearby relation path while failing to notice that the current input grammar is moth-eaten, shifted, incomplete, or merely mirrored.
-
 Required decision pattern:
 
 ```text
@@ -311,23 +666,6 @@ active relation miss
 ```
 
 Diff output must be logged as evidence.
-
-```text
-input_grammar_index or input_grammar_path
-candidate_relation_index or candidate_relation_path
-diff_kind
-missing_slots
-extra_slots
-replaced_slots
-order_shift
-terminal_flag_match
-scope_boundary_match
-decision
-```
-
-This diff is part of core reply-time verification.
-
-Phase Attention may generate candidate grammar_relation paths, but core decides reply-time coherence by comparing current input grammar against the candidate grammar_relation.
 
 ---
 
@@ -375,13 +713,6 @@ output_delta bridges input scopes
 
 This rule applies before Phase candidate generation, before grammar_relation reinforcement, and before decoder/collapse evidence is counted as success.
 
-The purpose is to prevent corpus processing from rewarding parroting.
-
-```text
-meaningful corpus output
-= candidate output - input grammar
-```
-
 ---
 
 # Decoherence Bank
@@ -422,13 +753,6 @@ decoherence_bank candidate
 Sleep may send structures to `decoherence_bank`, but sleep must not hard-delete them.
 
 Deletion from `decoherence_bank` is explicit UI action only.
-
-```text
-sleep / cron
-→ send unused or unstable structures to decoherence_bank
-→ keep searchable as fallback
-→ explicit UI deletion only
-```
 
 `decoherence_bank` and Draft collections should be visible to UI tooling for token assignment and human-readable analysis.
 
@@ -477,14 +801,6 @@ Candidate generation must read Draft evidence as negative pressure.
 
 If a new Phase candidate is structurally close to an unresolved Draft anti-pattern, candidate score must be reduced unless fresh coherence evidence overcomes that penalty.
 
-```text
-new candidate
-+ similar draft anti-pattern
-+ no new coherence evidence
-→ lower phase_score
-→ keep draft / residual / rejected
-```
-
 Sleep runs through `scheduler_job` / cron-like maintenance.
 
 Sleep reads aggregate usage windows from `logs.current`, `logs.coherence`, and `logs.diff`.
@@ -503,8 +819,9 @@ vocabulary unused for configured window
 Moth-eaten vocabulary inside active upper structures:
 
 ```text
-parent_structure_usage_count is high
-and vocabulary_missing_slot_count / parent_structure_usage_count is high
+moth_eaten_score >= 0.30
+and parent_structure_usage_count >= 5
+and (missing_slot_count + replaced_slot_count) >= 3
 → vocabulary decoheres from that parent grammar or relation path
 → send decoherence evidence to decoherence_bank
 → keep searchable as fallback
@@ -513,18 +830,13 @@ and vocabulary_missing_slot_count / parent_structure_usage_count is high
 Moth-eaten grammar slots:
 
 ```text
-parent_structure_usage_count is high
-and slot_missing_or_replaced_count / parent_structure_usage_count is high
+moth_eaten_score >= 0.30
+and parent_structure_usage_count >= 5
+and (missing_slot_count + replaced_slot_count) >= 3
 → grammar slot decoheres from that parent grammar or relation path
 → send decoherence evidence to decoherence_bank
 → keep searchable as fallback
 ```
-
-Here, `parent_structure_usage_count` may refer to an active grammar, grammar_relation, or grammar_array path.
-
-`vocabulary_missing_slot_count` counts repeated cases where the parent structure is used but the vocabulary slot is missing, replaced, unresolved, or pushed into residual.
-
-`slot_missing_or_replaced_count` counts repeated cases where a grammar slot itself remains unstable even when the parent structure is active.
 
 Sleep does not make reply generation stricter.
 
@@ -582,6 +894,8 @@ Phase is not the synchronous raw-input reply path.
 Phase must not define reply-time adoption semantics; reply-time coherence promotion belongs to the core reply path.
 
 Phase candidate generation must reduce or reject candidates that reproduce unresolved Draft anti-patterns without new coherence evidence.
+
+Phase relation candidates become promotion candidates only through the `phase_score` and operation gate rules defined in this file.
 
 ---
 
