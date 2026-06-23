@@ -8,6 +8,8 @@ If NOTE conflicts with SPEC, SPEC wins.
 
 ## Wiring
 
+SPEC_RUNTIME_BEHAVIOR_MODEL.md -> NOTE_AGENT_METAPHOR_MAPPING.md, NOTE_QUATERNION_PHILOSOPHY.md
+
 SPEC_REFERENCE_MODEL.md -> NOTE_INDEX_ARRAY_CANONICAL.md
 
 SPEC_SEMANTIC_TABLES.md -> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
@@ -29,7 +31,3 @@ SPEC_CRON_PIPELINE.md -> NOTE_PHASE_RELATION_CANDIDATE.md
 SPEC_SEARCH_AND_VERIFICATION.md -> NOTE_NEAR_NEIGHBOR_SEARCH.md
 
 SPEC_SCALE_AND_COST_MODEL.md -> NOTE_QUATERNION_PHILOSOPHY.md
-
-## Note
-
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md still contains broad SQL implementation sketches. Its old header may mention the former monolithic core, but after canonicalization the mapped SPEC files above own authority.
