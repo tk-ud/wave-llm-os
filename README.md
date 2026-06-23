@@ -4,6 +4,21 @@
 
 この目的を達成するためのアプローチとして、観測・語彙・文法・文法連携・残差・圧力を PostgreSQL 上の永続構造として保持し、LLM的な意味探索を固定重みではなく、成長する意味構造として外部化しています。
 
+ここで使う `wave`、`coherence`、`decoherence`、`pressure`、`Phase`、`Sleep`、`collapse` などの語は、詩的装飾ではありません。
+
+それらは抽象的な runtime behavior の名前です。
+
+PostgreSQL の table、row、index array、log は、その振る舞いを検査可能・再現可能・operation-gated にするための具象 projection です。
+
+読み方は常に次の向きです。
+
+```text
+abstract runtime behavior
+→ concrete inspectable PostgreSQL projection
+```
+
+逆向きに、DB table や row そのものを意味の正本として読んではいけません。
+
 実装上の正本は以下です。
 
 ```text
@@ -44,7 +59,7 @@ Wave LLMOS では、意味を単なる出力テキストではなく、接続・
 
 これは、実行時に物理的な四元数をそのまま計算するという意味ではありません。
 
-一回の会話 scope において、複数の意味軸を合成して出力候補状態を作るための説明モデルです。
+一回の会話 scope において、複数の意味軸を合成して出力候補状態を作るための抽象表現です。
 
 ```text
 q = w + xi + yj + zk
@@ -117,6 +132,14 @@ Wave LLMOS の探索は、すべての候補を総当たりするのではなく
 実装上の正本です。
 
 canonical tables、reference rules、logs、operation gate、Phase、decoder/collapse boundary を定義します。
+
+## `NOTE_AGENT_METAPHOR_MAPPING.md`
+
+エージェント向けの抽象 runtime behavior mapping です。
+
+`wave`、`coherence`、`decoherence`、`pressure`、`Phase`、`Sleep`、`collapse` などの抽象表現を、具象的で検査可能な PostgreSQL projection と解釈ルールへ写像します。
+
+この資料では、写像先のDB構造を意味の正本として扱わず、抽象的な振る舞いを検査可能にする観測面として読みます。
 
 ## `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`
 
