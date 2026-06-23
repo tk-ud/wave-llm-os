@@ -36,24 +36,27 @@ Operation-capable semantic mutation must pass the operation gate.
 
 Logs, aggregate tables, archive registries, and implementation notes are not semantic authority.
 
+Explicitly prohibited canonical patterns are defined by `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`.
+
 ---
 
 # Document Routing
 
 ```text
-Reference model           -> SPEC_REFERENCE_MODEL.md
-Semantic tables           -> SPEC_SEMANTIC_TABLES.md
-Log / aggregate/archive   -> SPEC_LOG_AGGREGATE_ARCHIVE.md
-Operation gate            -> SPEC_OPERATION_GATE.md
-Scoring / thresholds      -> SPEC_SCORING_AND_THRESHOLDS.md
-Remote trust              -> SPEC_REMOTE_TRUST.md
-Core state / scheduler    -> SPEC_CORE_STATE_AND_SCHEDULER.md
-Reply pipeline            -> SPEC_REPLY_PIPELINE.md
-Cron pipeline             -> SPEC_CRON_PIPELINE.md
-Search / verification     -> SPEC_SEARCH_AND_VERIFICATION.md
-Scale / cost model        -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit    -> SPEC_CANONICALIZATION_AUDIT.md
-SQL implementation map    -> NOTE_SQL_IMPLEMENTATION_MAP.md
+Reference model                 -> SPEC_REFERENCE_MODEL.md
+Semantic tables                 -> SPEC_SEMANTIC_TABLES.md
+Log / aggregate/archive         -> SPEC_LOG_AGGREGATE_ARCHIVE.md
+Operation gate                  -> SPEC_OPERATION_GATE.md
+Scoring / thresholds            -> SPEC_SCORING_AND_THRESHOLDS.md
+Remote trust                    -> SPEC_REMOTE_TRUST.md
+Core state / scheduler          -> SPEC_CORE_STATE_AND_SCHEDULER.md
+Prohibited canonical patterns   -> SPEC_PROHIBITED_CANONICAL_PATTERNS.md
+Reply pipeline                  -> SPEC_REPLY_PIPELINE.md
+Cron pipeline                   -> SPEC_CRON_PIPELINE.md
+Search / verification           -> SPEC_SEARCH_AND_VERIFICATION.md
+Scale / cost model              -> SPEC_SCALE_AND_COST_MODEL.md
+Canonicalization audit          -> SPEC_CANONICALIZATION_AUDIT.md
+SQL implementation map          -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
 ---
@@ -94,6 +97,9 @@ SPEC_REMOTE_TRUST.md
 
 SPEC_CORE_STATE_AND_SCHEDULER.md
 -> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+
+SPEC_PROHIBITED_CANONICAL_PATTERNS.md
+-> MIGRATION_LEGACY_REGISTER.md
 ```
 
 `SPEC_*` files own meaning and processing authority.
@@ -195,6 +201,16 @@ They gate or record runtime behavior.
 They are not semantic authority.
 
 Detailed authority: `SPEC_CORE_STATE_AND_SCHEDULER.md`.
+
+---
+
+# Prohibited Pattern Resume
+
+No canonical `constraint_rule`, `adoption_audit`, web-result-only semantic table, `decoder_trace`, `loop_guard`, or status enum authority.
+
+No `adopt.*` operation keys are canonical.
+
+Detailed authority: `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`.
 
 ---
 
