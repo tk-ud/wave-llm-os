@@ -2,13 +2,11 @@
 
 ## Authority
 
-This file replaces the previous monolithic `SPEC_CANONICAL_CORE.md` as the routing-level canonical core.
+This file is the routing-level canonical core.
 
-It defines canonical routing, invariants, and section-level flow.
+Detailed authority lives in routed `SPEC_*` files.
 
-Detailed authority lives in distributed `SPEC_*` files.
-
-Implementation SQL and DDL detail may live in mapped `NOTE_*` files.
+`NOTE_*` files are implementation projections or explanatory background only.
 
 ---
 
@@ -58,77 +56,22 @@ Reply pipeline                -> SPEC_REPLY_PIPELINE.md
 Cron pipeline                 -> SPEC_CRON_PIPELINE.md
 Search / verification         -> SPEC_SEARCH_AND_VERIFICATION.md
 Scale / cost model            -> SPEC_SCALE_AND_COST_MODEL.md
-SQL implementation map        -> NOTE_SQL_IMPLEMENTATION_MAP.md
+NOTE role map                 -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
----
-
-# SQL / NOTE Wiring
-
-```text
-SPEC_RUNTIME_BEHAVIOR_MODEL.md
--> NOTE_AGENT_METAPHOR_MAPPING.md
--> NOTE_QUATERNION_PHILOSOPHY.md
-
-SPEC_REFERENCE_MODEL.md
--> NOTE_INDEX_ARRAY_CANONICAL.md
-
-SPEC_SEMANTIC_TABLES.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
-
-SPEC_REPLY_PIPELINE.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
--> NOTE_NEAR_NEIGHBOR_SEARCH.md
-
-SPEC_CRON_PIPELINE.md
--> NOTE_PHASE_RELATION_CANDIDATE.md
-
-SPEC_SEARCH_AND_VERIFICATION.md
--> NOTE_NEAR_NEIGHBOR_SEARCH.md
-
-SPEC_SCALE_AND_COST_MODEL.md
--> NOTE_QUATERNION_PHILOSOPHY.md
-
-SPEC_LOG_AGGREGATE_ARCHIVE.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
-
-SPEC_OPERATION_GATE.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
-
-SPEC_SCORING_AND_THRESHOLDS.md
--> NOTE_PHASE_RELATION_CANDIDATE.md
-
-SPEC_REMOTE_TRUST.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
-
-SPEC_CORE_STATE_AND_SCHEDULER.md
--> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
-
-SPEC_PROHIBITED_CANONICAL_PATTERNS.md
--> MIGRATION_LEGACY_REGISTER.md
-```
-
-`SPEC_*` files own meaning and processing authority.
-
-`NOTE_*` files may preserve SQL, DDL, implementation sketches, and explanatory detail.
-
-If a NOTE conflicts with a SPEC, the SPEC wins.
+`NOTE_SQL_IMPLEMENTATION_MAP.md` records which NOTE files remain as implementation or explanatory support after canonicalization.
 
 ---
 
 # Runtime Behavior Resume
 
-Runtime behavior names are not poetic labels.
-
-They are abstract behavior names projected into inspectable database structures.
+Runtime behavior names are abstract behavior names projected into inspectable database structures.
 
 Detailed authority: `SPEC_RUNTIME_BEHAVIOR_MODEL.md`.
 
 ---
 
 # Reply Path Resume
-
-Reply Path handles input-time semantic search and output collapse.
 
 ```text
 input_observation
@@ -149,8 +92,6 @@ Detailed authority: `SPEC_REPLY_PIPELINE.md`.
 
 # Cron Path Resume
 
-Cron Path handles scheduled maintenance, pressure refresh, relation candidate generation, Sleep consolidation, and archive rolloff.
-
 ```text
 current_refresh
 -> aggregate.current upsert
@@ -165,8 +106,6 @@ Detailed authority: `SPEC_CRON_PIPELINE.md`.
 ---
 
 # Semantic Table Resume
-
-Canonical semantic table family:
 
 ```text
 input_observation
@@ -210,9 +149,7 @@ Detailed authority: `SPEC_OPERATION_GATE.md`.
 
 # Core State / Scheduler Resume
 
-Core state, operation policy tables, notification queue, scheduler job tables, mastication jobs, and remote event inbox/quarantine are routed outside the semantic table family.
-
-They gate or record runtime behavior.
+Core state, operation policy tables, notification queue, scheduler job tables, mastication jobs, and remote event inbox/quarantine are runtime support tables.
 
 They are not semantic authority.
 
@@ -246,8 +183,6 @@ Detailed authority: `SPEC_SEARCH_AND_VERIFICATION.md`.
 
 Scores are inspectable aggregate calculations, not neural parameters.
 
-Phase, Draft anti-pattern, and moth-eaten scores are defined outside the routing core.
-
 Detailed authority: `SPEC_SCORING_AND_THRESHOLDS.md`.
 
 ---
@@ -263,8 +198,6 @@ Detailed authority: `SPEC_REMOTE_TRUST.md`.
 ---
 
 # Scale / Cost Resume
-
-Wave does not require unbounded hot logs.
 
 Hot-path intelligence depends on:
 
@@ -287,5 +220,3 @@ Detailed authority: `SPEC_SCALE_AND_COST_MODEL.md`.
 `NOTE_*` files are implementation or explanatory notes unless explicitly promoted into a `SPEC_*` file.
 
 If a `NOTE_*` file conflicts with a `SPEC_*` file, the `SPEC_*` file wins.
-
-`NOTE_AGENT_METAPHOR_MAPPING.md` and `NOTE_QUATERNION_PHILOSOPHY.md` remain explanatory interpretation notes.
