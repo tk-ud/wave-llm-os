@@ -480,28 +480,61 @@ It only prepares stable candidates for the coherence / decoherence / relation pi
 
 # Decoherence Bank Promotion
 
-Unknown or repeated residuals should be promoted only after recurrence or coherence thresholds.
+The decoherence bank is not an external trash bin and is not removed from the core search space.
+
+Sleep and maintenance may send unused, unstable, moth-eaten, or unresolved structures into "decoherence_bank", but they do not hard-delete them.
+
+Ordinary promotion is not:
+
+decoherence_bank → draft → adopted
+
+The reply-time path is:
+
+active structure search
+→ no hit
+→ decoherence_bank fallback search
+→ structural verification
+→ input grammar / grammar_relation diff verification
+→ core_can_execute('promote.decoherence_hit')
+→ promote / reinforce
+→ logs.diff
+
+Recurring residuals may become Draft evidence, but Draft remains an unconfirmed candidate filter and anti-pattern surface for Phase Attention.
+
+A token, vocabulary, grammar, or relation path that was decohered yesterday may become a coherence-layer hit tomorrow if fallback search verifies it against the current input grammar.
+
+---
+
+## Relation Growth
+
+The relation layer connects divided grammar and vocabulary candidates.
+
+If those pieces are not reconnected, the system only mirrors nearby fragments.
 
 Example:
 
-```sql
-select target_hash, count(*) as observed_count
-from decoherence_bank
-where target_kind in ('token', 'vocabulary', 'grammar')
-group by target_hash
-having count(*) > 10;
-```
+scope 1: account access failed
+scope 2: recovery link expired
+scope 3: deadline is today
 
-Promotion examples:
+Without relation:
 
-```text
-decoherence_bank → draft vocabulary
-draft vocabulary → adopted vocabulary
-decoherence_bank → draft grammar
-draft grammar → adopted grammar
-```
+three local hits
+candidate output - input grammar = empty or reorder-only
+→ mirror_output evidence
 
-A token that was unknown yesterday may become a coherence-layer hit tomorrow.
+With relation:
+
+access failure → expired recovery path → urgent deadline
+
+The relation path must still be verified by input grammar / grammar_relation diff.
+
+Corpus-time output must also subtract input grammar:
+
+meaningful corpus output
+= candidate output - input grammar
+
+If the subtraction leaves no meaningful delta, the result is mirror_output evidence and must not reinforce "grammar_relation".
 
 ---
 
