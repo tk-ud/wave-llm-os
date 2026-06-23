@@ -482,26 +482,40 @@ It only prepares stable candidates for the coherence / decoherence / relation pi
 
 The decoherence bank is not an external trash bin and is not removed from the core search space.
 
-Sleep and maintenance may send unused, unstable, moth-eaten, or unresolved structures into "decoherence_bank", but they do not hard-delete them.
+Sleep and maintenance may send unused, unstable, moth-eaten, or unresolved structures into `decoherence_bank`, but they do not hard-delete them.
 
 Ordinary promotion is not:
 
-decoherence_bank → draft → adopted
+```text
+decoherence_bank → draft vocabulary
+draft vocabulary → adopted vocabulary
+decoherence_bank → draft grammar
+draft grammar → adopted grammar
+```
+
+That older path may exist only as historical or diagnostic wording. It must not be treated as the canonical promotion path.
 
 The reply-time path is:
 
+```text
 active structure search
 → no hit
 → decoherence_bank fallback search
 → structural verification
 → input grammar / grammar_relation diff verification
+→ xi coherence hit if verified
 → core_can_execute('promote.decoherence_hit')
 → promote / reinforce
 → logs.diff
+```
 
 Recurring residuals may become Draft evidence, but Draft remains an unconfirmed candidate filter and anti-pattern surface for Phase Attention.
 
 A token, vocabulary, grammar, or relation path that was decohered yesterday may become a coherence-layer hit tomorrow if fallback search verifies it against the current input grammar.
+
+Deletion from `decoherence_bank` is not a sleep-time or promotion-time action.
+
+Hard deletion is an explicit UI action only.
 
 ---
 
