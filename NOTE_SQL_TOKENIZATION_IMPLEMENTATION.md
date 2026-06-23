@@ -114,7 +114,7 @@ create table token (
   split_kind text null,
   split_parent_token_index bigint null references token(token_index),
   split_position integer null,
-  metadata_json null,
+  metadata_json jsonb null,
   created_at timestamptz not null default now()
 );
 ```
