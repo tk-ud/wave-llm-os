@@ -564,7 +564,7 @@ grows inspectable relation candidates in persistent tables
 
 ---
 
-18. Failure Mode: Mirror Output
+# 18. Failure Mode: Mirror Output
 
 Mirror output is not merely weak relation.
 
@@ -572,20 +572,24 @@ Mirror output is evidence that the system failed to extract meaningful relation 
 
 Failure pattern:
 
+```text
 input contains A, B, C
 candidate output repeats A, B, C in cleaned or reordered form
 candidate output - input grammar = empty or reorder-only delta
 → mirror_output evidence
 → do not reinforce as new relation
+```
 
 Mirror output can occur when:
 
+```text
 active relation search misses
 input grammar / grammar_relation diff is skipped
 input grammar / grammar_relation diff fails
 candidate output - input grammar is empty
 candidate output - input grammar is reorder-only
 decoherence_bank fallback fails to re-cohere
+```
 
 Relation weakness is one cause, not the full definition.
 
@@ -595,14 +599,17 @@ Phase Attention should read mirror-output indicators as pressure, but it does no
 
 Core reply-time verification owns:
 
+```text
 input grammar / grammar_relation diff
 candidate output - input grammar
 active search miss handling
 decoherence_bank fallback search
+```
 
 Phase uses the aggregated evidence later to avoid generating candidates that reproduce the same draft anti-patterns.
 
 This failure should be logged, not hidden.
+
 ---
 
 # 19. Growth Metrics
