@@ -135,6 +135,12 @@ SPEC = 意味・処理・判定の正本
 NOTE = SQL / DDL / 実装 projection / 補足説明
 ```
 
+一回の入力は、観測、候補、残差、圧力を経て、Sleep と検証済み collapse へ進みます。
+
+```text
+input → observation → candidates → residual / pressure → Sleep → verified collapse
+```
+
 ## Core Routing Bundle
 
 ```text
