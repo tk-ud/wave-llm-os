@@ -283,16 +283,28 @@ cold_storage_export
 
 # Log Retention / Rollup Policy
 
-`logs.diff` and `logs.current` may use bounded hot retention windows.
+`logs.coherence`, `logs.diff`, and `logs.current` may use bounded hot retention windows.
 
 Recommended initial hot windows:
 
 ```text
-logs.diff    = 100,000 to 500,000 recent rows
-logs.current = 100,000 to 500,000 recent aggregate snapshots
+logs.coherence = 500,000 to 2,000,000 recent evidence rows
+logs.diff      = 100,000 to 500,000 recent rows
+logs.current   = 100,000 to 500,000 recent aggregate snapshots
+```
+
+Archive rolloff must process bounded batches.
+
+Recommended initial archive job limits:
+
+```text
+archive_batch_size       = 10,000 to 50,000 rows
+max_archive_rows_per_run = 100,000 rows
 ```
 
 Older rows may be archived or rolled up when the current state is represented elsewhere, required audit/status summaries have been snapshotted, unresolved investigation rows are excluded, and `archive.registry` records the archived range.
+
+Unresolved investigation rows, contradiction evidence, quarantine-related rows, and manual/operator review rows must remain in hot storage until resolved, or be explicitly archived with an `audit_preservation` or equivalent restore policy.
 
 Hot-path intelligence must not depend on unbounded log growth.
 
