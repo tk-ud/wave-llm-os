@@ -128,7 +128,7 @@ Wave LLMOS の探索は、すべての候補を総当たりするのではなく
 
 # Repository Resume
 
-このリポジトリは、`SPEC` と `NOTE` を束として読む構成です。
+このリポジトリは、`SPEC` と `NOTE` の束として読む構成です。
 
 ```text
 SPEC = 意味・処理・判定の正本
@@ -137,140 +137,100 @@ NOTE = SQL / DDL / 実装 projection / 補足説明
 
 ## Core Routing Bundle
 
-全体の入口です。
-
 ```text
-SPEC_CANONICAL_CORE_RESUME.md
-NOTE_SQL_IMPLEMENTATION_MAP.md
+正本入口と、SPEC / NOTE の対応関係を配線する最上位 bundle。
 ```
 
-`SPEC_CANONICAL_CORE_RESUME.md` は、不変条件と各SPECへのルーティングを持ちます。
-
-`NOTE_SQL_IMPLEMENTATION_MAP.md` は、NOTE がどの SPEC の実装 projection / 補足説明として残るかを整理します。
+- spec **`SPEC_CANONICAL_CORE_RESUME.md`**
+- note **`NOTE_SQL_IMPLEMENTATION_MAP.md`**
 
 ## Runtime Behavior Bundle
 
-`wave`、`coherence`、`decoherence`、`pressure`、`Phase`、`Sleep`、`collapse` の読み方を扱います。
-
 ```text
-SPEC_RUNTIME_BEHAVIOR_MODEL.md
-NOTE_AGENT_METAPHOR_MAPPING.md
-NOTE_QUATERNION_PHILOSOPHY.md
+wave、coherence、pressure、Phase、Sleep、collapse の runtime 名を定義する bundle。
 ```
 
-SPEC が runtime behavior 名の正本です。
-
-NOTE はラベル説明と四元数風説明の補足です。
+- spec **`SPEC_RUNTIME_BEHAVIOR_MODEL.md`**
+- note **`NOTE_AGENT_METAPHOR_MAPPING.md`**
+- note **`NOTE_QUATERNION_PHILOSOPHY.md`**
 
 ## Reference / Identity Bundle
 
-UUID、index、`bigint[]` index array の役割分担を扱います。
-
 ```text
-SPEC_REFERENCE_MODEL.md
-NOTE_INDEX_ARRAY_CANONICAL.md
+UUID、index、bigint[] index array の参照責務を分離する bundle。
 ```
 
-SPEC が semantic reference rule の正本です。
-
-NOTE は SQL 実装者向けの短い reminder です。
+- spec **`SPEC_REFERENCE_MODEL.md`**
+- note **`NOTE_INDEX_ARRAY_CANONICAL.md`**
 
 ## Semantic Table / SQL Projection Bundle
 
-観測、語彙、文法、文法連携、残差保存の table family を扱います。
-
 ```text
-SPEC_SEMANTIC_TABLES.md
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+観測、語彙、文法、連携、残差を PostgreSQL projection として扱う bundle。
 ```
 
-SPEC が semantic table の意味を定義します。
-
-NOTE は DDL / SQL projection を保持します。
+- spec **`SPEC_SEMANTIC_TABLES.md`**
+- note **`NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`**
 
 ## Reply / Search / Decode Bundle
 
-同期応答、入力処理、構造探索、verification、decoder / collapse を扱います。
-
 ```text
-SPEC_REPLY_PIPELINE.md
-SPEC_SEARCH_AND_VERIFICATION.md
-NOTE_NEAR_NEIGHBOR_SEARCH.md
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+同期応答、意味探索、verification、decode / collapse の流れを扱う bundle。
 ```
 
-SPEC が Reply と verification の正本です。
-
-NOTE は retrieval / SQL diff / DDL の実装補助です。
+- spec **`SPEC_REPLY_PIPELINE.md`**
+- spec **`SPEC_SEARCH_AND_VERIFICATION.md`**
+- note **`NOTE_NEAR_NEIGHBOR_SEARCH.md`**
+- note **`NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`**
 
 ## Cron / Phase / Sleep Bundle
 
-scheduled processing、Phase relation candidate、Sleep consolidation を扱います。
-
 ```text
-SPEC_CRON_PIPELINE.md
-SPEC_SCORING_AND_THRESHOLDS.md
-NOTE_PHASE_RELATION_CANDIDATE.md
+scheduled processing、Phase relation、Sleep consolidation を扱う bundle。
 ```
 
-SPEC が cron job、Phase、Sleep、score / threshold の正本です。
-
-NOTE は `phase_relation_candidate` の storage / query sketch です。
+- spec **`SPEC_CRON_PIPELINE.md`**
+- spec **`SPEC_SCORING_AND_THRESHOLDS.md`**
+- note **`NOTE_PHASE_RELATION_CANDIDATE.md`**
 
 ## Log / Aggregate / Archive Bundle
 
-観測証跡、mutation証跡、current pressure、履歴snapshot、archive registry を扱います。
-
 ```text
-SPEC_LOG_AGGREGATE_ARCHIVE.md
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+観測証跡、mutation 証跡、current pressure、snapshot、archive を扱う bundle。
 ```
 
-SPEC が `logs.coherence`、`logs.diff`、`logs.current`、`aggregate.current`、archive registry の役割を定義します。
-
-NOTE は必要な SQL / DDL projection を保持します。
+- spec **`SPEC_LOG_AGGREGATE_ARCHIVE.md`**
+- note **`NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`**
 
 ## Operation / Runtime Support Bundle
 
-promotion、delete、quarantine、freeze、scheduler state、remote event trust を扱います。
-
 ```text
-SPEC_OPERATION_GATE.md
-SPEC_CORE_STATE_AND_SCHEDULER.md
-SPEC_REMOTE_TRUST.md
-NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+promotion、delete、quarantine、freeze、scheduler、remote trust を扱う bundle。
 ```
 
-SPEC が operation gate と runtime support table の正本です。
-
-NOTE は必要な実装projectionだけを保持します。
+- spec **`SPEC_OPERATION_GATE.md`**
+- spec **`SPEC_CORE_STATE_AND_SCHEDULER.md`**
+- spec **`SPEC_REMOTE_TRUST.md`**
+- note **`NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`**
 
 ## Prohibited / Legacy Bundle
 
-現在の正本から除外された設計や、禁止された canonical pattern を扱います。
-
 ```text
-SPEC_PROHIBITED_CANONICAL_PATTERNS.md
-MIGRATION_LEGACY_REGISTER.md
-legacy_design/
+現在の正本から除外する pattern と、過去設計の historical context を扱う bundle。
 ```
 
-`SPEC_PROHIBITED_CANONICAL_PATTERNS.md` は、現在の正本に入れてはいけない pattern を定義します。
-
-`MIGRATION_LEGACY_REGISTER.md` と `legacy_design/` は historical context です。
+- spec **`SPEC_PROHIBITED_CANONICAL_PATTERNS.md`**
+- note **`MIGRATION_LEGACY_REGISTER.md`**
+- note **`legacy_design/`**
 
 ## Scale / Cost Bundle
 
-学習量データ換算、一回の探索計算量、storage-scale intelligence を扱います。
-
 ```text
-SPEC_SCALE_AND_COST_MODEL.md
-NOTE_QUATERNION_PHILOSOPHY.md
+学習量データ換算、探索計算量、storage-scale intelligence を扱う bundle。
 ```
 
-SPEC が scale / cost model の正本です。
-
-NOTE は背景説明に留まります。
+- spec **`SPEC_SCALE_AND_COST_MODEL.md`**
+- note **`NOTE_QUATERNION_PHILOSOPHY.md`**
 
 ---
 
