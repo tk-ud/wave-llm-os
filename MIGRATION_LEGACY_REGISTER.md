@@ -1,6 +1,6 @@
 # Migration Register: Legacy Design
 
-Canonical authority: `SPEC_CANONICAL_CORE.md`.
+Canonical authority: `SPEC_CANONICAL_CORE_RESUME.md` and routed `SPEC_*` files.
 
 This file tracks migration status only.
 
