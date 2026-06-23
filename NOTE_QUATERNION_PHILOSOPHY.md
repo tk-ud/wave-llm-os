@@ -199,6 +199,29 @@ Without relation, the system can identify local fragments but cannot connect the
 
 Relation is what prevents output from becoming a mirror of local input fragments.
 
+Relation is necessary, but relation alone is not sufficient to prevent mirror output.
+
+Relation prevents local mirroring only when the current input grammar is diff-checked against candidate "grammar_relation", and corpus / candidate output is treated as:
+
+meaningful output
+= candidate output - input grammar
+
+If the remaining delta is empty or reorder-only, the result is mirror_output evidence rather than relation evidence.
+
+In quaternion-style terms:
+
+xi finds active coherence hits
+yj stores unresolved difference and decoherence fallback material
+grammar_relation connects coherent candidates
+zk projects only surviving relation delta into output grammar
+
+If "zk" projects only the input anchor without surviving relation delta, the result is mirror output risk.
+
+zk output
+- input grammar
+= empty or reorder-only delta
+→ mirror_output evidence
+
 ## Phase Relation Candidate Space
 
 `phase_relation_candidate` stores relation candidates generated from normalized aggregate values.
