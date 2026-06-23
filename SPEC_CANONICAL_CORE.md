@@ -24,6 +24,26 @@ Evidence UUIDs may live in JSONB evidence only.
 
 ---
 
+# Draft Flag Rule
+
+`draft_flag` is the canonical lifecycle truth.
+
+```text
+draft_flag = true
+→ draft / residual / unconfirmed / anti-pattern / fallback candidate
+
+draft_flag = false
+→ active / promoted / ordinary search target
+```
+
+Canonical semantic tables must not depend on a separate enum status table.
+
+`status` is not canonical truth.
+
+If a display label is needed, derive it from flags and log evidence.
+
+---
+
 # Semantic Hierarchy
 
 ```text
@@ -70,6 +90,8 @@ No canonical `adoption_audit` table.
 No canonical web-result-only semantic table.
 
 No canonical `decoder_trace` or `loop_guard` table.
+
+No canonical `status` enum table.
 
 ---
 
@@ -159,6 +181,190 @@ Remote trust changes are mutations and must pass operation gate.
 
 ---
 
+# Semantic Tables
+
+## token
+
+```sql
+create table token (
+  token_uuid uuid primary key default gen_random_uuid(),
+  token_index bigint generated always as identity unique,
+  raw text null,
+  raw_length integer generated always as (char_length(raw)) stored,
+  split_flag boolean not null default false,
+  split_kind text null,
+  split_parent_token_index bigint null references token(token_index),
+  split_position integer null,
+  metadata_json jsonb null,
+  created_at timestamptz not null default now()
+);
+```
+
+`token` is the canonical token-level seed table.
+
+Tokenization is indexing and segmentation, not semantic interpretation.
+
+## vocabulary
+
+```sql
+create table vocabulary (
+  vocabulary_uuid uuid primary key default gen_random_uuid(),
+  vocabulary_index bigint generated always as identity unique,
+  token_array bigint[] not null,
+  raw_text text null,
+  vocabulary_hash text not null unique,
+  split_flag boolean not null default false,
+  split_kind text null,
+  observed_count bigint not null default 1,
+  draft_flag boolean not null default true,
+  deleted_flag boolean not null default false,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+`vocabulary.token_array` is an ordered token-index array.
+
+The tokenizer does not decide whether vocabulary is promoted.
+
+## grammar
+
+```sql
+create table grammar (
+  grammar_uuid uuid primary key default gen_random_uuid(),
+  grammar_index bigint generated always as identity unique,
+  vocabulary_array bigint[] not null,
+  grammar_hash text not null unique,
+  end_of_sentence_flag boolean not null default false,
+  draft_flag boolean not null default true,
+  deleted_flag boolean not null default false,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+## grammar_relation
+
+```sql
+create table grammar_relation (
+  grammar_relation_uuid uuid primary key default gen_random_uuid(),
+  grammar_relation_index bigint generated always as identity unique,
+  grammar_array bigint[] not null,
+  relation_hash text not null unique,
+  relation_kind text not null default 'grammar_to_grammar',
+  relation_weight numeric not null default 0,
+  observed_count bigint not null default 1,
+  draft_flag boolean not null default true,
+  deleted_flag boolean not null default false,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+`grammar_relation` is the canonical coherence relation layer.
+
+It stores ordered semantic continuity between grammar candidates.
+
+Relation is not optional metadata.
+
+Optional relation link table:
+
+```sql
+create table grammar_relation_link (
+  grammar_relation_index bigint not null references grammar_relation(grammar_relation_index),
+  grammar_index bigint not null references grammar(grammar_index),
+  position integer not null,
+  role text null,
+  primary key (grammar_relation_index, position)
+);
+```
+
+## phase_relation_candidate
+
+```sql
+create table phase_relation_candidate (
+  phase_relation_candidate_uuid uuid primary key default gen_random_uuid(),
+  phase_relation_candidate_index bigint generated always as identity unique,
+  grammar_array bigint[] not null,
+  relation_array bigint[] null,
+  relation_hash text not null unique,
+  evidence_json jsonb not null,
+  phase_score numeric not null default 0,
+  pressure numeric not null default 0,
+  evidence_count bigint not null default 0,
+  draft_flag boolean not null default true,
+  rejected_flag boolean not null default false,
+  deleted_flag boolean not null default false,
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+```
+
+Phase candidates are draft candidates until operation-gated promotion changes their downstream relation target.
+
+## decoherence_bank
+
+`decoherence_bank` stores unresolved, no-hit, low-hit, unused, unstable, moth-eaten, and mirror-output evidence.
+
+It is searchable fallback structure, not trash.
+
+The bank stores all three semantic layers in JSONB so a fallback candidate can preserve vocabulary, grammar, and relation context together.
+
+```sql
+create table decoherence_bank (
+  decoherence_uuid uuid primary key default gen_random_uuid(),
+  decoherence_index bigint generated always as identity unique,
+
+  residual_hash text not null,
+  residual_kind text not null,
+
+  target_table text null,
+  target_index bigint null,
+  target_path bigint[] null,
+
+  layer_bundle_json jsonb not null,
+  evidence_json jsonb not null default '{}'::jsonb,
+
+  pressure numeric not null default 0,
+  draft_flag boolean not null default true,
+  deleted_flag boolean not null default false,
+
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+Required `layer_bundle_json` shape:
+
+```json
+{
+  "vocabulary": {},
+  "grammar": {},
+  "relation": {}
+}
+```
+
+Recommended `residual_kind` values:
+
+```text
+no_hit
+low_hit
+partial_hit
+unabsorbed
+unused
+unstable
+moth_eaten
+mirror_output
+manual_delete_candidate
+```
+
+`decoherence_bank` entries may be promoted or reinforced only through verified fallback search and operation gate.
+
+They must not follow a `decoherence_bank → draft → adopted` path.
+
+---
+
 # Logs
 
 Canonical log roles:
@@ -174,11 +380,10 @@ Semantic log targets use:
 ```text
 target_table
 target_index
+target_path
 ```
 
 ## `logs.coherence`
-
-`logs.coherence` stores append-only evidence from lookup, verification, decoder usage, residual detection, mirror-output detection, and fallback hits.
 
 ```sql
 create table logs.coherence (
@@ -212,30 +417,16 @@ core_reply_path
 decoherence_bank_fallback
 scheduled_phase
 sleep_consolidation
-manual_ui
+manual_operation
+operator_action
 remote_event_intake
 ```
 
-Allowed `event_kind` values:
+No public UI surface is defined here.
 
-```text
-coherence_hit
-near_hit
-partial_hit
-no_hit
-low_hit
-residual
-moth_eaten
-mirror_output
-decoherence_fallback_hit
-phase_candidate_evidence
-sleep_decoherence_evidence
-question_notification_evidence
-```
+`manual_operation` and `operator_action` are processing classifications only.
 
 ## `logs.diff`
-
-`logs.diff` stores mutation and decision evidence.
 
 ```sql
 create table logs.diff (
@@ -246,8 +437,10 @@ create table logs.diff (
   target_table text not null,
   target_index bigint null,
   target_path bigint[] null,
-  previous_status text null,
-  next_status text null,
+  previous_draft_flag boolean null,
+  next_draft_flag boolean null,
+  previous_deleted_flag boolean null,
+  next_deleted_flag boolean null,
   policy_result text not null,
   policy_reason text null,
   evidence_json jsonb not null,
@@ -270,8 +463,6 @@ quarantined
 `logs.current` is a scheduled aggregate read model.
 
 It may be a table or materialized view, but it must be reproducible from `logs.coherence`, `logs.diff`, and canonical semantic tables.
-
-Minimum aggregate surface:
 
 ```sql
 create table logs.current (
@@ -303,25 +494,34 @@ create table logs.current (
 );
 ```
 
-`logs.current` is not a semantic authority.
+`logs.current` is not semantic authority.
 
-It is an inspectable pressure surface used by Sleep, Phase Attention, UI, and scheduled maintenance.
+It is an inspectable pressure surface used by Sleep, Phase Attention, operator actions, and scheduled maintenance.
 
-## Adoption audit view
+## Promotion audit view
 
-Adoption audit is a view over `logs.diff`.
+Promotion audit is a view over `logs.diff`.
 
 ```sql
-create view logs.adoption_audit as
+create view logs.promotion_audit as
 select *
 from logs.diff
 where operation_key in (
-  'adopt.vocabulary',
-  'adopt.grammar',
-  'adopt.relation',
   'promote.coherence_hit',
   'promote.decoherence_hit',
   'promote.phase_relation'
+);
+```
+
+Deletion audit is a separate view.
+
+```sql
+create view logs.deletion_audit as
+select *
+from logs.diff
+where operation_key in (
+  'delete.semantic_structure',
+  'delete.decoherence_entry'
 );
 ```
 
@@ -346,12 +546,17 @@ promote.coherence_hit
 promote.decoherence_hit
 promote.phase_relation
 sleep.decohere_structure
-adopt.vocabulary
-adopt.grammar
-adopt.relation
+delete.semantic_structure
+delete.decoherence_entry
 reject.candidate
 quarantine.remote_event
 ```
+
+No `adopt.*` operation keys are canonical.
+
+Promotion is represented by `promote.*` operations that set or reinforce `draft_flag = false`.
+
+Deletion is explicit and represented by `delete.*` operations.
 
 ## Required operation evidence
 
@@ -372,23 +577,11 @@ mirror_output_flag = false
 policy_result = 'allowed'
 ```
 
-Required evidence fields:
+Effect:
 
 ```text
-operation_key
-source_path = core_reply_path
-input_observation_index
-input_grammar_path
-candidate_table
-candidate_index or candidate_path
-near_neighbor_score
-structural_verification_result
-input_relation_diff_result
-output_delta_kind
-decoder_usage_flag
-contradiction_flag
-mirror_output_flag
-policy_result
+target.draft_flag = false
+logs.diff records previous_draft_flag and next_draft_flag
 ```
 
 ### `promote.decoherence_hit`
@@ -402,19 +595,6 @@ structural_verification_result = 'pass'
 input_relation_diff_result in ('pass', 'compatible_delta')
 contradiction_flag = false
 policy_result = 'allowed'
-```
-
-Required evidence fields:
-
-```text
-decoherence_bank_index or fallback_candidate_path
-fallback_hit_score
-structural_verification_result
-input_relation_diff_result
-residual_origin
-moth_eaten_flag
-mirror_output_flag
-policy_result
 ```
 
 A decoherence-bank candidate may cohere again only after verification against the current input grammar.
@@ -456,7 +636,38 @@ policy_result = 'allowed'
 
 Sleep never hard-deletes semantic structures.
 
-Hard deletion is explicit UI action only.
+### `delete.semantic_structure`
+
+Allowed only for explicit manual/operator delete.
+
+```text
+freeze = false
+source_path in ('manual_operation', 'operator_action')
+policy_result = 'allowed'
+```
+
+Effect:
+
+```text
+target.deleted_flag = true
+ordinary search must ignore deleted_flag = true unless explicit maintenance analysis requests it
+```
+
+### `delete.decoherence_entry`
+
+Allowed only for explicit manual/operator delete.
+
+```text
+freeze = false
+source_path in ('manual_operation', 'operator_action')
+policy_result = 'allowed'
+```
+
+Effect:
+
+```text
+decoherence_bank.deleted_flag = true
+```
 
 ---
 
@@ -467,8 +678,6 @@ Scores are inspectable aggregate calculations, not neural parameters.
 Implementations may tune policy values through `core_operation_policy`, but must preserve input evidence and output score components.
 
 ## Phase score
-
-Default Phase score:
 
 ```text
 phase_score = clamp01(
@@ -484,23 +693,7 @@ phase_score = clamp01(
 )
 ```
 
-Default component normalization:
-
-```text
-recurrence_score        = min(1, observed_count / 10)
-coherence_score         = min(1, hit_count / 5)
-relation_density_score  = min(1, relation_frequency / 5)
-scope_crossing_score    = min(1, scope_transition_count / 3)
-decoder_success_score   = min(1, decoder_success_count / 3)
-output_delta_score      = 1 if output_delta_kind in ('new_relation', 'scope_bridge') else 0
-contradiction_penalty   = min(1, contradiction_count / 2)
-mirror_output_penalty   = min(1, mirror_output_count / 3)
-draft_antipattern_penalty = draft_antipattern_score
-```
-
 ## Draft anti-pattern score
-
-Draft anti-pattern score:
 
 ```text
 draft_antipattern_score = clamp01(
@@ -521,13 +714,6 @@ new candidate
 → reduce phase_score or reject candidate
 ```
 
-Default rejection threshold:
-
-```text
-phase_score_after_penalty < 0.40
-→ keep draft / residual / rejected
-```
-
 ## Moth-eaten score
 
 Moth-eaten detection is based on repeated missing or replaced slots inside an otherwise active parent structure.
@@ -537,8 +723,6 @@ missing_rate = missing_slot_count / greatest(parent_structure_usage_count, 1)
 replaced_rate = replaced_slot_count / greatest(parent_structure_usage_count, 1)
 slot_missing_or_replaced_rate = (missing_slot_count + replaced_slot_count) / greatest(parent_structure_usage_count, 1)
 ```
-
-Default moth-eaten score:
 
 ```text
 moth_eaten_score = clamp01(
@@ -584,9 +768,7 @@ input_observation
 → output collapse
 ```
 
-If near-neighbor retrieval hits and structural verification passes, the candidate has cohered.
-
-A reply-time coherence hit must immediately adopt a new structure or reinforce an existing adopted structure through the operation gate.
+A reply-time coherence hit must immediately promote a new structure or reinforce an existing active structure through the operation gate.
 
 ```text
 near-neighbor candidate
@@ -595,7 +777,7 @@ near-neighbor candidate
 → xi coherence hit
 → zk decoder usage
 → core_can_execute('promote.coherence_hit')
-→ adopt or reinforce immediately
+→ promote or reinforce immediately
 → logs.diff
 ```
 
@@ -603,7 +785,7 @@ This promotion is automatic and evidence-driven.
 
 Human review is not part of ordinary reply-time promotion.
 
-Freeze, policy failure, contradiction, or operation gate failure blocks adoption and leaves evidence as draft, residual, rejected, or quarantined state.
+Freeze, policy failure, contradiction, or operation gate failure blocks promotion and leaves evidence as draft, residual, rejected, or quarantined state.
 
 ---
 
@@ -611,7 +793,7 @@ Freeze, policy failure, contradiction, or operation gate failure blocks adoption
 
 Input grammar and candidate grammar_relation must always be diff-compared.
 
-This is mandatory before output collapse, grammar_relation adoption, grammar_relation reinforcement, or decoherence hit promotion.
+This is mandatory before output collapse, grammar_relation promotion, grammar_relation reinforcement, or decoherence hit promotion.
 
 Near-neighbor similarity alone is not sufficient.
 
@@ -621,10 +803,6 @@ input grammar candidate
 → structural diff
 → coherence / residual / decoherence decision
 ```
-
-Input grammar means the grammar candidate or grammar path generated from the current input scope.
-
-Candidate grammar_relation means an active `grammar_relation.grammar_array`, a draft `phase_relation_candidate.grammar_array`, or a relation path recovered from `decoherence_bank` fallback search.
 
 The diff must inspect:
 
@@ -639,15 +817,13 @@ scope boundary mismatch
 terminal / sentence-end flag mismatch
 ```
 
-The purpose of input is to create and reinforce grammar_relation.
-
 Required decision pattern:
 
 ```text
 near relation hit
 + input grammar diff passes
 → coherence relation hit
-→ adopt / reinforce grammar_relation
+→ promote / reinforce grammar_relation
 
 near relation hit
 + input grammar diff has missing slots
@@ -694,34 +870,13 @@ candidate output
 
 Corpus output must therefore be stored or scored as difference, relation, or residual, not as a raw echo of the input.
 
-Required corpus decision pattern:
-
-```text
-output_delta contains new relation evidence
-→ relation candidate / grammar_relation reinforcement
-
-output_delta contains only copied input
-→ mirror_output evidence
-→ do not reinforce as new relation
-
-output_delta contains missing or unstable slots
-→ residual / decoherence evidence
-
-output_delta bridges input scopes
-→ candidate grammar_relation evidence
-```
-
-This rule applies before Phase candidate generation, before grammar_relation reinforcement, and before decoder/collapse evidence is counted as success.
-
 ---
 
-# Decoherence Bank
+# Decoherence Bank Runtime
 
 `decoherence_bank` is part of the core semantic search space.
 
 It is not an external trash bin.
-
-Core does not remove decohered structures from possible future use.
 
 Primary reply-time search checks active coherent structures first.
 
@@ -752,11 +907,7 @@ decoherence_bank candidate
 
 Sleep may send structures to `decoherence_bank`, but sleep must not hard-delete them.
 
-Deletion from `decoherence_bank` is explicit UI action only.
-
-`decoherence_bank` and Draft collections should be visible to UI tooling for token assignment and human-readable analysis.
-
-This UI analysis is not ordinary promotion review.
+Deletion from `decoherence_bank` is explicit manual/operator delete only.
 
 ---
 
@@ -775,68 +926,17 @@ Context-local names, file names, branch names, issue numbers, commit identifiers
 
 They must not wait for scheduled Phase confirmation before they can participate in output.
 
-```text
-context-local observation
-→ temporary vocabulary / grammar candidates
-→ reply-time usage
-→ logs.coherence evidence
-→ sleep decides whether to retain, merge, or send to decoherence_bank
-```
-
 Draft is not a human-review queue.
 
 Draft is not the primary promotion target.
 
 Draft is an unconfirmed candidate filter and anti-pattern evidence store.
 
-```text
-draft
-= unconfirmed candidate shape
-= weak or unstable relation evidence
-= candidate-generation anti-pattern
-= Phase Attention negative pressure
-```
-
 Candidate generation must read Draft evidence as negative pressure.
-
-If a new Phase candidate is structurally close to an unresolved Draft anti-pattern, candidate score must be reduced unless fresh coherence evidence overcomes that penalty.
-
-Sleep runs through `scheduler_job` / cron-like maintenance.
 
 Sleep reads aggregate usage windows from `logs.current`, `logs.coherence`, and `logs.diff`.
 
 Sleep sends unused or unstable vocabulary, grammar, grammar slots, and relation paths to `decoherence_bank`.
-
-Unused vocabulary:
-
-```text
-vocabulary unused for configured window
-→ send to decoherence_bank
-→ keep searchable as fallback
-→ explicit UI deletion only
-```
-
-Moth-eaten vocabulary inside active upper structures:
-
-```text
-moth_eaten_score >= 0.30
-and parent_structure_usage_count >= 5
-and (missing_slot_count + replaced_slot_count) >= 3
-→ vocabulary decoheres from that parent grammar or relation path
-→ send decoherence evidence to decoherence_bank
-→ keep searchable as fallback
-```
-
-Moth-eaten grammar slots:
-
-```text
-moth_eaten_score >= 0.30
-and parent_structure_usage_count >= 5
-and (missing_slot_count + replaced_slot_count) >= 3
-→ grammar slot decoheres from that parent grammar or relation path
-→ send decoherence evidence to decoherence_bank
-→ keep searchable as fallback
-```
 
 Sleep does not make reply generation stricter.
 
@@ -863,7 +963,7 @@ Structural verification decides.
 
 Active structures are searched first.
 
-`decoherence_bank` is searched only when active structures do not hit, or when explicit UI / maintenance analysis requests it.
+`decoherence_bank` is searched only when active structures do not hit, or when explicit operator / maintenance analysis requests it.
 
 Relation candidates returned by near-neighbor search must be verified by input grammar / grammar_relation diff before reply-time use.
 
@@ -881,7 +981,7 @@ Phase reads Draft evidence as unconfirmed candidate filters and anti-pattern pre
 
 Phase may read `decoherence_bank` as a source of Draft candidates.
 
-When Phase generates a Draft grammar_relation from `decoherence_bank` evidence, its child vocabulary, grammar, and grammar_relation elements must also be assigned Draft status for that candidate path.
+When Phase generates a Draft grammar_relation from `decoherence_bank` evidence, its child vocabulary, grammar, and grammar_relation elements must remain `draft_flag = true` for that candidate path.
 
 Phase writes draft relation paths to `phase_relation_candidate`.
 
@@ -891,7 +991,7 @@ Promotion must pass operation gate.
 
 Phase is not the synchronous raw-input reply path.
 
-Phase must not define reply-time adoption semantics; reply-time coherence promotion belongs to the core reply path.
+Phase must not define reply-time promotion semantics; reply-time coherence promotion belongs to the core reply path.
 
 Phase candidate generation must reduce or reject candidates that reproduce unresolved Draft anti-patterns without new coherence evidence.
 
