@@ -31,15 +31,18 @@ Logs, aggregate tables, archive registries, and implementation notes are not sem
 # Document Routing
 
 ```text
-Reference model         -> SPEC_REFERENCE_MODEL.md
-Log / aggregate/archive -> SPEC_LOG_AGGREGATE_ARCHIVE.md
-Reply pipeline          -> SPEC_REPLY_PIPELINE.md
-Cron pipeline           -> SPEC_CRON_PIPELINE.md
-Semantic tables         -> SPEC_SEMANTIC_TABLES.md
-Search / verification   -> SPEC_SEARCH_AND_VERIFICATION.md
-Scale / cost model      -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit  -> SPEC_CANONICALIZATION_AUDIT.md
-SQL implementation map  -> NOTE_SQL_IMPLEMENTATION_MAP.md
+Reference model          -> SPEC_REFERENCE_MODEL.md
+Semantic tables          -> SPEC_SEMANTIC_TABLES.md
+Log / aggregate/archive  -> SPEC_LOG_AGGREGATE_ARCHIVE.md
+Operation gate           -> SPEC_OPERATION_GATE.md
+Scoring / thresholds     -> SPEC_SCORING_AND_THRESHOLDS.md
+Remote trust             -> SPEC_REMOTE_TRUST.md
+Reply pipeline           -> SPEC_REPLY_PIPELINE.md
+Cron pipeline            -> SPEC_CRON_PIPELINE.md
+Search / verification    -> SPEC_SEARCH_AND_VERIFICATION.md
+Scale / cost model       -> SPEC_SCALE_AND_COST_MODEL.md
+Canonicalization audit   -> SPEC_CANONICALIZATION_AUDIT.md
+SQL implementation map   -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
 ---
@@ -68,7 +71,15 @@ SPEC_SCALE_AND_COST_MODEL.md
 
 SPEC_LOG_AGGREGATE_ARCHIVE.md
 -> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
--> SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md
+
+SPEC_OPERATION_GATE.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+
+SPEC_SCORING_AND_THRESHOLDS.md
+-> NOTE_PHASE_RELATION_CANDIDATE.md
+
+SPEC_REMOTE_TRUST.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
 ```
 
 `SPEC_*` files own meaning and processing authority.
@@ -151,6 +162,16 @@ Detailed authority: `SPEC_LOG_AGGREGATE_ARCHIVE.md`.
 
 ---
 
+# Operation / Policy Resume
+
+All mutation-capable operations pass `core_can_execute(operation_key)`.
+
+Freeze blocks semantic mutation but allows read-only lookup, decoder projection, invariant check, and output collapse.
+
+Detailed authority: `SPEC_OPERATION_GATE.md`.
+
+---
+
 # Search / Verification Resume
 
 Canonical search uses semantic index arrays first.
@@ -160,6 +181,26 @@ Near-neighbor or vector search may accelerate retrieval, but verification must r
 Mirror-output, residual, fallback, and promotion evidence must be logged.
 
 Detailed authority: `SPEC_SEARCH_AND_VERIFICATION.md`.
+
+---
+
+# Scoring Resume
+
+Scores are inspectable aggregate calculations, not neural parameters.
+
+Phase, Draft anti-pattern, and moth-eaten scores are defined outside the routing core.
+
+Detailed authority: `SPEC_SCORING_AND_THRESHOLDS.md`.
+
+---
+
+# Remote Trust Resume
+
+Remote events may become input observations only after trust and quarantine rules pass.
+
+Trusted nodes cannot mutate semantic tables directly.
+
+Detailed authority: `SPEC_REMOTE_TRUST.md`.
 
 ---
 
