@@ -58,7 +58,6 @@ Reply pipeline                -> SPEC_REPLY_PIPELINE.md
 Cron pipeline                 -> SPEC_CRON_PIPELINE.md
 Search / verification         -> SPEC_SEARCH_AND_VERIFICATION.md
 Scale / cost model            -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit        -> SPEC_CANONICALIZATION_AUDIT.md
 SQL implementation map        -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
@@ -290,17 +289,3 @@ Detailed authority: `SPEC_SCALE_AND_COST_MODEL.md`.
 If a `NOTE_*` file conflicts with a `SPEC_*` file, the `SPEC_*` file wins.
 
 `NOTE_AGENT_METAPHOR_MAPPING.md` and `NOTE_QUATERNION_PHILOSOPHY.md` remain explanatory interpretation notes.
-
----
-
-# Deletion Rule
-
-The previous monolithic `SPEC_CANONICAL_CORE.md` may be removed after:
-
-```text
-1. distributed specs are created
-2. canonicalization audit is recorded
-3. this section-level resume exists
-```
-
-Those conditions are satisfied by this file and `SPEC_CANONICALIZATION_AUDIT.md`.
