@@ -1,10 +1,10 @@
 # Supporting Note: PostgreSQL Core Tables
 
-Canonical authority: `SPEC_CANONICAL_CORE.md`.
+Canonical authority: routed SPEC files.
 
 This file is an implementation sketch, not the source of truth.
 
-When this file conflicts with `SPEC_CANONICAL_CORE.md`, the canonical core spec wins.
+When this file conflicts with a SPEC file, the SPEC file wins.
 
 ---
 
@@ -495,7 +495,7 @@ If the subtraction leaves no meaningful delta, the result is mirror_output evide
 
 # Logs and Operation Evidence
 
-The canonical log schemas and operation-key permission rules live in `SPEC_CANONICAL_CORE.md`.
+The canonical log schemas and operation-key permission rules live in routed SPEC files, especially `SPEC_LOG_AGGREGATE_ARCHIVE.md` and `SPEC_OPERATION_GATE.md`.
 
 Implementation code must preserve enough evidence to reproduce:
 
@@ -519,7 +519,7 @@ Promotion requires structural verification, input grammar / grammar_relation dif
 ```text
 normalized vocabulary and grammar tables
 → grammar_relation aggregates
-→ logs.current pressure
+→ aggregate.current pressure
 → scheduled Phase Attention
 → phase_relation_candidate.grammar_array
 → core_can_execute('promote.phase_relation')
@@ -547,7 +547,7 @@ A minimal implementation can start with:
 9. vocabulary_hash upsert
 10. no-hit / low-hit insert into decoherence_bank
 11. relation upsert from adjacent candidate bundles
-12. scheduled aggregate refresh for logs.current pressure
+12. scheduled aggregate refresh for aggregate.current pressure and optional logs.current snapshot
 13. fallback search / Phase candidate surfacing from aggregate pressure
 14. structural verification and input grammar / grammar_relation diff verification
 15. operation-gated promotion or reinforcement
