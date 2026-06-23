@@ -22,6 +22,24 @@ No `uuid[]` columns.
 
 ---
 
+# Lifecycle Rule
+
+`draft_flag` is the canonical lifecycle truth.
+
+```text
+draft_flag = true
+→ draft / residual / unconfirmed / anti-pattern / fallback candidate
+
+draft_flag = false
+→ active / promoted / ordinary search target
+```
+
+No enum status table is required.
+
+No semantic table in this sketch uses `status` as canonical truth.
+
+---
+
 # Core Tables
 
 ```text
@@ -78,26 +96,6 @@ system
 
 ---
 
-# Remote Trust
-
-Remote trust is gated by `core_state.distributed_sync.enabled`.
-
-```sql
-create table remote_node_trust (
-  remote_node_uuid uuid primary key default gen_random_uuid(),
-  remote_node_id text not null unique,
-  trust_level text not null default 'unknown',
-  enabled boolean not null default false,
-  metadata_json jsonb null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-```
-
-Trusted nodes still cannot mutate semantic tables directly.
-
----
-
 # Semantic Tables
 
 ## token
@@ -106,13 +104,11 @@ Trusted nodes still cannot mutate semantic tables directly.
 
 Tokenization is indexing and segmentation, not semantic interpretation.
 
-Long raw spans must be split before becoming normal semantic tokens.
-
 ```sql
 create table token (
   token_uuid uuid primary key default gen_random_uuid(),
   token_index bigint generated always as identity unique,
-  raw text not null,
+  raw text null,
   raw_length integer generated always as (char_length(raw)) stored,
   split_flag boolean not null default false,
   split_kind text null,
@@ -122,21 +118,6 @@ create table token (
   created_at timestamptz not null default now()
 );
 ```
-
-Split rule:
-
-```text
-raw having length > 1000
-→ split_flag = true
-→ split_kind = 'length_gt_1000'
-→ child token rows preserve split_parent_token_index and split_position
-```
-
-`split_flag` means the token row is part of a controlled split process or acts as a split boundary.
-
-It is not semantic authority by itself.
-
-Semantic references still use `token_index`.
 
 ## vocabulary
 
@@ -151,7 +132,7 @@ create table vocabulary (
   split_kind text null,
   observed_count bigint not null default 1,
   draft_flag boolean not null default true,
-  status text not null default 'draft',
+  deleted_flag boolean not null default false,
   first_seen_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now()
 );
@@ -161,7 +142,7 @@ create table vocabulary (
 
 `vocabulary_hash` deduplicates stable token sequences or raw text.
 
-The tokenizer does not decide whether vocabulary is adopted.
+The tokenizer does not decide whether vocabulary is promoted.
 
 It only records stable candidates and recurrence pressure.
 
@@ -186,7 +167,9 @@ create table grammar (
   grammar_hash text not null unique,
   end_of_sentence_flag boolean not null default false,
   draft_flag boolean not null default true,
-  status text not null default 'draft'
+  deleted_flag boolean not null default false,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
 );
 ```
 
@@ -202,7 +185,7 @@ create table grammar_relation (
   relation_weight numeric not null default 0,
   observed_count bigint not null default 1,
   draft_flag boolean not null default true,
-  status text not null default 'draft',
+  deleted_flag boolean not null default false,
   first_seen_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now()
 );
@@ -213,8 +196,6 @@ create table grammar_relation (
 It stores ordered semantic continuity between grammar candidates.
 
 Relation is not optional metadata.
-
-It is the memory that allows segmented grammar to remain connected.
 
 Optional relation link table:
 
@@ -242,7 +223,8 @@ create table phase_relation_candidate (
   pressure numeric not null default 0,
   evidence_count bigint not null default 0,
   draft_flag boolean not null default true,
-  status text not null default 'draft',
+  rejected_flag boolean not null default false,
+  deleted_flag boolean not null default false,
   created_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -255,6 +237,46 @@ All semantic arrays are `bigint[]` index arrays.
 
 `phase_relation_candidate.relation_array` is optional and references relation indexes only.
 
+## decoherence_bank
+
+```sql
+create table decoherence_bank (
+  decoherence_uuid uuid primary key default gen_random_uuid(),
+  decoherence_index bigint generated always as identity unique,
+
+  residual_hash text not null,
+  residual_kind text not null,
+
+  target_table text null,
+  target_index bigint null,
+  target_path bigint[] null,
+
+  layer_bundle_json jsonb not null,
+  evidence_json jsonb not null default '{}'::jsonb,
+
+  pressure numeric not null default 0,
+  draft_flag boolean not null default true,
+  deleted_flag boolean not null default false,
+
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+```
+
+Required `layer_bundle_json` shape:
+
+```json
+{
+  "vocabulary": {},
+  "grammar": {},
+  "relation": {}
+}
+```
+
+`decoherence_bank` is not trash.
+
+It is a searchable fallback store that preserves vocabulary, grammar, and relation context together.
+
 ---
 
 # Scope Split
@@ -266,14 +288,6 @@ Initial rule:
 ```text
 scope_size = 1000 characters
 optional_overlap = 50 to 100 characters
-```
-
-Example:
-
-```text
-scope 1: 0..1000
-scope 2: 900..1900
-scope 3: 1800..2800
 ```
 
 Overlap prevents boundary loss.
@@ -307,37 +321,12 @@ When a split succeeds, do not blindly run global replace.
 
 A global replace may delete multiple matching substrings unintentionally.
 
-Unsafe idea:
-
-```text
-replace(txt, match_text, "")
-```
-
 Safer idea:
 
 ```text
 match = first match with start/end
 consume only [start, end]
 continue with the remaining text or unconsumed ranges
-```
-
-Pseudo flow:
-
-```text
-remaining = scope_text
-
-while remaining has split match:
-  match = find_first_split_match(remaining)
-  before = remaining[0:match.start]
-  hit    = remaining[match.start:match.end]
-  after  = remaining[match.end:]
-
-  save_candidate(before) if not empty
-  save_split(hit)
-
-  remaining = after
-
-save_candidate(remaining) if not empty
 ```
 
 For more precise implementation, store consumed ranges instead of mutating text.
@@ -375,9 +364,9 @@ do update set
   last_seen_at = now();
 ```
 
-The tokenizer does not decide whether a vocabulary candidate is adopted.
+The tokenizer does not decide whether a vocabulary candidate is promoted.
 
-Adoption and reinforcement are handled by verified coherence hits, scheduled Phase promotion, Sleep consolidation, and `core_can_execute(operation_key)`.
+Promotion and reinforcement are handled by verified coherence hits, scheduled Phase promotion, Sleep consolidation, and `core_can_execute(operation_key)`.
 
 ---
 
@@ -389,7 +378,7 @@ scoped input
 → xi coherence layer
 ```
 
-If a token or vocabulary candidate hits adopted grammar, adopted vocabulary, or existing draft vocabulary:
+If a token or vocabulary candidate hits active grammar, active vocabulary, or existing draft vocabulary:
 
 ```text
 candidate → coherence hit bundle
@@ -414,14 +403,6 @@ Without relation, output becomes a mirror of local input fragments.
 
 Relation is what allows the system to connect the beginning and end of a divided input.
 
-When enough hit bundle and relation evidence exists:
-
-```text
-hit bundle + relation evidence
-→ corrected grammar candidate
-→ output projection
-```
-
 The tokenizer does not produce final output.
 
 It only prepares stable candidates for the coherence / decoherence / relation pipeline.
@@ -432,15 +413,15 @@ It only prepares stable candidates for the coherence / decoherence / relation pi
 
 The decoherence bank is not an external trash bin and is not removed from the core search space.
 
-Sleep and maintenance may send unused, unstable, moth-eaten, or unresolved structures into `decoherence_bank`, but they do not hard-delete them.
+Sleep and maintenance may send unused, unstable, moth-eaten, mirror-output, or unresolved structures into `decoherence_bank`, but they do not hard-delete them.
 
 Ordinary promotion is not:
 
 ```text
 decoherence_bank → draft vocabulary
-draft vocabulary → adopted vocabulary
+draft vocabulary → promoted vocabulary
 decoherence_bank → draft grammar
-draft grammar → adopted grammar
+draft grammar → promoted grammar
 ```
 
 That older path may exist only as historical or diagnostic wording. It must not be treated as the canonical promotion path.
@@ -465,7 +446,7 @@ A token, vocabulary, grammar, or relation path that was decohered yesterday may 
 
 Deletion from `decoherence_bank` is not a sleep-time or promotion-time action.
 
-Hard deletion is an explicit UI action only.
+Hard deletion is an explicit manual/operator action only.
 
 ---
 
@@ -510,23 +491,6 @@ meaningful corpus output
 
 If the subtraction leaves no meaningful delta, the result is mirror_output evidence and must not reinforce `grammar_relation`.
 
-Decision pattern:
-
-```text
-output_delta contains new relation evidence
-→ relation candidate / grammar_relation reinforcement
-
-output_delta contains only copied input
-→ mirror_output evidence
-→ do not reinforce as new relation
-
-output_delta contains missing or unstable slots
-→ residual / decoherence evidence
-
-output_delta bridges input scopes
-→ candidate grammar_relation evidence
-```
-
 ---
 
 # Logs and Operation Evidence
@@ -540,6 +504,8 @@ promote.coherence_hit
 promote.decoherence_hit
 promote.phase_relation
 sleep.decohere_structure
+delete.semantic_structure
+delete.decoherence_entry
 ```
 
 Near-neighbor retrieval alone is not promotion evidence.
@@ -572,9 +538,9 @@ A minimal implementation can start with:
 ```text
 1. token
 2. vocabulary
-3. decoherence_bank
+3. grammar
 4. grammar_relation
-5. grammar_relation_link
+5. decoherence_bank with layer_bundle_json
 6. split_flag tokens
 7. scope_size = 1000
 8. simple split rules
@@ -590,7 +556,7 @@ A minimal implementation can start with:
 This minimal path must not be described as:
 
 ```text
-decoherence_bank → draft → adopted
+decoherence_bank → draft → promoted
 ```
 
 Canonical minimal boundary:

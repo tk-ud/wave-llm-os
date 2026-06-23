@@ -8,11 +8,11 @@ Canonical authority: `SPEC_CANONICAL_CORE.md`.
 
 Meaning is not inside a word, vector, or wave state.
 
-Meaning is the connection form that survives observation, coherence, decoherence, relation, aggregation, adoption, decoding, and collapse.
+Meaning is the connection form that survives observation, coherence, decoherence, relation, aggregation, promotion, decoding, and collapse.
 
-A word, token, character, table value, status, phrase, event, or grammar fragment is not meaningful by itself.
+A word, token, character, table value, flag, phrase, event, or grammar fragment is not meaningful by itself.
 
-Meaning appears when those elements are connected through grammar, vocabulary, usage, recurrence, pressure, residuals, relation, and adoption.
+Meaning appears when those elements are connected through grammar, vocabulary, usage, recurrence, pressure, residuals, relation, and operation-gated promotion.
 
 ---
 
@@ -30,7 +30,7 @@ These remain historical references only.
 
 The current core is not a continuous spectral matrix update.
 
-It is a layered quaternion-style coherence / decoherence / relation / decoder system.
+It is a layered quaternion-style coherence / decoherence / relation / decoder system backed by PostgreSQL structures.
 
 ---
 
@@ -80,12 +80,6 @@ ij != ji
 
 Order matters.
 
-Central processing relation:
-
-```text
-ij = k
-```
-
 Operationally:
 
 ```text
@@ -114,13 +108,11 @@ Which coherence/decoherence/relation path can produce a corrected grammar candid
 
 The core separates semantic space into layered spaces.
 
-Initial candidate stack:
-
 ```text
 input grammar space
 hash space
-adopted grammar space
-adopted vocabulary space
+active grammar space
+active vocabulary space
 draft grammar space
 draft vocabulary space
 decoherence_bank
@@ -131,15 +123,54 @@ residual space
 
 These spaces are not fixed ontologies.
 
-They are observed, updated, and separated by usage, pressure, recurrence, relation, and explicit adoption.
+They are observed, updated, and separated by usage, pressure, recurrence, relation, `draft_flag`, and operation-gated promotion.
 
-## Input Grammar Space
+---
+
+# Draft Flag and Promotion
+
+`draft_flag` is the canonical lifecycle truth.
+
+```text
+draft_flag = true
+→ draft / residual / unconfirmed / anti-pattern / fallback candidate
+
+draft_flag = false
+→ active / promoted / ordinary search target
+```
+
+No `status` enum table is required.
+
+No `adopt.*` operation is canonical.
+
+Promotion uses:
+
+```text
+promote.coherence_hit
+promote.decoherence_hit
+promote.phase_relation
+```
+
+Deletion uses explicit delete operations:
+
+```text
+delete.semantic_structure
+delete.decoherence_entry
+```
+
+Manual/operator actions are processing classifications, not public UI design.
+
+---
+
+# Input Grammar Space
 
 Input grammar space represents the observed structural form of the current input.
 
 It observes sequence, boundaries, repeated forms, separators, punctuation, line breaks, and local connection patterns.
 
-## Hash Space
+---
+
+# Hash Space
 
 Hash space is a language-independent indexing layer.
 
@@ -151,41 +182,53 @@ Character-level identity is only an atomic reference layer.
 
 Meaning aggregation occurs at chunk, candidate, residual, grammar, vocabulary bundle, decoherence-bank, and relation levels.
 
-## Adopted Grammar Space
+---
 
-Adopted grammar space contains grammar bundles that have been repeatedly observed, reinforced, or explicitly adopted.
+# Active Grammar / Vocabulary Space
 
-These bundles represent stable connection forms.
+Active grammar and vocabulary spaces contain structures where `draft_flag = false` and `deleted_flag = false`.
 
-## Adopted Vocabulary Space
+They represent ordinary search targets.
 
-Adopted vocabulary space contains vocabulary items that have stabilized through observation, usage, recurrence, and adoption.
+They are not immutable truth.
 
-A vocabulary item may be a word, phrase, business term, code, label, status, category, or domain-specific expression.
+They can be reinforced, contradicted, routed to decoherence evidence, or explicitly deleted through operation-gated paths.
 
-## Draft Grammar Space
+---
 
-Draft grammar space contains grammar candidates that have not yet stabilized.
+# Draft Grammar / Vocabulary Space
 
-A draft grammar candidate may emerge from residuals, incomplete matches, repeated unknown structures, near-neighbor mismatches, or Phase-generated relation candidates.
+Draft grammar and vocabulary contain structures where `draft_flag = true`.
 
-Draft grammar must not automatically become adopted grammar.
+Draft is not a human-review queue.
 
-## Draft Vocabulary Space
+Draft is not the primary promotion target.
 
-Draft vocabulary space contains residual token hashes, repeated chunks, candidate words, or unknown expressions that have not yet stabilized.
+Draft is an unconfirmed candidate filter and anti-pattern evidence surface.
 
-Draft vocabulary is the holding area for unresolved expression.
+Draft evidence may reduce Phase candidate score when fresh coherence evidence does not overcome the penalty.
 
-## Decoherence Bank
+---
 
-The decoherence bank stores no-hit, low-hit, unabsorbed, unused, unstable, moth-eaten, or unresolved residual structures.
+# Decoherence Bank
+
+The decoherence bank stores no-hit, low-hit, unabsorbed, unused, unstable, moth-eaten, mirror-output, or unresolved residual structures.
 
 It is not an error table.
 
 It is not an external trash bin.
 
 It remains part of the core semantic search space.
+
+It stores the three semantic layers together in JSONB:
+
+```json
+{
+  "vocabulary": {},
+  "grammar": {},
+  "relation": {}
+}
+```
 
 Active structures are searched first.
 
@@ -214,15 +257,15 @@ decoherence_bank candidate
 
 Repeated entries may become Draft evidence, but Draft is not the canonical promotion queue.
 
-Draft remains an unconfirmed candidate filter and anti-pattern surface for Phase Attention.
-
 Sleep may send structures to `decoherence_bank`.
 
 Sleep must not hard-delete them.
 
-Hard deletion is explicit UI action only.
+Hard deletion is explicit manual/operator action only.
 
-## Grammar Relation
+---
+
+# Grammar Relation
 
 `grammar_relation` stores how grammar and vocabulary candidates connect.
 
@@ -241,34 +284,19 @@ meaningful output
 
 If the remaining delta is empty or reorder-only, the result is mirror_output evidence rather than relation evidence.
 
-In quaternion-style terms:
+---
 
-```text
-xi finds active coherence hits
-yj stores unresolved difference and decoherence fallback material
-grammar_relation connects coherent candidates
-zk projects only surviving relation delta into output grammar
-```
-
-If `zk` projects only the input anchor without surviving relation delta, the result is mirror output risk.
-
-```text
-zk output
-- input grammar
-= empty or reorder-only delta
-→ mirror_output evidence
-```
-## Phase Relation Candidate Space
+# Phase Relation Candidate Space
 
 `phase_relation_candidate` stores relation candidates generated from normalized aggregate values.
 
 Phase does not primarily inspect raw input.
 
-It works from adopted vocabulary, adopted grammar, draft vocabulary, draft grammar, existing relation, hit counts, relation weights, and co-occurrence aggregates.
+It works from active vocabulary, active grammar, draft vocabulary, draft grammar, existing relation, hit counts, relation weights, and co-occurrence aggregates.
 
 Phase-generated candidates are draft candidates.
 
-They must not silently mutate adopted grammar or adopted relation.
+They must not silently mutate active grammar or active relation.
 
 ---
 
@@ -276,18 +304,13 @@ They must not silently mutate adopted grammar or adopted relation.
 
 The `xi` term is the coherence layer.
 
-```text
-x = token bundle / hash bundle / segmented input fragments
-i = regular grammar candidate, regular vocabulary candidate, or draft vocabulary candidate
-```
-
 The coherence layer searches whether input fragments can be absorbed by existing spaces.
 
 It checks:
 
 ```text
-adopted grammar candidates
-adopted vocabulary candidates
+active grammar candidates
+active vocabulary candidates
 existing draft vocabulary candidates
 near-neighbor candidates
 partial matches
@@ -320,25 +343,24 @@ no-hit token hashes
 low-hit token hashes
 unresolved grammar fragments
 unmatched grammar slots
-repeated but not-yet-adopted patterns
+repeated but not-yet-promoted patterns
 ```
 
 Unabsorbed differences must not be discarded.
 
-They are stored as draft vocabulary or draft grammar candidates.
+They are stored as residual, draft, or decoherence-bank evidence.
 
-A scheduled aggregation job may later inspect the bank.
+Yesterday's `yj` candidate may become tomorrow's `xi` hit when fallback search verifies it against current input grammar.
 
-Example promotion logic:
+No count-only promotion example is canonical.
 
-```sql
-select token_hash, count(*) as observed_count
-from decoherence_bank
-group by token_hash
-having count(*) > 10;
-```
+Count creates pressure.
 
-Yesterday's `yj` candidate may become tomorrow's `xi` hit.
+Pressure surfaces candidates.
+
+Verification creates promotion evidence.
+
+Operation gate permits mutation.
 
 ---
 
@@ -389,8 +411,8 @@ hit bundles from the coherence layer
 relation evidence from grammar_relation
 unresolved slots from incomplete grammar candidates
 promoted candidates from decoherence_bank
-adopted grammar candidates
-adopted vocabulary candidates
+active grammar candidates
+active vocabulary candidates
 draft candidates that remain relevant
 Phase-generated relation candidates when available
 ```
@@ -398,17 +420,6 @@ Phase-generated relation candidates when available
 The decoder does not originate meaning.
 
 It projects candidates into usable output grammar.
-
-Operationally:
-
-```text
-exploration hit bundle
-+ grammar_relation evidence
-→ corrected grammar candidate
-→ output projection
-→ collapse
-→ emitted output
-```
 
 This decoder is not a next-token predictor.
 
@@ -464,10 +475,6 @@ residual_candidates = {d1, d2, d3, ...}
 
 If only one candidate is selected, meaning correction becomes impossible.
 
-If multiple incomplete grammar candidates are preserved, unmatched slots become search openings.
-
-Meaning correction can emerge from incomplete grammar candidates, unresolved vocabulary slots, relation evidence, and the coherence decoder.
-
 ---
 
 # Long Context Handling
@@ -499,7 +506,7 @@ Repeated relation patterns increase relation pressure.
 
 Stable residuals may become draft vocabulary or draft grammar.
 
-Stable relation candidates may become adopted relation or adopted grammar paths.
+Stable relation candidates may become promoted relation or promoted grammar paths.
 
 The system stores structured semantic traces instead of relying on one opaque context window.
 
@@ -511,35 +518,9 @@ Summarization is not merely deletion.
 
 Summarization is projection into a selected grammar space.
 
-When summarization is requested, the system should:
-
-```text
-observe vocabulary pressure
-→ identify strong vocabulary bundles
-→ search grammar space from those vocabulary pressures
-→ include relation evidence
-→ produce multiple summary grammar candidates
-→ select compression level from candidate grammar forms
-→ decode through corrected grammar
-→ generate output
-```
-
 Compression level is not only a token budget.
 
 It is a choice of grammar projection and relation depth.
-
-Examples:
-
-```text
-headline summary
-argument summary
-technical summary
-business summary
-evidence-preserving summary
-video-script summary
-```
-
-Each summary type is a different grammar-space and relation-depth projection.
 
 ---
 
@@ -548,17 +529,6 @@ Each summary type is a different grammar-space and relation-depth projection.
 The system should not depend on language-specific morphological analyzers.
 
 Tokenization should not decide meaning at the entrance.
-
-Instead:
-
-```text
-characters receive stable identities
-boundaries are detected through separators, spaces, punctuation, line breaks, code patterns, and repeated structure
-chunks become hash candidates
-hash candidates are compared against grammar and vocabulary spaces
-relations connect adjacent or scope-crossing candidates
-only residual candidates are inserted or reinforced
-```
 
 A tokenizer should act as:
 
@@ -605,16 +575,16 @@ no matching grammar candidate exists
 residual pressure exceeds a threshold
 draft grammar repeatedly appears
 draft vocabulary repeatedly appears
-adopted grammar coherence increases
+active grammar coherence increases
 relation pressure increases
 Phase relation candidates exceed thresholds
 a summary projection candidate is available
-decoherence-bank entries exceed promotion thresholds
+decoherence-bank entries exceed surfacing thresholds
 ```
 
-The system should not automatically rewrite adopted meaning.
+The system should not silently rewrite active meaning.
 
-It should recommend, notify, and preserve evidence.
+It should preserve evidence, apply promotion through operation gate, and keep delete operations explicit.
 
 ---
 
@@ -642,12 +612,8 @@ incomplete grammar slot search
 aggregate differences
 residual-only updates
 event-driven notifications
-explicit adoption
+explicit promotion
 ```
-
-In this model, attention and decoder are not fully separate black boxes.
-
-The quaternion-style process attends through `xi`, banks unresolved difference through `yj`, connects coherent candidates through relation, and decodes through `zk`.
 
 Phase uses normalized aggregate values to grow relation candidates outside ordinary reply-time processing.
 
@@ -687,4 +653,5 @@ Summarization is grammar-space projection.
 Phase Attention grows relation paths.
 Collapse is explicit.
 Mutation is operation-gated.
+draft_flag is lifecycle truth.
 ```

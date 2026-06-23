@@ -2,34 +2,20 @@
 
 Canonical authority: `SPEC_CANONICAL_CORE.md`.
 
-This document is a draft supporting specification for Phase Attention in Wave LLMOS.
+This document explains Phase Attention as scheduled aggregate-weighted relation candidate generation.
 
-Phase Attention preserves selected legacy principles from Wave LLMOS, but its implementation authority is the canonical PostgreSQL-backed core.
-
-Legacy principles preserved here:
-
-```text
-meaning originates from observation
-raw input is chewed through mastication
-decoder does not originate meaning
-collapse is explicit
-semantic state is persistent and inspectable
-```
-
-Phase Attention extends those principles by defining how normalized vocabulary, grammar, and relation aggregates generate cross-layer semantic relation candidates.
+It is not implementation authority over the canonical core.
 
 ---
 
 # 1. Core Definition
-
-Phase Attention is aggregate-weighted relation candidate generation.
 
 ```text
 Phase Attention
 = scheduled aggregate-weighted relation candidate generation
 ```
 
-It is not Transformer-style attention.
+Phase Attention is not Transformer-style attention.
 
 It does not directly read raw text as its primary input.
 
@@ -50,7 +36,7 @@ raw input reasoning
 next-token prediction
 decoder logic
 one-shot semantic search
-reply-time adoption authority
+reply-time promotion authority
 ```
 
 It must not be treated as:
@@ -59,29 +45,13 @@ It must not be treated as:
 input → Phase Attention → answer
 ```
 
-That would make the system heavy and structurally similar to ordinary attention systems.
+Phase Attention is scheduled relation growth.
 
-Phase Attention is a scheduled relation-growth mechanism.
-
-The normal reply path should read Phase-generated candidates, not generate the full relation search from scratch.
-
-Reply-time coherence promotion belongs to the canonical core reply path, not to Phase Attention.
+The normal reply path may read Phase-generated candidates, but reply-time coherence promotion belongs to the canonical core reply path.
 
 ---
 
 # 3. Canonical Mastication Order
-
-The public or canonical raw seed is token-level.
-
-```text
-raw seed = token table
-```
-
-Vocabulary and grammar are not copied directly from raw text.
-
-They are generated from token sequences through mastication.
-
-Canonical order:
 
 ```text
 raw observation
@@ -92,10 +62,14 @@ raw observation
 → grammar candidates
 → relation candidates
 → phase relation candidates
-→ adopted structures
+→ operation-gated promotion / reinforcement
 ```
 
-Phase Attention reads the normalized structures produced by this pipeline.
+Vocabulary and grammar are not copied directly from raw text.
+
+They are generated from token sequences through mastication.
+
+Phase Attention reads normalized structures produced by this pipeline.
 
 ---
 
@@ -104,9 +78,9 @@ Phase Attention reads the normalized structures produced by this pipeline.
 Primary inputs:
 
 ```text
-adopted vocabulary
+active vocabulary
+active grammar
 draft vocabulary
-adopted grammar
 draft grammar
 grammar_relation
 logs.coherence
@@ -168,9 +142,7 @@ normalized vocabulary
 
 This keeps ordinary response generation light.
 
-Phase Attention is cron-like scheduled work.
-
-It must not own the synchronous reply-time adoption path.
+Phase Attention must not own synchronous reply-time promotion.
 
 ---
 
@@ -185,35 +157,15 @@ input fragments in
 similar fragments out
 ```
 
-The system may recognize local vocabulary and grammar, but it cannot connect divided input scopes.
-
-Example:
-
-```text
-scope 1: account access failed
-scope 2: recovery link expired
-scope 3: deadline is today
-```
-
-Without relation:
-
-```text
-account
-recovery link
-today
-```
-
 With relation:
 
 ```text
 access failure → expired recovery path → urgent deadline
 ```
 
-The second form is not merely a mirror of the input.
+The connected form is not meaningful merely because it looks different from the input.
 
-It is a connected grammar path.
-
-Therefore, Phase Attention depends on the growth of the coherence relation layer.
+It must survive input grammar / grammar_relation diff and input subtraction.
 
 ---
 
@@ -241,60 +193,15 @@ coherence relation layer
 = semantic continuity memory
 ```
 
-Without this layer, Phase Attention has no stable structure to slide across.
-
 ---
 
-# 8. Sliding Across Layers
-
-Phase Attention slides across normalized layers.
-
-The target is not one nearest candidate.
-
-The target is a candidate relation path.
-
-Example layer slide:
-
-```text
-vocabulary bundle
-→ grammar candidate
-→ relation chain
-→ corrected grammar candidate
-```
-
-Another example:
-
-```text
-adopted grammar A
-→ draft grammar B
-→ recurring relation C
-→ phase relation candidate D
-```
-
-This allows the system to generate relation candidates that are not directly present as a single raw input span.
-
----
-
-# 9. Pressure-Guided Grammar Expansion
+# 8. Pressure-Guided Grammar Expansion
 
 Phase Attention reads `logs.current` as the scheduled aggregate pressure surface.
 
 `logs.current` does not create grammar arrays and is not the parent of new `grammar_array` rows.
 
 It exposes pressure used to select attended grammar paths and exploration budgets.
-
-`logs.current` may expose:
-
-```text
-unresolved grammar paths
-repeated grammar returns
-high-pressure decoherence clusters
-scope-crossing partial relations
-near-hit grammar candidates
-missing grammar slots
-mirror-output indicators
-decoder-success relation usage
-```
 
 Expansion process:
 
@@ -311,13 +218,9 @@ attended semantic field / selected grammar path
 → promote through core_can_execute('promote.phase_relation')
 ```
 
-Phase Attention therefore does not merely search similar grammar.
-
-It grows candidate grammar paths through structural search guided by accumulated unresolved pressure.
-
 ---
 
-# 10. Aggregate Weights
+# 9. Aggregate Weights
 
 Phase Attention may use inspectable aggregate weights such as:
 
@@ -346,7 +249,7 @@ They should be queryable and reproducible.
 
 ---
 
-# 11. Candidate Generation
+# 10. Candidate Generation
 
 Phase Attention generates draft relation candidates such as:
 
@@ -362,11 +265,11 @@ relation R predicts grammar candidate G
 
 These are draft candidates.
 
-They do not automatically become adopted structures.
+They do not automatically become active structures.
 
 ---
 
-# 12. Canonical Output
+# 11. Canonical Output
 
 Phase output is:
 
@@ -388,7 +291,7 @@ Arrays use `bigint[]` index arrays only.
 
 ---
 
-# 13. Phase Relation Candidate Table
+# 12. Phase Relation Candidate Table
 
 Draft table sketch:
 
@@ -411,13 +314,18 @@ create table phase_relation_candidate (
   evidence_count bigint not null default 0,
 
   draft_flag boolean not null default true,
-  status text not null default 'draft',
+  rejected_flag boolean not null default false,
+  deleted_flag boolean not null default false,
 
   created_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 ```
+
+`draft_flag` is the canonical lifecycle truth.
+
+No enum status table is required.
 
 A Phase candidate becomes useful only after recurrence, scheduled structural verification, or decoder usage evidence.
 
@@ -427,7 +335,7 @@ A Phase candidate becomes useful only after recurrence, scheduled structural ver
 
 ---
 
-# 14. Promotion
+# 13. Promotion
 
 Phase promotion is scheduled and evidence-driven.
 
@@ -437,32 +345,7 @@ Human review is not part of ordinary promotion.
 
 Reply-time coherence promotion belongs to `SPEC_CANONICAL_CORE.md` and the core reply path.
 
-State examples:
-
-```text
-draft
-observed
-reinforced
-candidate_for_adoption
-adopted
-rejected
-archived
-```
-
-Phase promotion evidence may include:
-
-```text
-recurrence
-coherence weight
-successful decoder usage
-low contradiction rate
-stable scope-crossing appearance
-mirror-output reduction
-near-neighbor stability
-scheduled structural verification
-```
-
-Scheduled Phase promotion path:
+Canonical Phase promotion path:
 
 ```text
 phase_relation_candidate
@@ -475,19 +358,23 @@ phase_relation_candidate
 
 Freeze blocks candidate generation and promotion.
 
-Contradiction or policy failure blocks promotion and keeps evidence as draft, rejected, or quarantined state.
+Contradiction or policy failure blocks promotion and keeps evidence as draft, rejected, or quarantined evidence.
 
 This preserves the principle:
 
 ```text
-Phase grows candidates on schedule;
-core owns reply-time coherence adoption;
-adoption must be explicit, gated, logged, and automatic when evidence passes.
+Phase grows candidates on schedule.
+Core owns reply-time coherence promotion.
+Promotion must be explicit, gated, logged, and automatic when evidence passes.
 ```
+
+No `adopt.*` operation is canonical.
+
+Promotion uses `promote.*` and flips or reinforces `draft_flag = false` on the promoted target.
 
 ---
 
-# 15. Relationship to xi / yj / zk
+# 14. Relationship to xi / yj / zk
 
 Phase Attention is not a replacement for `xi`, `yj`, or `zk`.
 
@@ -522,29 +409,7 @@ zk decodes through corrected grammar.
 
 ---
 
-# 16. Why This Is Phase Attention
-
-It is called Phase Attention because it does not merely attend to tokens.
-
-It attends to the phase-like arrangement of already-normalized structures.
-
-The system observes:
-
-```text
-which candidates recur
-which candidates appear near each other
-which candidates bridge scopes
-which grammar candidates slide into each other
-which relation chains accumulate pressure
-```
-
-Attention is not local token weighting here.
-
-It is relation-field exploration.
-
----
-
-# 17. Difference from Transformer Attention
+# 15. Difference from Transformer Attention
 
 Transformer Attention:
 
@@ -564,7 +429,7 @@ grows inspectable relation candidates in persistent tables
 
 ---
 
-# 18. Failure Mode: Mirror Output
+# 16. Failure Mode: Mirror Output
 
 Mirror output is not merely weak relation.
 
@@ -579,21 +444,6 @@ candidate output - input grammar = empty or reorder-only delta
 → mirror_output evidence
 → do not reinforce as new relation
 ```
-
-Mirror output can occur when:
-
-```text
-active relation search misses
-input grammar / grammar_relation diff is skipped
-input grammar / grammar_relation diff fails
-candidate output - input grammar is empty
-candidate output - input grammar is reorder-only
-decoherence_bank fallback fails to re-cohere
-```
-
-Relation weakness is one cause, not the full definition.
-
-Vocabulary and grammar may be present, and relation may even be nearby, but the output is still mirror output if input subtraction leaves no meaningful relation delta.
 
 Phase Attention should read mirror-output indicators as pressure, but it does not fix mirror output during reply-time.
 
@@ -612,7 +462,7 @@ This failure should be logged, not hidden.
 
 ---
 
-# 19. Growth Metrics
+# 17. Growth Metrics
 
 Phase Attention development should be tracked with relation-growth metrics.
 
@@ -633,13 +483,9 @@ coherence_weight_distribution
 
 These metrics matter more than raw database size alone.
 
-A large database with weak relation may still mirror input.
-
-A smaller database with strong relation may produce better connected output.
-
 ---
 
-# 20. Preemptible Sleep Scheduler / Phase Maintenance
+# 18. Preemptible Sleep Scheduler / Phase Maintenance
 
 Legacy sleep scheduling belongs to the same timing class as Phase Attention.
 
@@ -647,23 +493,12 @@ It is not synchronous reply-time work.
 
 It runs as scheduled, idle-window, preemptible maintenance alongside Phase Attention.
 
-Core rule:
-
-```text
-Phase Attention timing
-= scheduled / idle / preemptible maintenance timing
-```
-
-Sleep maintenance runs in that same window.
-
-It is the low-power background metabolism around Phase Attention.
-
 Semantic invariant:
 
 ```text
 sleep / maintenance tasks must not block user-facing inference
 sleep / maintenance tasks must pause on user input
-sleep / maintenance tasks must not directly adopt semantic structures
+sleep / maintenance tasks must not directly promote semantic structures without operation gate
 sleep / maintenance tasks may refresh aggregates, pressure surfaces, candidate scores, dormant markers, and maintenance queues through operation-gated paths
 ```
 
@@ -678,7 +513,7 @@ idle / low-activity window
 → run Phase Attention candidate generation
 → run sleep maintenance tasks
 → update maintenance evidence
-→ queue promotion candidates, not adopted mutations
+→ queue promotion candidates, not direct ungated mutations
 ```
 
 Preemption rule:
@@ -690,167 +525,6 @@ on user input
 → resume only after idle threshold
 ```
 
-Legacy parameters preserved as implementation guidance:
-
-```text
-pause_on_user_input = true
-resume_after_seconds_idle = 30
-cpu_nice = low
-io_nice = low
-max_cpu_percent = 15
-max_io_ops_per_sec = 100
-usage window = hour_of_day histogram
-window_days = 14
-smoothing = ema(alpha = 0.25)
-select lowest-activity hours by percentile
-require_continuous_idle_minutes = 10
-hard_preempt = true
-```
-
-Band / relation refinement may run as chunked background work:
-
-```text
-max_wall_ms_per_chunk = 120
-max_chunks_per_idle_window = 500
-include_dormant = true
-```
-
-In the current core vocabulary, legacy `basis` refinement maps to nearby `vocabulary`, `grammar`, and `grammar_array` path refinement.
+Legacy `basis` refinement maps to nearby `vocabulary`, `grammar`, and `grammar_array` path refinement.
 
 This maintenance is not merely storage of alias or merge evidence.
-
-It periodically shapes the search field so future Phase Attention passes need fewer repeated near-neighbor searches.
-
-Attractor basin refinement:
-
-```text
-similar vocabulary candidates
-+ similar grammar candidates
-+ similar grammar_array paths
-→ generate alias / merge candidates as draft evidence
-→ refine the attractor basin around stable semantic paths
-→ reduce future near-neighbor search count
-→ reduce future Phase Attention exploration count
-→ keep synchronous reply-time lookup cheap
-```
-
-This does not collapse candidates into adopted structures by itself.
-
-It prepares draft evidence for later operation-gated adoption or rejection.
-
-Vector / SQL role split:
-
-```text
-vector geometry
-= basin shape / scale / density error inspection for sleep-time integration
-
-SQL join diff
-= shared structure / residual / missing / excess inspection for decode-time and verification
-```
-
-Sleep integration uses both:
-
-```text
-vector geometry finds candidate basins
-SQL join diff verifies structural compatibility
-merge / alias / dormant decisions remain draft evidence until operation-gated adoption
-```
-
-Recommended decision pattern:
-
-```text
-vector shape close + scale error small + SQL residual small
-→ merge candidate
-
-vector shape close + scale error large + SQL overlap high
-→ alias candidate or parent-child candidate
-
-vector shape close + SQL residual large
-→ false attractor / polysemy risk
-
-vector shape far + SQL overlap high
-→ boundary split issue or vocabulary segmentation issue
-```
-
-Canonical reference stays unchanged:
-
-```text
-grammar.vocabulary_array = semantic reference
-```
-
-Derived retrieval projections may include:
-
-```text
-grammar_structural_vector
-grammar_expanded_token_array
-grammar_shape_metrics
-grammar_scale_metrics
-join_diff_cache
-```
-
-Decode should prefer SQL join diff because it exposes where structures match, diverge, disappear, or remain unresolved.
-
-Sleep integration should prefer vector geometry first because it exposes basin shape and scale error before structural verification.
-
-Allowed sleep maintenance outputs:
-
-```text
-logs.current refresh
-relation pressure refresh
-phase candidate score refresh
-decoherence recurrence aggregation
-dormant / cold markers for weak unused candidates
-alias / merge candidates as draft evidence
-vocabulary alias / merge candidates as draft evidence
-grammar alias / merge candidates as draft evidence
-grammar_array path alias / merge candidates as draft evidence
-attractor basin refinement evidence
-future search-count reduction evidence
-vector geometry basin candidate evidence
-SQL join diff verification evidence
-promotion queue candidates
-scheduler_job_run evidence
-```
-
-Rejected sleep maintenance outputs:
-
-```text
-direct adopted grammar mutation
-direct adopted vocabulary mutation
-direct adopted relation mutation
-blocking inference
-permanent removal of semantic basis / seed structures
-```
-
-Sleep maintenance is therefore the low-power background metabolism of the Phase system.
-
----
-
-# 21. Short Form
-
-```text
-Phase Attention does not read raw text first.
-It reads normalized vocabulary, grammar, and relation aggregates.
-It reads logs.current as pressure.
-It slides across layers.
-It generates grammar_array relation candidates.
-It runs on a schedule.
-Phase is cron-like maintenance, not reply generation.
-Core owns reply-time coherence adoption.
-Human review is not required for ordinary promotion.
-Sleep maintenance runs in the same scheduled / idle / preemptible window.
-Sleep maintenance refines nearby vocabulary, grammar, and grammar_array paths as draft evidence.
-Sleep maintenance shapes attractor basins to reduce future search count.
-Vector geometry is useful for sleep-time basin integration.
-SQL join diff is useful for decode-time structural verification.
-It supports zk.
-It prevents the system from becoming a mirror of the input.
-```
-
-Legacy mastication produces the material.
-
-Relation connects the material.
-
-Phase grows new relation paths.
-
-Sleep maintenance keeps Phase metabolism cheap, idle-aware, and non-blocking.
