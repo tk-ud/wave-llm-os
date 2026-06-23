@@ -1,0 +1,177 @@
+# Specification: Log / Aggregate / Archive
+
+## Authority
+
+This file is the canonical authority for logs, aggregate current state, aggregate history, archive registry, and hot retention policy.
+
+It canonizes the log and aggregate parts previously embedded in `SPEC_CANONICAL_CORE.md`.
+
+---
+
+# Role Summary
+
+```text
+logs.coherence     = append-only observation evidence
+logs.diff          = mutation / decision evidence
+logs.current       = aggregate snapshot history / time-series evidence
+aggregate.current  = hot aggregate read model / pressure surface
+archive.registry   = archive batch registry and restore manifest
+```
+
+`aggregate.current` is the current pressure surface.
+
+`logs.current` is pressure history.
+
+Do not make `logs.current` do both jobs.
+
+None of these tables is semantic authority.
+
+---
+
+# `logs.coherence`
+
+`logs.coherence` is append-only observation evidence.
+
+It records search, verification, output-delta, residual, contradiction, mirror-output, decoder-use, and fallback evidence.
+
+Semantic log targets use:
+
+```text
+target_table
+target_index
+target_path
+```
+
+Allowed `source_path` values:
+
+```text
+core_reply_path
+decoherence_bank_fallback
+scheduled_phase
+sleep_consolidation
+manual_operation
+operator_action
+remote_event_intake
+```
+
+---
+
+# `logs.diff`
+
+`logs.diff` is mutation / decision evidence.
+
+It records operation-gated decisions and lifecycle flag transitions.
+
+Allowed `operation_status` values:
+
+```text
+allowed
+blocked
+applied
+rejected
+quarantined
+```
+
+Promotion and deletion audit views are derived from `logs.diff`.
+
+---
+
+# `aggregate.current`
+
+`aggregate.current` stores the latest aggregate values for each semantic target and aggregate window.
+
+It is the hot aggregate pressure surface used by Sleep, Phase Attention, operator actions, reply support, and scheduled maintenance.
+
+It may be updated in place.
+
+It must be reproducible from `logs.coherence`, `logs.diff`, and canonical semantic tables.
+
+The unique current-surface constraint belongs to `aggregate.current`, not `logs.current`.
+
+---
+
+# `logs.current`
+
+`logs.current` stores aggregate snapshot evidence over time.
+
+It is the time-series history of aggregate values.
+
+It must not be treated as the single current row for a target/window.
+
+It has no canonical uniqueness constraint on `(target_table, target_index, aggregate_window)` because multiple snapshots may exist for the same target/window.
+
+Hot-path current reads should use `aggregate.current`.
+
+---
+
+# Current Refresh Rule
+
+Canonical refresh flow:
+
+```text
+logs.coherence
++ logs.diff
++ canonical semantic tables
+→ compute aggregate values
+→ upsert aggregate.current
+→ optionally append snapshot to logs.current
+```
+
+The snapshot cadence may be lower than the aggregate refresh cadence.
+
+---
+
+# Archive Registry
+
+`archive.registry` records archive batches for logs and aggregate history.
+
+It is a registry and manifest.
+
+It is not semantic authority.
+
+Recommended `archive_kind` values:
+
+```text
+hot_window_rolloff
+monthly_rollup
+snapshot_archive
+audit_preservation
+cold_storage_export
+```
+
+---
+
+# Log Retention / Rollup Policy
+
+`logs.diff` and `logs.current` may use bounded hot retention windows.
+
+Recommended initial hot windows:
+
+```text
+logs.diff    = 100,000 to 500,000 recent rows
+logs.current = 100,000 to 500,000 recent aggregate snapshots
+```
+
+Older rows may be archived or rolled up when the current state is represented elsewhere, required audit/status summaries have been snapshotted, unresolved investigation rows are excluded, and `archive.registry` records the archived range.
+
+Hot-path intelligence must not depend on unbounded log growth.
+
+---
+
+# Migration Rule
+
+If an implementation already has a unique `logs.current` table with one row per `(target_table, target_index, aggregate_window)`, that table represents `aggregate.current` under the corrected interpretation.
+
+If an implementation has append-only or periodically retained aggregate snapshots, those rows represent `logs.current`.
+
+---
+
+# Short Form
+
+```text
+aggregate.current is the current pressure surface.
+logs.current is the pressure history.
+logs.diff is mutation / decision evidence.
+archive.registry proves what moved out of hot storage.
+Hot intelligence reads current state, not infinite history.
+```
