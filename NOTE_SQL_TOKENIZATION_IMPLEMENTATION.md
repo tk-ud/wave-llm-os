@@ -4,6 +4,8 @@ Canonical authority: `SPEC_CANONICAL_CORE.md`.
 
 This file is an implementation sketch, not the source of truth.
 
+When this file conflicts with `SPEC_CANONICAL_CORE.md`, the canonical core spec wins.
+
 ---
 
 # Reference Rule
@@ -15,6 +17,7 @@ array = bigint[] index array
 ```
 
 No semantic UUID references.
+
 No `uuid[]` columns.
 
 ---
@@ -134,22 +137,6 @@ raw having length > 1000
 It is not semantic authority by itself.
 
 Semantic references still use `token_index`.
-
-Example split kinds:
-
-```text
-space
-line_break
-japanese_period
-japanese_comma
-comma
-period
-colon
-slash
-open_paren
-close_paren
-length_gt_1000
-```
 
 ## vocabulary
 
@@ -308,44 +295,7 @@ Recommended order:
 4. remaining residual chunks
 ```
 
-Examples of token split boundaries:
-
-```text
-space
-newline
-punctuation
-brackets
-slashes
-commas
-periods
-```
-
-Examples of vocabulary split boundaries:
-
-```text
-"。\n"
-"---"
-"```"
-"###"
-"http://"
-"https://"
-```
-
 Regex should be used as a controlled boundary or extraction rule, not as a massive full parser.
-
-Examples:
-
-```text
-dates
-URLs
-email addresses
-numbers
-model numbers
-file paths
-SQL identifiers
-currency values
-error codes
-```
 
 Regex rules must be prioritized and bounded.
 
@@ -427,7 +377,7 @@ do update set
 
 The tokenizer does not decide whether a vocabulary candidate is adopted.
 
-Adoption is handled by scheduled promotion rules and explicit adoption logic.
+Adoption and reinforcement are handled by verified coherence hits, scheduled Phase promotion, Sleep consolidation, and `core_can_execute(operation_key)`.
 
 ---
 
@@ -579,31 +529,22 @@ output_delta bridges input scopes
 
 ---
 
-# Logs
+# Logs and Operation Evidence
+
+The canonical log schemas and operation-key permission rules live in `SPEC_CANONICAL_CORE.md`.
+
+Implementation code must preserve enough evidence to reproduce:
 
 ```text
-logs.coherence = observation evidence
-logs.current   = scheduled aggregate read model
-logs.diff      = mutation / decision evidence
+promote.coherence_hit
+promote.decoherence_hit
+promote.phase_relation
+sleep.decohere_structure
 ```
 
-`logs.current` is the scheduled pressure surface for Phase Attention.
+Near-neighbor retrieval alone is not promotion evidence.
 
-Adoption audit is a view over `logs.diff`, not a table.
-
----
-
-# Operation Gate
-
-```text
-core_state
-core_operation_policy
-core_can_execute(operation_key)
-```
-
-Mutation-capable operations must pass the gate.
-
-Freeze blocks semantic mutation.
+Promotion requires structural verification, input grammar / grammar_relation diff verification, scoring or policy evidence, and operation-gate success.
 
 ---
 
@@ -638,10 +579,27 @@ A minimal implementation can start with:
 7. scope_size = 1000
 8. simple split rules
 9. vocabulary_hash upsert
-10. no-hit insert into decoherence_bank
+10. no-hit / low-hit insert into decoherence_bank
 11. relation upsert from adjacent candidate bundles
-12. scheduled count-based promotion
-13. scheduled Phase candidate generation from aggregates
+12. scheduled aggregate refresh for logs.current pressure
+13. fallback search / Phase candidate surfacing from aggregate pressure
+14. structural verification and input grammar / grammar_relation diff verification
+15. operation-gated promotion or reinforcement
+```
+
+This minimal path must not be described as:
+
+```text
+decoherence_bank → draft → adopted
+```
+
+Canonical minimal boundary:
+
+```text
+Count creates pressure.
+Pressure surfaces candidates.
+Verification creates promotion evidence.
+Operation gate permits mutation.
 ```
 
 No MeCab, UniDic, or language-specific tokenizer is required for the first version.
