@@ -12,6 +12,16 @@ Implementation SQL and DDL detail may live in mapped `NOTE_*` files.
 
 ---
 
+# Canonical Interpretation Rules
+
+Repository-defined meanings take priority over common implementation patterns.
+
+Terms including `current`, `promotion`, `verification`, `scheduler`, `draft`, `coherence`, and `decoherence` must be interpreted from the routed SPEC files first.
+
+Do not split canonical concepts because a common database, workflow, approval, queue, or review-process pattern suggests doing so.
+
+---
+
 # Core Invariants
 
 ```text
@@ -31,18 +41,19 @@ Logs, aggregate tables, archive registries, and implementation notes are not sem
 # Document Routing
 
 ```text
-Reference model          -> SPEC_REFERENCE_MODEL.md
-Semantic tables          -> SPEC_SEMANTIC_TABLES.md
-Log / aggregate/archive  -> SPEC_LOG_AGGREGATE_ARCHIVE.md
-Operation gate           -> SPEC_OPERATION_GATE.md
-Scoring / thresholds     -> SPEC_SCORING_AND_THRESHOLDS.md
-Remote trust             -> SPEC_REMOTE_TRUST.md
-Reply pipeline           -> SPEC_REPLY_PIPELINE.md
-Cron pipeline            -> SPEC_CRON_PIPELINE.md
-Search / verification    -> SPEC_SEARCH_AND_VERIFICATION.md
-Scale / cost model       -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit   -> SPEC_CANONICALIZATION_AUDIT.md
-SQL implementation map   -> NOTE_SQL_IMPLEMENTATION_MAP.md
+Reference model           -> SPEC_REFERENCE_MODEL.md
+Semantic tables           -> SPEC_SEMANTIC_TABLES.md
+Log / aggregate/archive   -> SPEC_LOG_AGGREGATE_ARCHIVE.md
+Operation gate            -> SPEC_OPERATION_GATE.md
+Scoring / thresholds      -> SPEC_SCORING_AND_THRESHOLDS.md
+Remote trust              -> SPEC_REMOTE_TRUST.md
+Core state / scheduler    -> SPEC_CORE_STATE_AND_SCHEDULER.md
+Reply pipeline            -> SPEC_REPLY_PIPELINE.md
+Cron pipeline             -> SPEC_CRON_PIPELINE.md
+Search / verification     -> SPEC_SEARCH_AND_VERIFICATION.md
+Scale / cost model        -> SPEC_SCALE_AND_COST_MODEL.md
+Canonicalization audit    -> SPEC_CANONICALIZATION_AUDIT.md
+SQL implementation map    -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
 ---
@@ -79,6 +90,9 @@ SPEC_SCORING_AND_THRESHOLDS.md
 -> NOTE_PHASE_RELATION_CANDIDATE.md
 
 SPEC_REMOTE_TRUST.md
+-> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+
+SPEC_CORE_STATE_AND_SCHEDULER.md
 -> NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
 ```
 
@@ -169,6 +183,18 @@ All mutation-capable operations pass `core_can_execute(operation_key)`.
 Freeze blocks semantic mutation but allows read-only lookup, decoder projection, invariant check, and output collapse.
 
 Detailed authority: `SPEC_OPERATION_GATE.md`.
+
+---
+
+# Core State / Scheduler Resume
+
+Core state, operation policy tables, notification queue, scheduler job tables, mastication jobs, and remote event inbox/quarantine are routed outside the semantic table family.
+
+They gate or record runtime behavior.
+
+They are not semantic authority.
+
+Detailed authority: `SPEC_CORE_STATE_AND_SCHEDULER.md`.
 
 ---
 
