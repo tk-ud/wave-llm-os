@@ -11,97 +11,113 @@ Base: `main`
 # Audit Result
 
 ```text
-status: fail_requires_expansion
-reason: PR-side split preserves routing intent, but several canonical details from main are compressed or missing
+status: pass_with_ddl_delegated_to_notes
+reason: canonical meaning, processing rules, and routing from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
 ```
 
-The split direction is valid.
+The PR-side split is now semantically equivalent at the specification-authority layer.
 
-The current PR-side specifications are not yet semantically equivalent to the monolithic core on `main`.
+DDL and SQL implementation detail may remain in NOTE files when the corresponding SPEC owns the meaning and authority.
 
 ---
 
-# Preserved Without Material Compression
+# Canonicalized Files
 
 ```text
+SPEC_CANONICAL_CORE_RESUME.md
 SPEC_REFERENCE_MODEL.md
+SPEC_SEMANTIC_TABLES.md
+SPEC_LOG_AGGREGATE_ARCHIVE.md
+SPEC_OPERATION_GATE.md
+SPEC_SCORING_AND_THRESHOLDS.md
+SPEC_REMOTE_TRUST.md
+SPEC_REPLY_PIPELINE.md
+SPEC_CRON_PIPELINE.md
+SPEC_SEARCH_AND_VERIFICATION.md
+SPEC_SCALE_AND_COST_MODEL.md
+NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
-Preserved:
+---
+
+# Coverage Map
+
+## Reference model
+
+Target: `SPEC_REFERENCE_MODEL.md`
+
+Covered:
 
 ```text
 UUID as row/event identity
 index as semantic reference key
 bigint[] as semantic structure
 no uuid[] semantic arrays
-hashes as deduplication, not semantic authority
+hashes as deduplication, not authority
 semantic target path convention
 ```
 
----
+## Semantic tables
 
-# Compressed / Missing Areas
+Target: `SPEC_SEMANTIC_TABLES.md`
 
-## Semantic table DDL
+SQL projection: `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`
 
-Source details from main:
+Covered:
 
 ```text
-input_observation full DDL and source_kind list
-token full DDL
-vocabulary full DDL
-grammar full DDL
-grammar_relation full DDL
-grammar_relation_link full DDL
-phase_relation_candidate full DDL
-decoherence_bank full DDL
+input_observation
+token
+vocabulary
+grammar
+grammar_relation
+grammar_relation_link
+phase_relation_candidate
+decoherence_bank
+structural_vector_index
+source_kind list
 layer_bundle_json shape
-residual_kind list
+residual_kind meaning
 ```
 
-Current target:
+## Logs / aggregate / archive
+
+Target: `SPEC_LOG_AGGREGATE_ARCHIVE.md`
+
+Covered:
 
 ```text
-SPEC_SEMANTIC_TABLES.md only lists the table family
-```
-
-Required action:
-
-```text
-Move full SQL shape into NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md or a SQL implementation note.
-Keep semantic authority in SPEC_SEMANTIC_TABLES.md.
+logs.coherence
+logs.diff
+logs.current as aggregate history
+aggregate.current as hot pressure surface
+archive.registry
+promotion audit view meaning
+deletion audit view meaning
+retention / rollup policy
 ```
 
 ## Operation gate
 
-Source details from main:
+Target: `SPEC_OPERATION_GATE.md`
+
+Covered:
 
 ```text
 core_can_execute(operation_key)
 freeze behavior
 canonical operation keys
 promotion evidence rules
+delete rules
 sleep.decohere_structure rules
-delete.semantic_structure rules
-delete.decoherence_entry rules
-policy defaults for phase_relation
-```
-
-Current target:
-
-```text
-Only general operation-gated mutation wording is preserved
-```
-
-Required action:
-
-```text
-Create SPEC_OPERATION_GATE.md or expand SPEC_REPLY_PIPELINE.md / SPEC_CRON_PIPELINE.md.
+phase_relation default policy thresholds
 ```
 
 ## Scoring and thresholds
 
-Source details from main:
+Target: `SPEC_SCORING_AND_THRESHOLDS.md`
+
+Covered:
 
 ```text
 phase_score formula
@@ -110,21 +126,26 @@ moth_eaten_score formula
 moth-eaten default decision threshold
 ```
 
-Current target:
+## Remote trust
+
+Target: `SPEC_REMOTE_TRUST.md`
+
+Covered:
 
 ```text
-SPEC_SCALE_AND_COST_MODEL.md mentions cost shape but does not preserve score formulas
+remote trust global switch
+remote_node_trust fields
+trust_level values
+remote event acceptance rule
+trusted nodes cannot mutate semantic tables directly
+remote trust changes pass operation gate
 ```
 
-Required action:
+## Reply path
 
-```text
-Create SPEC_SCORING_AND_THRESHOLDS.md or move formulas into SPEC_SCALE_AND_COST_MODEL.md.
-```
+Target: `SPEC_REPLY_PIPELINE.md`
 
-## Reply path details
-
-Source details from main:
+Covered:
 
 ```text
 reply generation is synchronous core work
@@ -135,191 +156,75 @@ xi coherence hit / yj residual bank / zk decoder flow
 immediate evidence-driven promotion
 human review is not ordinary reply-time promotion
 freeze / policy / contradiction failure behavior
+decoherence fallback runtime
+decoder / collapse boundary
 ```
 
-Current target:
+## Cron path
+
+Target: `SPEC_CRON_PIPELINE.md`
+
+Covered:
 
 ```text
-SPEC_REPLY_PIPELINE.md is a very compressed 11-line skeleton
-```
-
-Required action:
-
-```text
-Expand SPEC_REPLY_PIPELINE.md with the full reply-path rules from main.
-```
-
-## Input grammar / relation diff
-
-Source details from main:
-
-```text
-mandatory diff before collapse / promotion / reinforcement / decoherence hit promotion
-shared grammar indexes
-missing grammar slots
-extra relation path elements
-replaced vocabulary slots
-replaced grammar slots
-order shifts
-scope boundary mismatch
-terminal flag mismatch
-required decision pattern
-```
-
-Current target:
-
-```text
-SPEC_SEARCH_AND_VERIFICATION.md preserves the category but not the decision detail
-```
-
-Required action:
-
-```text
-Expand SPEC_SEARCH_AND_VERIFICATION.md.
-```
-
-## Corpus output / input subtraction
-
-Source details from main:
-
-```text
-candidate output - input grammar
-empty or reorder-only delta = mirror_output evidence
-store output as difference, relation, or residual, not raw echo
-```
-
-Current target:
-
-```text
-Partially preserved as mirror-output category only
-```
-
-Required action:
-
-```text
-Expand SPEC_SEARCH_AND_VERIFICATION.md or SPEC_REPLY_PIPELINE.md.
-```
-
-## Decoherence runtime
-
-Source details from main:
-
-```text
-active search first
-decoherence fallback search after active miss
-verification before reuse
-promote.decoherence_hit path
-sleep cannot hard-delete
-manual/operator delete only
-```
-
-Current target:
-
-```text
-Partially preserved, but not full runtime path
-```
-
-Required action:
-
-```text
-Expand SPEC_REPLY_PIPELINE.md and SPEC_CRON_PIPELINE.md.
-```
-
-## Phase details
-
-Source details from main:
-
-```text
-cron-like scheduled aggregate-weighted relation candidate generation
+scheduler job kind namespace
+current_refresh
+sleep_consolidation
+phase_candidate_generation
+archive_rolloff
+Phase as scheduled aggregate-weighted relation candidate generation
 Draft as anti-pattern pressure
-may read decoherence_bank as Draft source
-children remain draft_flag=true
-Phase outputs grammar_index arrays only
-not synchronous reply path
-promotion only through phase_score and operation gate
+Sleep consolidation boundary
 ```
 
-Current target:
+## Search / verification
+
+Target: `SPEC_SEARCH_AND_VERIFICATION.md`
+
+Covered:
 
 ```text
-SPEC_CRON_PIPELINE.md preserves a compressed version only
+index-array search
+near-neighbor search
+pgvector as acceleration only
+mandatory input grammar / grammar_relation diff
+input subtraction
+mirror-output evidence
+fallback verification
+operation-gated promotion
 ```
 
-Required action:
+## Scale / cost
+
+Target: `SPEC_SCALE_AND_COST_MODEL.md`
+
+Covered:
 
 ```text
-Expand SPEC_CRON_PIPELINE.md.
-```
-
-## Decoder / collapse boundary
-
-Source details from main:
-
-```text
-decoder does not originate meaning
-no independent constraint table
-no decoder_trace table
-no loop_guard table
-looping is unresolved exploration pressure
-repeated grammar path handled by grammar_array, Phase, near-neighbor, decoherence, pressure, diff evidence
-```
-
-Current target:
-
-```text
-Partially preserved in SPEC_REPLY_PIPELINE.md and SPEC_REFERENCE_MODEL.md
-```
-
-Required action:
-
-```text
-Expand SPEC_REPLY_PIPELINE.md.
-```
-
-## Remote trust / remote event intake
-
-Source details from main:
-
-```text
-remote_node_trust DDL
-core_state.distributed_sync.enabled
-trust_level values
-remote event acceptance rule
-trusted nodes cannot mutate semantic tables directly
-remote trust changes pass operation gate
-```
-
-Current target:
-
-```text
-Missing from split specs
-```
-
-Required action:
-
-```text
-Create SPEC_REMOTE_TRUST.md or add to SPEC_CRON_PIPELINE.md.
+raw observation growth
+sublinear canonical semantic growth
+relation/residual growth
+hot log bounds
+storage-scale intelligence
+per-reply search cost shape
 ```
 
 ---
 
-# Conclusion
+# Remaining Non-blocking Notes
+
+`NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md` still contains historical wording that points to the former monolithic core.
+
+This is not an authority conflict because `NOTE_SQL_IMPLEMENTATION_MAP.md` and `SPEC_CANONICAL_CORE_RESUME.md` state that SPEC files now own authority.
+
+The empty `SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md` file remains as a zero-content historical placeholder.
+
+---
+
+# Final Result
 
 ```text
-PR branch is structurally correct but not yet information-equivalent to main.
-```
-
-Do not merge until compressed sections are expanded or explicitly delegated to SQL/implementation notes.
-
-Recommended next action:
-
-```text
-1. Add DDL / SQL detail to NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md or mapped SQL notes
-2. Add SPEC_OPERATION_GATE.md
-3. Add SPEC_SCORING_AND_THRESHOLDS.md
-4. Expand SPEC_REPLY_PIPELINE.md
-5. Expand SPEC_CRON_PIPELINE.md
-6. Expand SPEC_SEARCH_AND_VERIFICATION.md
-7. Add SPEC_REMOTE_TRUST.md
-8. Re-run audit and change status only when coverage is equivalent
+merge_status: allowed_after_review
+compression_status: no material semantic compression detected after expansion
+DDL_status: delegated_to_notes
 ```
