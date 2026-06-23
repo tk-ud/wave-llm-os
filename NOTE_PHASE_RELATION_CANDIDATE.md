@@ -570,10 +570,8 @@ If relation is insufficient, the system cannot generate meaningful continuity.
 
 Failure pattern:
 
-```text
 input contains A, B, C
 output repeats A, B, C in a cleaned-up order
-```
 
 This is mirror output.
 
@@ -581,14 +579,12 @@ It indicates that vocabulary and grammar may be present, but relation is weak.
 
 Possible causes:
 
-```text
 coherence relation layer is sparse
 Phase candidates are not mature
 scope split is too coarse
 mastication has not run enough passes
 promotion thresholds are wrong
 grammar candidates are local but not connected
-```
 
 This failure should be logged, not hidden.
 
