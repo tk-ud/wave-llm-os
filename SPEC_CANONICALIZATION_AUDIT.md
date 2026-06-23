@@ -11,8 +11,8 @@ Base: `main`
 # Audit Result
 
 ```text
-status: pass_after_second_main_comparison
-reason: canonical meaning, processing rules, routing, and non-semantic runtime table families from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
+status: pass_after_third_main_comparison
+reason: canonical meaning, processing rules, routing, non-semantic runtime table families, and explicit prohibited patterns from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
 ```
 
 The PR-side split is semantically equivalent at the specification-authority layer.
@@ -32,6 +32,7 @@ SPEC_OPERATION_GATE.md
 SPEC_SCORING_AND_THRESHOLDS.md
 SPEC_REMOTE_TRUST.md
 SPEC_CORE_STATE_AND_SCHEDULER.md
+SPEC_PROHIBITED_CANONICAL_PATTERNS.md
 SPEC_REPLY_PIPELINE.md
 SPEC_CRON_PIPELINE.md
 SPEC_SEARCH_AND_VERIFICATION.md
@@ -53,6 +54,25 @@ Covered:
 repository-defined meanings win over common implementation patterns
 current / promotion / verification / scheduler / draft / coherence / decoherence are routed SPEC-defined terms
 canonical concepts must not be split just because common DB / queue / workflow patterns suggest it
+```
+
+## Prohibited canonical patterns
+
+Target: `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`
+
+Covered:
+
+```text
+no canonical constraint_rule table
+no canonical adoption_audit table
+no canonical web-result-only semantic table
+no canonical decoder_trace table
+no canonical loop_guard table
+no canonical status enum table
+no adopt.* operation keys
+promotion/deletion audit are logs.diff views or projections
+web results are input_observation(source_kind='web')
+looping is unresolved exploration pressure
 ```
 
 ## Reference model
@@ -244,13 +264,20 @@ per-reply search cost shape
 
 ---
 
-# Second Main Comparison Notes
+# Main Comparison Notes
 
-The second comparison found two additional compression risks and resolved them:
+The second comparison found and resolved:
 
 ```text
 1. Canonical interpretation rules were made explicit in SPEC_CANONICAL_CORE_RESUME.md.
 2. Non-semantic runtime table family was routed to SPEC_CORE_STATE_AND_SCHEDULER.md.
+```
+
+The third comparison found and resolved:
+
+```text
+1. Explicit negative / prohibited canonical table rules were routed to SPEC_PROHIBITED_CANONICAL_PATTERNS.md.
+2. Prohibited decoder/status/adoption/web-result patterns were made explicit after core split.
 ```
 
 ---
@@ -261,14 +288,12 @@ The second comparison found two additional compression risks and resolved them:
 
 This is not an authority conflict because `NOTE_SQL_IMPLEMENTATION_MAP.md` and `SPEC_CANONICAL_CORE_RESUME.md` state that SPEC files now own authority.
 
-The empty `SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md` file remains as a zero-content historical placeholder.
-
 ---
 
 # Final Result
 
 ```text
 merge_status: allowed_after_review
-compression_status: no material semantic compression detected after second main comparison
+compression_status: no material semantic compression detected after third main comparison
 DDL_status: delegated_to_notes
 ```
