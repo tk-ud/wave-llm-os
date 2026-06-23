@@ -126,69 +126,151 @@ Wave LLMOS の探索は、すべての候補を総当たりするのではなく
 
 ---
 
-# Document Agenda
+# Repository Resume
 
-以下は、上記の設計を説明・実装するためのファイルです。
+このリポジトリは、`SPEC` と `NOTE` を束として読む構成です。
 
-詳細は各ファイルをご確認ください。
+```text
+SPEC = 意味・処理・判定の正本
+NOTE = SQL / DDL / 実装 projection / 補足説明
+```
 
-## `SPEC_CANONICAL_CORE_RESUME.md`
+## Core Routing Bundle
 
-正本配線の入口です。
+全体の入口です。
 
-全体の不変条件、主要な処理流れ、各詳細SPECへのルーティングを定義します。
+```text
+SPEC_CANONICAL_CORE_RESUME.md
+NOTE_SQL_IMPLEMENTATION_MAP.md
+```
 
-## `SPEC_RUNTIME_BEHAVIOR_MODEL.md`
+`SPEC_CANONICAL_CORE_RESUME.md` は、不変条件と各SPECへのルーティングを持ちます。
 
-`wave`、`coherence`、`decoherence`、`pressure`、`Phase`、`Sleep`、`collapse` などの runtime behavior 名を定義します。
+`NOTE_SQL_IMPLEMENTATION_MAP.md` は、NOTE がどの SPEC の実装 projection / 補足説明として残るかを整理します。
 
-## `SPEC_REPLY_PIPELINE.md`
+## Runtime Behavior Bundle
 
-Reply の同期処理、input、decoder/collapse、coherence / residual handling を定義します。
+`wave`、`coherence`、`decoherence`、`pressure`、`Phase`、`Sleep`、`collapse` の読み方を扱います。
 
-## `SPEC_CRON_PIPELINE.md`
+```text
+SPEC_RUNTIME_BEHAVIOR_MODEL.md
+NOTE_AGENT_METAPHOR_MAPPING.md
+NOTE_QUATERNION_PHILOSOPHY.md
+```
 
-Cron、Phase、Sleep、archive rolloff などの scheduled processing を定義します。
+SPEC が runtime behavior 名の正本です。
 
-## `SPEC_REFERENCE_MODEL.md`
+NOTE はラベル説明と四元数風説明の補足です。
 
-semantic reference rule の正本です。
+## Reference / Identity Bundle
 
-UUID、index、`bigint[]` index array の役割分担を定義します。
+UUID、index、`bigint[]` index array の役割分担を扱います。
 
-## `SPEC_SEMANTIC_TABLES.md`
+```text
+SPEC_REFERENCE_MODEL.md
+NOTE_INDEX_ARRAY_CANONICAL.md
+```
 
-semantic table family の意味を定義します。
+SPEC が semantic reference rule の正本です。
 
-## `SPEC_LOG_AGGREGATE_ARCHIVE.md`
+NOTE は SQL 実装者向けの短い reminder です。
 
-`logs.coherence`、`logs.diff`、`logs.current`、`aggregate.current`、archive registry の役割を定義します。
+## Semantic Table / SQL Projection Bundle
 
-## `SPEC_OPERATION_GATE.md`
+観測、語彙、文法、文法連携、残差保存の table family を扱います。
 
-promotion、deletion、quarantine、freeze などの operation gate を定義します。
+```text
+SPEC_SEMANTIC_TABLES.md
+NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+```
 
-## `SPEC_SEARCH_AND_VERIFICATION.md`
+SPEC が semantic table の意味を定義します。
 
-構造的近傍探索、SQL diff、verification、mirror-output handling を定義します。
+NOTE は DDL / SQL projection を保持します。
 
-## `SPEC_SCORING_AND_THRESHOLDS.md`
+## Reply / Search / Decode Bundle
 
-Phase score、draft anti-pattern、moth-eaten score などの判定軸を定義します。
+同期応答、入力処理、構造探索、verification、decoder / collapse を扱います。
 
-## `SPEC_SCALE_AND_COST_MODEL.md`
+```text
+SPEC_REPLY_PIPELINE.md
+SPEC_SEARCH_AND_VERIFICATION.md
+NOTE_NEAR_NEIGHBOR_SEARCH.md
+NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+```
 
-学習量データ換算、一回の探索計算量、storage-scale intelligence の考え方を定義します。
+SPEC が Reply と verification の正本です。
 
-## `NOTE_SQL_IMPLEMENTATION_MAP.md`
+NOTE は retrieval / SQL diff / DDL の実装補助です。
 
-NOTE ファイルがどの SPEC の実装 projection / 補足説明として残るかを整理します。
+## Cron / Phase / Sleep Bundle
 
-## `legacy_design/`
+scheduled processing、Phase relation candidate、Sleep consolidation を扱います。
 
-過去設計のアーカイブです。
+```text
+SPEC_CRON_PIPELINE.md
+SPEC_SCORING_AND_THRESHOLDS.md
+NOTE_PHASE_RELATION_CANDIDATE.md
+```
 
-現在の実装 authority ではありませんが、設計意図を追うための historical context として残しています。
+SPEC が cron job、Phase、Sleep、score / threshold の正本です。
+
+NOTE は `phase_relation_candidate` の storage / query sketch です。
+
+## Log / Aggregate / Archive Bundle
+
+観測証跡、mutation証跡、current pressure、履歴snapshot、archive registry を扱います。
+
+```text
+SPEC_LOG_AGGREGATE_ARCHIVE.md
+NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+```
+
+SPEC が `logs.coherence`、`logs.diff`、`logs.current`、`aggregate.current`、archive registry の役割を定義します。
+
+NOTE は必要な SQL / DDL projection を保持します。
+
+## Operation / Runtime Support Bundle
+
+promotion、delete、quarantine、freeze、scheduler state、remote event trust を扱います。
+
+```text
+SPEC_OPERATION_GATE.md
+SPEC_CORE_STATE_AND_SCHEDULER.md
+SPEC_REMOTE_TRUST.md
+NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md
+```
+
+SPEC が operation gate と runtime support table の正本です。
+
+NOTE は必要な実装projectionだけを保持します。
+
+## Prohibited / Legacy Bundle
+
+現在の正本から除外された設計や、禁止された canonical pattern を扱います。
+
+```text
+SPEC_PROHIBITED_CANONICAL_PATTERNS.md
+MIGRATION_LEGACY_REGISTER.md
+legacy_design/
+```
+
+`SPEC_PROHIBITED_CANONICAL_PATTERNS.md` は、現在の正本に入れてはいけない pattern を定義します。
+
+`MIGRATION_LEGACY_REGISTER.md` と `legacy_design/` は historical context です。
+
+## Scale / Cost Bundle
+
+学習量データ換算、一回の探索計算量、storage-scale intelligence を扱います。
+
+```text
+SPEC_SCALE_AND_COST_MODEL.md
+NOTE_QUATERNION_PHILOSOPHY.md
+```
+
+SPEC が scale / cost model の正本です。
+
+NOTE は背景説明に留まります。
 
 ---
 
