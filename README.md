@@ -135,10 +135,11 @@ SPEC = 意味・処理・判定の正本
 NOTE = SQL / DDL / 実装 projection / 補足説明
 ```
 
-一回の入力は、観測、候補、残差、圧力を経て、Sleep と検証済み collapse へ進みます。
+同期応答は入力から検証済み collapse へ進み、cron は集約、Phase、Sleep、archive を扱います。
 
 ```text
-input → observation → candidates → residual / pressure → Sleep → verified collapse
+reply: input -> observation -> candidates -> verification -> decoder -> collapse -> logs
+cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 ```
 
 ## Core Routing Bundle
