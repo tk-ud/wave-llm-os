@@ -519,39 +519,6 @@ Hard deletion is an explicit UI action only.
 
 ---
 
-## Relation Growth
-
-The relation layer connects divided grammar and vocabulary candidates.
-
-If those pieces are not reconnected, the system only mirrors nearby fragments.
-
-Example:
-
-scope 1: account access failed
-scope 2: recovery link expired
-scope 3: deadline is today
-
-Without relation:
-
-three local hits
-candidate output - input grammar = empty or reorder-only
-→ mirror_output evidence
-
-With relation:
-
-access failure → expired recovery path → urgent deadline
-
-The relation path must still be verified by input grammar / grammar_relation diff.
-
-Corpus-time output must also subtract input grammar:
-
-meaningful corpus output
-= candidate output - input grammar
-
-If the subtraction leaves no meaningful delta, the result is mirror_output evidence and must not reinforce "grammar_relation".
-
----
-
 # Relation Growth
 
 The relation layer connects divided grammar and vocabulary candidates.
