@@ -11,11 +11,11 @@ Base: `main`
 # Audit Result
 
 ```text
-status: pass_with_ddl_delegated_to_notes
-reason: canonical meaning, processing rules, and routing from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
+status: pass_after_second_main_comparison
+reason: canonical meaning, processing rules, routing, and non-semantic runtime table families from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
 ```
 
-The PR-side split is now semantically equivalent at the specification-authority layer.
+The PR-side split is semantically equivalent at the specification-authority layer.
 
 DDL and SQL implementation detail may remain in NOTE files when the corresponding SPEC owns the meaning and authority.
 
@@ -31,6 +31,7 @@ SPEC_LOG_AGGREGATE_ARCHIVE.md
 SPEC_OPERATION_GATE.md
 SPEC_SCORING_AND_THRESHOLDS.md
 SPEC_REMOTE_TRUST.md
+SPEC_CORE_STATE_AND_SCHEDULER.md
 SPEC_REPLY_PIPELINE.md
 SPEC_CRON_PIPELINE.md
 SPEC_SEARCH_AND_VERIFICATION.md
@@ -41,6 +42,18 @@ NOTE_SQL_IMPLEMENTATION_MAP.md
 ---
 
 # Coverage Map
+
+## Core interpretation rules
+
+Target: `SPEC_CANONICAL_CORE_RESUME.md`
+
+Covered:
+
+```text
+repository-defined meanings win over common implementation patterns
+current / promotion / verification / scheduler / draft / coherence / decoherence are routed SPEC-defined terms
+canonical concepts must not be split just because common DB / queue / workflow patterns suggest it
+```
 
 ## Reference model
 
@@ -78,6 +91,26 @@ structural_vector_index
 source_kind list
 layer_bundle_json shape
 residual_kind meaning
+```
+
+## Core state and scheduler
+
+Target: `SPEC_CORE_STATE_AND_SCHEDULER.md`
+
+Covered:
+
+```text
+core_state
+core_operation_policy
+core_notify_queue
+scheduler_job
+scheduler_job_run
+mastication_job
+remote_event_inbox
+remote_event_quarantine
+scheduler job namespace separation
+mastication output must obey input subtraction
+remote inbox / quarantine are not semantic authority
 ```
 
 ## Logs / aggregate / archive
@@ -211,6 +244,17 @@ per-reply search cost shape
 
 ---
 
+# Second Main Comparison Notes
+
+The second comparison found two additional compression risks and resolved them:
+
+```text
+1. Canonical interpretation rules were made explicit in SPEC_CANONICAL_CORE_RESUME.md.
+2. Non-semantic runtime table family was routed to SPEC_CORE_STATE_AND_SCHEDULER.md.
+```
+
+---
+
 # Remaining Non-blocking Notes
 
 `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md` still contains historical wording that points to the former monolithic core.
@@ -225,6 +269,6 @@ The empty `SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md` file remains 
 
 ```text
 merge_status: allowed_after_review
-compression_status: no material semantic compression detected after expansion
+compression_status: no material semantic compression detected after second main comparison
 DDL_status: delegated_to_notes
 ```
