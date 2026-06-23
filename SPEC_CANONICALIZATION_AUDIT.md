@@ -11,8 +11,8 @@ Base: `main`
 # Audit Result
 
 ```text
-status: pass_after_third_main_comparison
-reason: canonical meaning, processing rules, routing, non-semantic runtime table families, and explicit prohibited patterns from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
+status: pass_after_four_axis_main_comparison
+reason: functional, judgement, prohibition, and behavior axes from main are represented in split SPEC files; SQL / DDL detail is preserved through mapped NOTE files
 ```
 
 The PR-side split is semantically equivalent at the specification-authority layer.
@@ -25,6 +25,7 @@ DDL and SQL implementation detail may remain in NOTE files when the correspondin
 
 ```text
 SPEC_CANONICAL_CORE_RESUME.md
+SPEC_RUNTIME_BEHAVIOR_MODEL.md
 SPEC_REFERENCE_MODEL.md
 SPEC_SEMANTIC_TABLES.md
 SPEC_LOG_AGGREGATE_ARCHIVE.md
@@ -37,12 +38,44 @@ SPEC_REPLY_PIPELINE.md
 SPEC_CRON_PIPELINE.md
 SPEC_SEARCH_AND_VERIFICATION.md
 SPEC_SCALE_AND_COST_MODEL.md
+SPEC_AXIS_COVERAGE_AUDIT.md
 NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
 ---
 
+# Four-Axis Summary
+
+```text
+functional_axis: pass
+judgement_axis: pass
+prohibition_axis: pass
+behavior_axis: pass
+```
+
+Detailed axis coverage is recorded in `SPEC_AXIS_COVERAGE_AUDIT.md`.
+
+---
+
 # Coverage Map
+
+## Behavior model
+
+Target: `SPEC_RUNTIME_BEHAVIOR_MODEL.md`
+
+Covered:
+
+```text
+wave
+coherence
+decoherence
+pressure
+Phase
+Sleep
+collapse
+abstract runtime behavior -> concrete PostgreSQL projection
+DB rows are projections, not semantic authority by themselves
+```
 
 ## Core interpretation rules
 
@@ -280,6 +313,13 @@ The third comparison found and resolved:
 2. Prohibited decoder/status/adoption/web-result patterns were made explicit after core split.
 ```
 
+The four-axis comparison found and resolved:
+
+```text
+1. Runtime behavior names were routed to SPEC_RUNTIME_BEHAVIOR_MODEL.md.
+2. Functional, judgement, prohibition, and behavior axes were recorded in SPEC_AXIS_COVERAGE_AUDIT.md.
+```
+
 ---
 
 # Remaining Non-blocking Notes
@@ -294,6 +334,7 @@ This is not an authority conflict because `NOTE_SQL_IMPLEMENTATION_MAP.md` and `
 
 ```text
 merge_status: allowed_after_review
-compression_status: no material semantic compression detected after third main comparison
+compression_status: no material semantic compression detected after four-axis main comparison
 DDL_status: delegated_to_notes
+axis_status: pass
 ```
