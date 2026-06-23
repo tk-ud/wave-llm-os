@@ -23,6 +23,7 @@ abstract runtime behavior
 
 ```text
 SPEC_CANONICAL_CORE.md
+SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md
 ```
 
 過去の wave-geometry / psi / spectral-band 設計は `legacy_design/` に historical context として残しています。
@@ -132,6 +133,12 @@ Wave LLMOS の探索は、すべての候補を総当たりするのではなく
 実装上の正本です。
 
 canonical tables、reference rules、logs、operation gate、Phase、decoder/collapse boundary を定義します。
+
+## `SPEC_CANONICAL_CORE_AMENDMENT_001_AGGREGATE_CURRENT.md`
+
+`aggregate.current` / `logs.current` / `archive.registry` の修正amendmentです。
+
+`aggregate.current` を hot aggregate pressure surface、`logs.current` を集計値の時系列証跡として分離し、古い aggregate snapshot と diff log の retention / archive rule を定義します。
 
 ## `NOTE_AGENT_METAPHOR_MAPPING.md`
 
