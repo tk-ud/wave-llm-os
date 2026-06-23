@@ -18,6 +18,8 @@ Repository-defined meanings take priority over common implementation patterns.
 
 Terms including `current`, `promotion`, `verification`, `scheduler`, `draft`, `coherence`, and `decoherence` must be interpreted from the routed SPEC files first.
 
+Runtime behavior terms including `wave`, `coherence`, `decoherence`, `pressure`, `Phase`, `Sleep`, and `collapse` are defined by `SPEC_RUNTIME_BEHAVIOR_MODEL.md`.
+
 Do not split canonical concepts because a common database, workflow, approval, queue, or review-process pattern suggests doing so.
 
 ---
@@ -43,20 +45,21 @@ Explicitly prohibited canonical patterns are defined by `SPEC_PROHIBITED_CANONIC
 # Document Routing
 
 ```text
-Reference model                 -> SPEC_REFERENCE_MODEL.md
-Semantic tables                 -> SPEC_SEMANTIC_TABLES.md
-Log / aggregate/archive         -> SPEC_LOG_AGGREGATE_ARCHIVE.md
-Operation gate                  -> SPEC_OPERATION_GATE.md
-Scoring / thresholds            -> SPEC_SCORING_AND_THRESHOLDS.md
-Remote trust                    -> SPEC_REMOTE_TRUST.md
-Core state / scheduler          -> SPEC_CORE_STATE_AND_SCHEDULER.md
-Prohibited canonical patterns   -> SPEC_PROHIBITED_CANONICAL_PATTERNS.md
-Reply pipeline                  -> SPEC_REPLY_PIPELINE.md
-Cron pipeline                   -> SPEC_CRON_PIPELINE.md
-Search / verification           -> SPEC_SEARCH_AND_VERIFICATION.md
-Scale / cost model              -> SPEC_SCALE_AND_COST_MODEL.md
-Canonicalization audit          -> SPEC_CANONICALIZATION_AUDIT.md
-SQL implementation map          -> NOTE_SQL_IMPLEMENTATION_MAP.md
+Runtime behavior model        -> SPEC_RUNTIME_BEHAVIOR_MODEL.md
+Reference model               -> SPEC_REFERENCE_MODEL.md
+Semantic tables               -> SPEC_SEMANTIC_TABLES.md
+Log / aggregate/archive       -> SPEC_LOG_AGGREGATE_ARCHIVE.md
+Operation gate                -> SPEC_OPERATION_GATE.md
+Scoring / thresholds          -> SPEC_SCORING_AND_THRESHOLDS.md
+Remote trust                  -> SPEC_REMOTE_TRUST.md
+Core state / scheduler        -> SPEC_CORE_STATE_AND_SCHEDULER.md
+Prohibited canonical patterns -> SPEC_PROHIBITED_CANONICAL_PATTERNS.md
+Reply pipeline                -> SPEC_REPLY_PIPELINE.md
+Cron pipeline                 -> SPEC_CRON_PIPELINE.md
+Search / verification         -> SPEC_SEARCH_AND_VERIFICATION.md
+Scale / cost model            -> SPEC_SCALE_AND_COST_MODEL.md
+Canonicalization audit        -> SPEC_CANONICALIZATION_AUDIT.md
+SQL implementation map        -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
 ---
@@ -64,6 +67,10 @@ SQL implementation map          -> NOTE_SQL_IMPLEMENTATION_MAP.md
 # SQL / NOTE Wiring
 
 ```text
+SPEC_RUNTIME_BEHAVIOR_MODEL.md
+-> NOTE_AGENT_METAPHOR_MAPPING.md
+-> NOTE_QUATERNION_PHILOSOPHY.md
+
 SPEC_REFERENCE_MODEL.md
 -> NOTE_INDEX_ARRAY_CANONICAL.md
 
@@ -107,6 +114,16 @@ SPEC_PROHIBITED_CANONICAL_PATTERNS.md
 `NOTE_*` files may preserve SQL, DDL, implementation sketches, and explanatory detail.
 
 If a NOTE conflicts with a SPEC, the SPEC wins.
+
+---
+
+# Runtime Behavior Resume
+
+Runtime behavior names are not poetic labels.
+
+They are abstract behavior names projected into inspectable database structures.
+
+Detailed authority: `SPEC_RUNTIME_BEHAVIOR_MODEL.md`.
 
 ---
 
