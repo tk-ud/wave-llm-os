@@ -2,7 +2,7 @@
 
 ## Authority
 
-This draft routes the runtime boundary specifications for API-side thinking orchestration, Wave LLM section action, SQL-side response execution, temporary decoded context projections, result envelopes, and database scheduled jobs.
+This draft routes the runtime boundary specifications for API-side thinking orchestration, Wave LLM section flow, SQL-side response execution, temporary decoded context projections, result envelopes, and database scheduled jobs.
 
 This file is a resume and routing map only.
 
@@ -14,8 +14,8 @@ Detailed rules belong to the routed specification files below.
 
 ```text
 API Thinking Engine = API-side orchestration, merge, reinjection, and delivery control
-API Section Loop    = split / think / generate / audit loop using Wave LLM section action and SQL-produced res_context
-Wave LLM            = section-level exploration / shaping actor, not generic NN/local LLM shorthand
+API Section Loop    = split / think / generate / audit loop following Wave LLM core logic
+Wave LLM            = section flow actor
 SQL Response Engine = PostgreSQL function package for committed response computation
 Temporary Context   = tmp_context.json decoded context projection, not reply context authority
 Runtime Envelope    = committed response-engine result summary
@@ -46,8 +46,7 @@ Holds only keys, ordered decode keys, and small envelope metadata in process mem
 ## API Section Loop
 
 ```text
-Defines the split -> think -> generate -> audit loop.
-Wave LLM performs section-level exploration / shaping.
+Defines the split -> think -> generate -> audit loop following Wave LLM core logic.
 SQL produces res_context fragments; API stores tmp entries, sorts keys, reconstructs context, and reinjects.
 ```
 
@@ -96,5 +95,4 @@ tmp_context.json must not become reply context authority or semantic authority.
 DB Scheduled Jobs must not replace operation-gated promotion.
 Runtime envelopes and decoded projections are usable only after SQL commit success.
 API section loop must not move tokenization or splitting out of SQL.
-Wave LLM must not be reinterpreted as generic NN/local LLM shorthand.
 ```
