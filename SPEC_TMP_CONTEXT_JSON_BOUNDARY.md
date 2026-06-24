@@ -75,10 +75,10 @@ tmp_context_key
 tmp_context_version
 tmp_context_hash
 expires_at
-status
+tmp_context_state
 ```
 
-Recommended `status` values:
+Recommended `tmp_context_state` values:
 
 ```text
 active
@@ -88,6 +88,10 @@ completed
 expired
 failed
 ```
+
+`tmp_context_state` is an API runtime label for temporary orchestration only.
+
+It is not canonical semantic lifecycle truth.
 
 ---
 
