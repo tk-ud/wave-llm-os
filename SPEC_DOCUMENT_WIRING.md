@@ -177,49 +177,6 @@ Format:
 
 ---
 
-# SQL Function Package
-
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Package Namespace`, `sql_function_package_namespace`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Entry Function Families`, `sql_entry_function_families`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Dispatcher Rule`, `sql_dispatcher_rule`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Common Contract`, `sql_common_contract`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Transaction Boundary`, `sql_function_transaction_boundary`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Return Rule`, `sql_function_return_rule`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.run`, `response_engine_run`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.reply_step`, `response_engine_reply_step`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.ingest_input`, `response_engine_ingest_input`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.tokenize_and_split`, `response_engine_tokenize_and_split`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.decode_context`, `response_engine_decode_context`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.build_envelope`, `response_engine_build_envelope`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.operation_step`, `response_engine_operation_step`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.scheduler_step`, `response_engine_scheduler_step`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Error and Retry Policy`, `sql_error_retry_policy`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Prohibited Behavior`, `sql_function_prohibited_behavior`
-
----
-
-# Section Fragment Schema Package
-
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Role`, `section_fragment_role`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Fields`, `section_fragment_fields`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Identity Rule`, `section_fragment_identity_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Section Kind Rule`, `section_kind_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# res_key Rule`, `res_key_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# sequence_tag Rule`, `sequence_tag_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Split Ordering Rule`, `split_ordering_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Merge Ordering Rule`, `merge_ordering_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# res_context Rule`, `res_context_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# source_refs Rule`, `source_refs_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# evidence_refs Rule`, `evidence_refs_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# State Rule`, `fragment_state_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Persistence Rule`, `fragment_persistence_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Commit Rule`, `fragment_commit_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Temporary Context Mapping`, `fragment_tmp_context_mapping`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Runtime Envelope Mapping`, `fragment_envelope_mapping`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Prohibited Patterns`, `fragment_prohibited_patterns`
-
----
-
 # SQL Response Engine Package
 
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Ownership`, `sql_response_engine_ownership`
@@ -228,8 +185,6 @@ Format:
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Transaction Boundary`, `sql_transaction_boundary`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Bounded Execution`, `sql_bounded_execution`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Prohibited Behavior`, `sql_prohibited_behavior`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Entry Function Families`, `sql_entry_function_families`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Fields`, `section_fragment_fields`
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Canonical Fields`, `runtime_envelope_fields`
 
@@ -245,7 +200,6 @@ Format:
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# API Memory Rule`, `tmp_context_api_memory_rule`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# SQL Access Rule`, `tmp_context_sql_access_rule`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Expiry Rule`, `tmp_context_expiry_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Temporary Context Mapping`, `fragment_tmp_context_mapping`
 
 ---
 
@@ -257,8 +211,6 @@ Format:
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# next_thinking_action Values`, `envelope_next_thinking_action`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Output Text Rule`, `envelope_output_text_ref`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Branching Rule`, `envelope_branching_rule`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Return Rule`, `sql_function_return_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Runtime Envelope Mapping`, `fragment_envelope_mapping`
 
 ---
 
@@ -271,7 +223,6 @@ Format:
 - `SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`, `# Promotion Boundary`, `db_job_promotion_boundary`
 - `SPEC_CORE_STATE_AND_SCHEDULER.md`, `## scheduler_job`, `scheduler_job_table`
 - `SPEC_CORE_STATE_AND_SCHEDULER.md`, `## scheduler_job_run`, `scheduler_job_run_table`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# response_engine.scheduler_step`, `response_engine_scheduler_step`
 
 ---
 
@@ -320,13 +271,6 @@ Format:
 
 This package is the preferred lookup bundle before defining concrete SQL runtime functions, section fragments, temporary context tables, or runtime envelopes.
 
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Entry Function Families`, `sql_entry_function_families`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Dispatcher Rule`, `sql_dispatcher_rule`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Transaction Boundary`, `sql_function_transaction_boundary`
-- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Error and Retry Policy`, `sql_error_retry_policy`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Fields`, `section_fragment_fields`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Merge Ordering Rule`, `merge_ordering_rule`
-- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Commit Rule`, `fragment_commit_rule`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Function Package Boundary`, `sql_function_package_boundary`
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
 - `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
