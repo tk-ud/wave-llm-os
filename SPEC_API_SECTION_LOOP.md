@@ -13,11 +13,17 @@ SPEC_TMP_CONTEXT_JSON_BOUNDARY.md
 SPEC_REPLY_PIPELINE.md
 ```
 
+This specification refers to `Wave LLM` as the section actor.
+
+It must not be read as a generic neural-network LLM adapter specification.
+
 ---
 
 # Core Principle
 
 The API does not tokenize, split, verify, promote, or decide semantic authority.
+
+Wave LLM performs section-level exploration / shaping from reconstructed decoded context and section instructions.
 
 The SQL Response Engine performs:
 
@@ -70,7 +76,8 @@ Each section follows the same loop shape.
 
 ```text
 API receives source or reconstructed context
--> API calls SQL Response Engine with section_kind and section_instruction
+-> API calls Wave LLM with section_instruction when section-level exploration / shaping is needed
+-> API calls SQL Response Engine with section_kind and resulting context
 -> SQL tokenizes / splits / corpus-decodes
 -> SQL returns res fragments with order and evidence refs
 -> API shapes key / sequence_tag / state / res_context into tmp_context
@@ -80,6 +87,8 @@ API receives source or reconstructed context
 -> API reinjects reconstructed context into the next section
 ```
 
+Wave LLM owns the section-level exploration / shaping act.
+
 SQL owns the split.
 
 API owns the merge.
@@ -87,6 +96,8 @@ API owns the merge.
 ---
 
 # Section Instructions
+
+Section instructions are Wave LLM instructions unless explicitly marked as SQL-only ingestion instructions.
 
 ## split
 
@@ -100,6 +111,8 @@ Purpose:
 ```text
 source context -> ordered decoded context
 ```
+
+The split section may be SQL-only when no Wave LLM exploration is needed.
 
 ## think
 
@@ -253,4 +266,5 @@ API must not decide length-based split policy.
 API must not promote semantic structures.
 API must not treat tmp_context as semantic authority.
 API must not reconstruct context from unordered fragments.
+Do not reinterpret Wave LLM as a generic NN/local LLM adapter.
 ```
