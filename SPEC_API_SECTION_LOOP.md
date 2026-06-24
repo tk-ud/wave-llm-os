@@ -13,13 +13,9 @@ SPEC_TMP_CONTEXT_JSON_BOUNDARY.md
 SPEC_REPLY_PIPELINE.md
 ```
 
-This specification refers to `Wave LLM` as the section actor.
+This specification follows Wave LLM core logic.
 
-It must not be read as a generic neural-network LLM adapter specification.
-
-This specification does not semantically separate split / decode from Wave LLM core behavior.
-
-It defines how split / decode behavior is materialized through SQL functions and temporary projections.
+`Wave LLM` is the section actor.
 
 ---
 
@@ -27,17 +23,15 @@ It defines how split / decode behavior is materialized through SQL functions and
 
 The API does not tokenize, split, verify, promote, or decide semantic authority.
 
-Wave LLM performs section-level exploration / shaping from reconstructed decoded context and section instructions.
+Wave LLM carries the section flow.
 
-Wave LLM core behavior includes split / decode as part of the runtime section flow.
-
-The SQL Response Engine materializes that flow through committed database-backed functions:
+The SQL Response Engine executes database-backed split / decode functions:
 
 ```text
 input ingestion
 tokenization
-length-based split materialization
-corpus / decode projection
+length-based split
+corpus / decode
 res_context generation
 committed evidence reference generation
 ```
@@ -82,8 +76,8 @@ Each section follows the same loop shape.
 
 ```text
 API receives source or reconstructed context
--> API calls Wave LLM with section_instruction when section-level exploration / shaping is needed
--> API calls SQL Response Engine to materialize tokenize / split / corpus-decode projection
+-> Wave LLM section flow
+-> SQL Response Engine executes split / decode functions
 -> SQL returns res fragments with order and evidence refs
 -> API shapes key / sequence_tag / state / res_context into tmp_context
 -> API keeps tmp_context_key and ordered_decode_keys
@@ -92,17 +86,15 @@ API receives source or reconstructed context
 -> API reinjects reconstructed context into the next section
 ```
 
-Wave LLM owns the section-level exploration / shaping act.
+Wave LLM carries the section flow.
 
-SQL owns DB-backed split / decode materialization.
+SQL executes split / decode functions.
 
 API owns the merge.
 
 ---
 
 # Section Instructions
-
-Section instructions are Wave LLM instructions unless explicitly marked as SQL-only ingestion instructions.
 
 ## split
 
@@ -116,10 +108,6 @@ Purpose:
 ```text
 source context -> ordered decoded context
 ```
-
-The split section may be SQL-only when no Wave LLM exploration is needed.
-
-SQL-only split is still a materialization of the Wave LLM / core split-decode flow, not a separate semantic actor.
 
 ## think
 
@@ -273,6 +261,4 @@ API must not decide length-based split policy.
 API must not promote semantic structures.
 API must not treat tmp_context as semantic authority.
 API must not reconstruct context from unordered fragments.
-Do not reinterpret Wave LLM as a generic NN/local LLM adapter.
-Do not treat SQL split / decode materialization as a semantic replacement for Wave LLM core behavior.
 ```
