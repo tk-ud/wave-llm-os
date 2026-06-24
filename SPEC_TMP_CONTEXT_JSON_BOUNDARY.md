@@ -75,10 +75,10 @@ tmp_context_key
 tmp_context_version
 tmp_context_hash
 expires_at
-status
+tmp_context_state
 ```
 
-Recommended `status` values:
+Recommended `tmp_context_state` values:
 
 ```text
 active
@@ -87,18 +87,26 @@ reinjected
 completed
 expired
 failed
-archived
 ```
+
+`tmp_context_state` is an API runtime label for temporary orchestration only.
+
+It is not canonical semantic lifecycle truth.
 
 ---
 
 # Storage Forms
 
-Physical storage may be:
+Default implementation form:
+
+```text
+API server local temporary file: tmp_context.json
+```
+
+Other physical storage forms may exist only as implementation projections:
 
 ```text
 tmp_context table jsonb
-local temporary file
 object storage
 hybrid table + external body
 ```
@@ -106,6 +114,28 @@ hybrid table + external body
 The logical boundary is the same regardless of storage form.
 
 The stored body is decoded context projection and orchestration state, not raw canonical reply context.
+
+---
+
+# Logging Boundary
+
+`tmp_context.json` body must not be written to canonical logs.
+
+Canonical logs preserve reply-core evidence through `logs.coherence` and mutation / decision evidence through `logs.diff`.
+
+Temporary context may preserve only references needed for runtime control while the temporary file exists:
+
+```text
+tmp_context_key
+tmp_context_version
+tmp_context_hash
+ordered_decode_keys
+source_refs
+evidence_refs
+committed envelope references
+```
+
+If decoded context, residual, unstable structure, or unresolved evidence needs long-term preservation, it must be represented through canonical reply-core evidence, logs, or `decoherence_bank`, not by retaining `tmp_context.json`.
 
 ---
 
@@ -134,6 +164,12 @@ The SQL Response Engine receives temporary context keys and resolves only the se
 
 ---
 
-# Expiry Rule
+# Cleanup Rule
 
-Temporary decoded context must expire or be marked complete after final output, timeout, abort, merge completion, reinjection completion, or archival handoff.
+`tmp_context.json` is deleted after each API orchestration run completes, aborts, fails, times out, or reaches final output.
+
+Temporary context is not a long-term trace, archive, retry store, or semantic evidence store.
+
+Thinking-mode input is expected to enter the canonical reply pipeline and cohere into logged reply-core evidence.
+
+Long-lived or reusable unresolved material belongs to canonical evidence structures or `decoherence_bank`, not to temporary context retention.

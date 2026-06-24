@@ -24,7 +24,7 @@ DB Scheduled Jobs   = bounded database jobs callable through SQL functions
 
 The API Thinking Engine and SQL Response Engine are separate runtime roles.
 
-They must not be collapsed into one scheduler.
+They are not one scheduler.
 
 Reply-time source context enters the core through the canonical reply pipeline.
 
@@ -89,10 +89,11 @@ Defines bounded database jobs callable through SQL functions, separate from API 
 # Boundary Invariants
 
 ```text
-API Thinking Engine must not directly mutate semantic authority.
-SQL Response Engine must not emit user-visible output directly.
-tmp_context.json must not become reply context authority or semantic authority.
-DB Scheduled Jobs must not replace operation-gated promotion.
+API Thinking Engine does not directly change semantic authority.
+API Thinking Engine does not use database tables as API-side working memory or authority.
+SQL Response Engine does not emit user-visible output directly.
+tmp_context.json does not become reply context authority or semantic authority.
+DB Scheduled Jobs do not replace operation-gated promotion.
 Runtime envelopes and decoded projections are usable only after SQL commit success.
-API section loop must not move tokenization or splitting out of SQL.
+API section loop does not move tokenization or splitting out of SQL.
 ```

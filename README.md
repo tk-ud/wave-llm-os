@@ -77,7 +77,7 @@ q  = output candidate state
 
 ```text
 implementation view:
-anchor-fixed phase sweep
+anchor-fixed semantic sweep
 
 conversation-scope view:
 quaternion-like output composition
@@ -142,6 +142,8 @@ reply: input -> observation -> candidates -> verification -> decoder -> collapse
 cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 ```
 
+API は SQL function へ指示を出す reception / orchestration / merge / delivery layer であり、API 自身の作業記憶や判断根拠として DB table を直接使ってはいけません。
+
 ## Core Routing Bundle
 
 ```text
@@ -150,14 +152,6 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 
 - spec **`SPEC_CANONICAL_CORE_RESUME.md`**
 - note **`NOTE_SQL_IMPLEMENTATION_MAP.md`**
-
-## Document Wiring Bundle
-
-```text
-資料間の配線表。論点ごとに file、section、search_key を辿るための routing index。
-```
-
-- spec **`SPEC_DOCUMENT_WIRING.md`**
 
 ## Runtime Boundary Bundle
 
@@ -172,13 +166,16 @@ API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB sc
 - spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
 - spec **`SPEC_RUNTIME_RESULT_ENVELOPE.md`**
 - spec **`SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`**
+- spec **`SPEC_BACKGROUND_DRIVER_API_WIRING.md`**
 
 ## SQL Runtime Design Routing Bundle
 
 ```text
-SQL function package、section fragment、tmp_context table、runtime envelope schema を決める前に参照する routing bundle。
+SQL function package、section fragment、tmp_context.json / temporary context、runtime envelope schema を決める前に参照する routing bundle。
 ```
 
+- spec **`SPEC_SQL_FUNCTION_PACKAGE.md`**
+- spec **`SPEC_SECTION_FRAGMENT_SCHEMA.md`**
 - spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
 - spec **`SPEC_API_SECTION_LOOP.md`**
 - spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
