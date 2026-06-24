@@ -6,8 +6,6 @@
 
 コアロジック、DDL、具体 field 型、id 生成方式、transaction / idempotency の最終判断は書きません。
 
-ここに書くのは runtime 上の接続点と参照先だけです。
-
 ```text
 - file名, セクション名, 検索key
 ```
