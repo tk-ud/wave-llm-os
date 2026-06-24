@@ -118,7 +118,7 @@ The SQL Response Engine decides tokenization and split boundaries, including len
 
 Split input must be persisted through the SQL Response Engine into canonical reply-time structures before decoded context projections are exposed to API merge.
 
-The SQL Response Engine may then corpus / decode each split and write decoded context projections to temporary context.
+The SQL Response Engine may then corpus / decode each split and return decoded projection fragments, keys, and refs to the API.
 
 The API Thinking Engine may hold only ordered decode keys for split decoded context projections.
 
@@ -127,7 +127,8 @@ API requests split
 -> SQL Response Engine tokenizes / splits
 -> input_observation / token / vocabulary / grammar stored
 -> SQL-side corpus / decode
--> decoded context projections stored in tmp_context.json
+-> SQL returns decoded projection fragments / refs
+-> API stores decoded projections in local tmp_context.json
 -> ordered_decode_keys returned
 -> API merges decoded projections in original sequence order
 -> merged decoded context may be reinjected
