@@ -176,9 +176,11 @@ API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB sc
 ## SQL Runtime Design Routing Bundle
 
 ```text
-SQL function package、section fragment、tmp_context table、runtime envelope schema を決める前に参照する routing bundle。
+SQL function package、section fragment schema と、それらが参照する tmp_context / runtime envelope 境界を扱う routing bundle。
 ```
 
+- spec **`SPEC_SQL_FUNCTION_PACKAGE.md`**
+- spec **`SPEC_SECTION_FRAGMENT_SCHEMA.md`**
 - spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
 - spec **`SPEC_API_SECTION_LOOP.md`**
 - spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
