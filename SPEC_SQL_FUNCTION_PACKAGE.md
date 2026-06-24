@@ -14,7 +14,7 @@
 
 ---
 
-# runtime entry -> response_engine.run パッケージ
+# response engine entry family routing パッケージ
 
 - `SPEC_RUNTIME_ENGINE_BOUNDARY.md`, `# Boundary Rule`, `runtime_boundary_rule`
 - `SPEC_API_THINKING_ENGINE_BOUNDARY.md`, `# Ownership`, `api_thinking_ownership`
