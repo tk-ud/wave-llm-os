@@ -18,6 +18,45 @@ When this file conflicts with a routed `SPEC_*` file, the routed `SPEC_*` file w
 
 ---
 
+## Intent
+
+README の bundle は repository-level entry point です。
+
+このファイルは README の重複ではなく、SQL Response Engine が返す section fragment の field / concern ごとに、既存SPECの参照先を固定する local package wiring です。
+
+実装Agentが fragment schema を扱うとき、`section_kind`、`res_context`、`source_refs`、`evidence_refs`、`state` はそれぞれ別の authority に接続します。
+
+このファイルの意図は、その field-level routing を一箇所に閉じ、fragment 実装時に tmp_context、runtime envelope、reference model、prohibited pattern を読み落とさないようにすることです。
+
+---
+
+## Use when
+
+- SQL Response Engine の section fragment output を実装・監査する。
+- API temporary context entry へ fragment を写す前に、field ごとの authority を確認する。
+- `source_refs` / `evidence_refs` / `state` が semantic authority を持たないことを確認する。
+- 実装プロンプトで、field ごとの参照SPECを短く渡す。
+
+---
+
+## Do not use for
+
+- repository 全体の入口を探す。README を読む。
+- tmp_context の保存形態そのものを決める。`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md` を読む。
+- runtime envelope の canonical fields を定義する。`SPEC_RUNTIME_RESULT_ENVELOPE.md` を読む。
+- semantic reference model を決める。`SPEC_REFERENCE_MODEL.md` を読む。
+- lifecycle / status policy を決める。`SPEC_PROHIBITED_CANONICAL_PATTERNS.md` と `SPEC_OPERATION_GATE.md` を読む。
+
+---
+
+## Non-duplication rule
+
+新しい package wiring file は、README の bundle より細かい作業単位を固定できる場合だけ作る。
+
+既存SPEC 1本で十分に閉じている topic は、新しい package wiring file に分離しない。
+
+---
+
 # section_kind パッケージ
 
 - `SPEC_API_SECTION_LOOP.md`, `# Section Kinds`, `api_section_kinds`
