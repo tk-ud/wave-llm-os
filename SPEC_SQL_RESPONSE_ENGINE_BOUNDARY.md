@@ -51,6 +51,15 @@ The API Thinking Engine may request split execution, but it must not decide toke
 
 Length-based split rules must be implemented inside SQL functions or SQL-owned policy tables.
 
+Default long-span split policy:
+
+```text
+raw_length > 1000
+-> split_flag = true
+-> split_kind = 'length_gt_1000'
+-> child token rows preserve split_parent_token_index and split_position
+```
+
 SQL split output must preserve order by explicit position fields or ordered index arrays.
 
 ---
