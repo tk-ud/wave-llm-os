@@ -142,6 +142,8 @@ reply: input -> observation -> candidates -> verification -> decoder -> collapse
 cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 ```
 
+API は SQL function へ指示を出す reception / orchestration / merge / delivery layer であり、API 自身の作業記憶や判断根拠として DB table を直接使ってはいけません。
+
 ## Core Routing Bundle
 
 ```text
