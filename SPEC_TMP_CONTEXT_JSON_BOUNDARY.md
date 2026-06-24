@@ -2,21 +2,35 @@
 
 ## Authority
 
-This draft defines temporary context storage for runtime orchestration.
+This draft defines temporary orchestration state storage for runtime control.
 
-Temporary context is represented as `tmp_context.json`.
+Temporary orchestration state may be represented as `tmp_context.json`.
 
-It is transient working context, not semantic authority.
+It is transient orchestration state, not reply context authority and not semantic authority.
+
+Reply-time core processing remains governed by `SPEC_REPLY_PIPELINE.md`.
 
 ---
 
 # Role
 
-`tmp_context.json` stores external working memory for the API Thinking Engine and SQL Response Engine.
+`tmp_context.json` stores external working state for API orchestration.
 
-It may contain routing hints, references, budgets, and step state.
+It may contain routing hints, ordered search keys, references, budgets, step state, and committed envelope references.
 
-It should not contain large canonical payloads when references are sufficient.
+It must not replace canonical reply-time structures such as:
+
+```text
+input_observation
+token
+vocabulary
+grammar
+grammar_relation
+logs.coherence
+logs.diff
+```
+
+Reply context bodies enter the core through the reply pipeline and are persisted as canonical structures before API memory receives ordered keys.
 
 ---
 
@@ -57,6 +71,8 @@ hybrid table + external body
 
 The logical boundary is the same regardless of storage form.
 
+The stored body is orchestration state, not canonical reply context.
+
 ---
 
 # API Memory Rule
@@ -66,21 +82,24 @@ The API Thinking Engine may retain only:
 ```text
 tmp_context_key
 tmp_context_version
+ordered_search_keys
 small envelope metadata
 ```
 
-Expanded temporary context must not be retained across thinking steps.
+Expanded reply context must not be retained across thinking steps.
+
+Expanded reply context must also not be treated as temporary context authority.
 
 ---
 
 # SQL Access Rule
 
-The SQL Response Engine receives the temporary context key and resolves only the sections needed for the current call.
+The SQL Response Engine receives temporary orchestration keys and resolves only the sections needed for the current call.
 
-`tmp_context.json` must not override PostgreSQL semantic authority or evidence authority.
+`tmp_context.json` must not override PostgreSQL semantic authority, reply pipeline state, or evidence authority.
 
 ---
 
 # Expiry Rule
 
-Temporary contexts must expire or be marked complete after final output, timeout, abort, or archival handoff.
+Temporary orchestration state must expire or be marked complete after final output, timeout, abort, or archival handoff.
