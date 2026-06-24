@@ -14,6 +14,7 @@ Detailed rules belong to the routed specification files below.
 
 ```text
 API Thinking Engine = API-side orchestration, merge, reinjection, and delivery control
+API Section Loop    = split / think / generate / audit loop over SQL-produced res_context
 SQL Response Engine = PostgreSQL function package for committed response computation
 Temporary Context   = tmp_context.json decoded context projection, not reply context authority
 Runtime Envelope    = committed response-engine result summary
@@ -40,6 +41,15 @@ Holds only keys, ordered decode keys, and small envelope metadata in process mem
 ```
 
 - spec `SPEC_API_THINKING_ENGINE_BOUNDARY.md`
+
+## API Section Loop
+
+```text
+Defines the split -> think -> generate -> audit loop.
+SQL produces res_context fragments; API stores tmp entries, sorts keys, reconstructs context, and reinjects.
+```
+
+- spec `SPEC_API_SECTION_LOOP.md`
 
 ## SQL Response Engine Boundary
 
@@ -83,4 +93,5 @@ SQL Response Engine must not emit user-visible output directly.
 tmp_context.json must not become reply context authority or semantic authority.
 DB Scheduled Jobs must not replace operation-gated promotion.
 Runtime envelopes and decoded projections are usable only after SQL commit success.
+API section loop must not move tokenization or splitting out of SQL.
 ```
