@@ -8,6 +8,8 @@ Reply API / API Thinking Engine の orchestration、Search / Verification、deco
 
 Background Driver API は kind を受け、対応する正本SPECへ routing し、SQL function / scheduled job boundary に渡すだけです。
 
+Background Driver API は SQL function call の起動係であり、API側の作業記憶や判断根拠を DB table に置きません。
+
 コアロジック、DDL、具体 signature、field 型、score 式、promotion policy、transaction / idempotency の最終判断は書きません。
 
 ```text
