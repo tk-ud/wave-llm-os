@@ -151,6 +151,44 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 - spec **`SPEC_CANONICAL_CORE_RESUME.md`**
 - note **`NOTE_SQL_IMPLEMENTATION_MAP.md`**
 
+## Document Wiring Bundle
+
+```text
+資料間の配線表。論点ごとに file、section、search_key を辿るための routing index。
+```
+
+- spec **`SPEC_DOCUMENT_WIRING.md`**
+
+## Runtime Boundary Bundle
+
+```text
+API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB scheduled job の境界を扱う bundle。
+```
+
+- spec **`SPEC_RUNTIME_ENGINE_BOUNDARY.md`**
+- spec **`SPEC_API_THINKING_ENGINE_BOUNDARY.md`**
+- spec **`SPEC_API_SECTION_LOOP.md`**
+- spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
+- spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
+- spec **`SPEC_RUNTIME_RESULT_ENVELOPE.md`**
+- spec **`SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`**
+
+## SQL Runtime Design Routing Bundle
+
+```text
+SQL function package、section fragment、tmp_context table、runtime envelope schema を決める前に参照する routing bundle。
+```
+
+- spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
+- spec **`SPEC_API_SECTION_LOOP.md`**
+- spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
+- spec **`SPEC_RUNTIME_RESULT_ENVELOPE.md`**
+- spec **`SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`**
+- spec **`SPEC_OPERATION_GATE.md`**
+- spec **`SPEC_REFERENCE_MODEL.md`**
+- spec **`SPEC_LOG_AGGREGATE_ARCHIVE.md`**
+- spec **`SPEC_PROHIBITED_CANONICAL_PATTERNS.md`**
+
 ## Runtime Behavior Bundle
 
 ```text
