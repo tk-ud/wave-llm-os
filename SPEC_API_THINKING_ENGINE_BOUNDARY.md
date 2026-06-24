@@ -64,6 +64,8 @@ The active limit must be recorded in temporary decoded context, orchestration st
 
 These API orchestration steps do not replace the synchronous reply-time core flow.
 
+The `split` step is an orchestration request, not API-owned tokenization or text splitting.
+
 ---
 
 # Reply Core Boundary
@@ -84,22 +86,26 @@ input_observation
 -> evidence logs
 ```
 
-The API Thinking Engine may orchestrate calls, but token, vocabulary, grammar, verification, promotion, residual handling, collapse, and evidence logging are core / SQL Response Engine responsibilities.
+The API Thinking Engine may orchestrate calls, but tokenization, text splitting, vocabulary, grammar, verification, promotion, residual handling, collapse, and evidence logging are core / SQL Response Engine responsibilities.
 
 ---
 
 # Parallel Split and Decode Boundary
 
-When reply work is split, split input must first be persisted through the SQL Response Engine into canonical reply-time structures.
+When reply work is split, the API requests split execution from the SQL Response Engine.
+
+The SQL Response Engine decides tokenization and split boundaries, including length-based split behavior.
+
+Split input must be persisted through the SQL Response Engine into canonical reply-time structures before decoded context projections are exposed to API merge.
 
 The SQL Response Engine may then corpus / decode each split and write decoded context projections to temporary context.
 
 The API Thinking Engine may hold only ordered decode keys for split decoded context projections.
 
 ```text
-input/context split
--> parallel SQL Response Engine calls
--> input_observation / vocabulary / grammar stored
+API requests split
+-> SQL Response Engine tokenizes / splits
+-> input_observation / token / vocabulary / grammar stored
 -> SQL-side corpus / decode
 -> decoded context projections stored in tmp_context.json
 -> ordered_decode_keys returned
@@ -196,4 +202,4 @@ Wave LLM must not replace SQL Response Engine verification, operation gate check
 
 The API Thinking Engine expands reasoning by orchestrating committed SQL Response Engine calls, merging SQL-produced decoded context projections, and reinjecting merged decoded context as orchestration input.
 
-Semantic judgment, retry authority, verification, and mutation authority remain database-backed through the SQL Response Engine and operation gate.
+Semantic judgment, retry authority, tokenization, splitting, verification, and mutation authority remain database-backed through the SQL Response Engine and operation gate.
