@@ -296,6 +296,18 @@ Wave LLMOS は、入力された context を一時的な会話履歴として扱
 
 ---
 
+# Public Canonical Boundary
+
+この公開リポジトリの正本は、Wave LLMOS の runtime behavior、PostgreSQL projection としての読み方、SPEC / NOTE の権威関係、API / SQL / tmp_context / scheduler の境界、operation gate、freeze、prohibited pattern、および公開運用時の注意を示すところまでを範囲とします。
+
+この範囲より先の、具体的な SQL 実装、production DDL、transaction / idempotency の実装、section_run_id / res_key / sequence_tag の生成規則、index / partition / job lease の最適化、auto-conversation / mastication / evaluation pipeline、学習済み DB、実 corpus、aggregate pressure の運用値は、この公開正本の範囲には含めません。
+
+今後この公開リポジトリを更新する場合も、原則として正本関係の整理、矛盾や重複の修正、境界説明の補足、公開運用上の注意に限定します。
+
+実行可能な runtime 実装、継続学習パイプライン、育成済み semantic database は、別相の実装・運用資産として扱います。
+
+---
+
 # Contribution
 
 Issue / PR 発行は大歓迎です！
