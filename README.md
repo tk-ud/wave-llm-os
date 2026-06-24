@@ -276,6 +276,26 @@ promotion、delete、quarantine、freeze、scheduler、remote trust を扱う bu
 
 ---
 
+# Public Deployment Note
+
+Wave LLMOS は、入力された context を一時的な会話履歴として扱うだけではありません。
+
+観測、語彙、文法、連携、残差、圧力として永続化し、後続の意味探索や応答に影響させる runtime です。
+
+そのため、このモデルを公開サービスとして扱う場合は、`freeze mode` または同等の non-mutating boundary で運用することを推奨します。
+
+理由は、ユーザー入力には個人情報、秘密情報、第三者の著作物、他社サービスの出力、その他の継続学習に適さない情報が含まれる可能性があり、通常運用ではそれらがその場で永続構造や aggregate pressure に反映され得るためです。
+
+公開サービスとして継続学習を行わない場合は、UI または利用規約上で明示してください。
+
+```text
+入力内容は応答生成のためにのみ使用され、継続学習には使用されません。
+```
+
+継続学習を行う場合は、利用者への明示、同意、保存範囲、削除方針、source_kind / consent / retention policy の記録、および operation-gated ingest policy を定義してください。
+
+---
+
 # Contribution
 
 Issue / PR 発行は大歓迎です！
