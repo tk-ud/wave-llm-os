@@ -1,159 +1,75 @@
-# Specification: Section Fragment Schema Wiring
+# Specification: Section Fragment Runtime Wiring
 
 ## Authority
 
-このファイルは section fragment schema の配線表です。
+このファイルは section fragment を runtime 時系列に沿って既存資料へ接続する配線表です。
 
-具体DDL、最終field型、id生成方式、transaction / idempotency の最終判断を定義しません。
+コアロジック、DDL、具体 field 型、id 生成方式、transaction / idempotency の最終判断は書きません。
 
-`SPEC_API_SECTION_LOOP.md` の SQL Response Fragment Shape を起点に、各 field / concern がどのSPECに由来するかを固定します。
-
-このファイルの行は次の形式で読みます。
+ここに書くのは runtime 上の接続点と参照先だけです。
 
 ```text
 - file名, セクション名, 検索key
 ```
 
-When this file conflicts with a routed `SPEC_*` file, the routed `SPEC_*` file wins.
-
 ---
 
-## Intent
-
-README の bundle は repository-level entry point です。
-
-このファイルは README の重複ではなく、SQL Response Engine が返す section fragment の field / concern ごとに、既存SPECの参照先を固定する local package wiring です。
-
-実装Agentが fragment schema を扱うとき、`section_kind`、`res_context`、`source_refs`、`evidence_refs`、`state` はそれぞれ別の authority に接続します。
-
-このファイルの意図は、その field-level routing を一箇所に閉じ、fragment 実装時に tmp_context、runtime envelope、reference model、prohibited pattern を読み落とさないようにすることです。
-
----
-
-## Use when
-
-- SQL Response Engine の section fragment output を実装・監査する。
-- API temporary context entry へ fragment を写す前に、field ごとの authority を確認する。
-- `source_refs` / `evidence_refs` / `state` が semantic authority を持たないことを確認する。
-- 実装プロンプトで、field ごとの参照SPECを短く渡す。
-
----
-
-## Do not use for
-
-- repository 全体の入口を探す。README を読む。
-- tmp_context の保存形態そのものを決める。`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md` を読む。
-- runtime envelope の canonical fields を定義する。`SPEC_RUNTIME_RESULT_ENVELOPE.md` を読む。
-- semantic reference model を決める。`SPEC_REFERENCE_MODEL.md` を読む。
-- lifecycle / status policy を決める。`SPEC_PROHIBITED_CANONICAL_PATTERNS.md` と `SPEC_OPERATION_GATE.md` を読む。
-
----
-
-## Non-duplication rule
-
-新しい package wiring file は、README の bundle より細かい作業単位を固定できる場合だけ作る。
-
-既存SPEC 1本で十分に閉じている topic は、新しい package wiring file に分離しない。
-
----
-
-# section_kind パッケージ
-
-- `SPEC_API_SECTION_LOOP.md`, `# Section Kinds`, `api_section_kinds`
-- `SPEC_API_SECTION_LOOP.md`, `# Section Instructions`, `api_section_instructions`
-
----
-
-# section_run_id パッケージ
+# SQL section output -> fragment shape パッケージ
 
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
-- `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Transaction Boundary`, `sql_transaction_boundary`
-- `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Canonical Fields`, `envelope_canonical_fields`
+- `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Ownership`, `sql_response_engine_ownership`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `API section loop -> response_engine.reply_step パッケージ`, `response_engine_reply_step_package`
 
 ---
 
-# res_key パッケージ
-
-- `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
-- `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Identity Fields`, `tmp_context_identity_fields`
-- `SPEC_REFERENCE_MODEL.md`, `# Hashes`, `structural_hashes`
-
----
-
-# sequence_tag パッケージ
+# fragment ordering -> API merge パッケージ
 
 - `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
-- `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
-
----
-
-# split_parent_token_index / split_position パッケージ
-
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Tokenization and Split Ownership`, `sql_tokenization_split_ownership`
 - `NOTE_SQL_TOKENIZATION_IMPLEMENTATION.md`, `# token`, `token_ddl_projection`
-- `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
 
 ---
 
-# res_context パッケージ
+# fragment res_context -> tmp_context パッケージ
 
-- `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
+- `SPEC_API_SECTION_LOOP.md`, `# API Temporary Context Entry Shape`, `api_tmp_context_entry_shape`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Decode Projection Rule`, `tmp_context_decode_projection`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# SQL Access Rule`, `tmp_context_sql_access_rule`
-- `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`, `# Decoder / Constraint Rule`, `prohibited_decoder_trace_loop_guard`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `decode projection -> response_engine.decode_context パッケージ`, `response_engine_decode_context_package`
 
 ---
 
-# source_refs パッケージ
+# fragment refs -> semantic reference / evidence パッケージ
 
 - `SPEC_REFERENCE_MODEL.md`, `# Core Rule`, `reference_core_rule`
 - `SPEC_REFERENCE_MODEL.md`, `# Reference Use by Table Family`, `reference_use_by_table_family`
 - `SPEC_LOG_AGGREGATE_ARCHIVE.md`, `# Semantic Log Targets`, `semantic_log_targets`
-- `SPEC_API_SECTION_LOOP.md`, `# Reinjection Rule`, `api_reinjection_rule`
-
----
-
-# evidence_refs パッケージ
-
-- `SPEC_LOG_AGGREGATE_ARCHIVE.md`, `# Semantic Log Targets`, `semantic_log_targets`
 - `SPEC_LOG_AGGREGATE_ARCHIVE.md`, `# logs.coherence`, `logs_coherence`
 - `SPEC_LOG_AGGREGATE_ARCHIVE.md`, `# logs.diff`, `logs_diff`
-- `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Canonical Fields`, `envelope_canonical_fields`
 
 ---
 
-# state パッケージ
+# tmp_context -> reinjection パッケージ
 
-- `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
-- `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`, `# Status Rule`, `prohibited_status_authority`
-- `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Identity Fields`, `tmp_context_identity_fields`
-
----
-
-# ordering パッケージ
-
-- `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
-- `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Tokenization and Split Ownership`, `sql_tokenization_split_ownership`
-
----
-
-# tmp_context mapping パッケージ
-
-- `SPEC_API_SECTION_LOOP.md`, `# API Temporary Context Entry Shape`, `api_tmp_context_entry_shape`
+- `SPEC_API_SECTION_LOOP.md`, `# Reinjection Rule`, `api_reinjection_rule`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# API Merge and Reinjection Rule`, `tmp_context_merge_reinjection`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# API Memory Rule`, `tmp_context_api_memory_rule`
+- `SPEC_API_THINKING_ENGINE_BOUNDARY.md`, `# Context Reinjection Boundary`, `api_context_reinjection_boundary`
 
 ---
 
-# envelope mapping パッケージ
+# committed fragment/envelope -> API output branching パッケージ
 
+- `SPEC_API_SECTION_LOOP.md`, `# Output Rule`, `api_output_rule`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Commit Rule`, `envelope_commit_rule`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Canonical Fields`, `envelope_canonical_fields`
 - `SPEC_API_THINKING_ENGINE_BOUNDARY.md`, `# Output Branching`, `api_output_branching`
 
 ---
 
-# prohibited patterns パッケージ
+# fragment state/status -> prohibited authority パッケージ
 
-- `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`, `# Short Form`, `prohibited_short_form`
+- `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
+- `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Identity Fields`, `tmp_context_identity_fields`
+- `SPEC_PROHIBITED_CANONICAL_PATTERNS.md`, `# Status Rule`, `prohibited_status_authority`
 - `SPEC_REFERENCE_MODEL.md`, `# Prohibited Patterns`, `reference_prohibited_patterns`
