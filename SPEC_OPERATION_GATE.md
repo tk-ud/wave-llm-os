@@ -47,7 +47,7 @@ A decoherence-bank candidate may cohere again only after verification against cu
 
 ## promote.phase_relation
 
-Allowed only when freeze is false, phase_score and pressure meet policy thresholds, evidence_count is sufficient, scheduled structural verification passes, contradiction_count is within policy, mirror output is reduced, and policy result is allowed.
+Allowed only when freeze is false, phase_score and pressure meet policy thresholds, evidence_count is sufficient, structural verification evidence for the scheduled candidate passes, contradiction_count is within policy, mirror output is reduced, and policy result is allowed.
 
 Default policy:
 
