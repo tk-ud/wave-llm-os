@@ -65,7 +65,7 @@
 
 ---
 
-# fragment state/status -> prohibited authority パッケージ
+# fragment state / tmp_context_state -> prohibited authority パッケージ
 
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
 - `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`, `# Identity Fields`, `tmp_context_identity_fields`
