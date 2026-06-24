@@ -2,7 +2,7 @@
 
 ## Authority
 
-This draft routes the runtime boundary specifications for API-side thinking orchestration, SQL-side response execution, temporary orchestration state, result envelopes, and database scheduled jobs.
+This draft routes the runtime boundary specifications for API-side thinking orchestration, SQL-side response execution, temporary decoded context projections, result envelopes, and database scheduled jobs.
 
 This file is a resume and routing map only.
 
@@ -13,9 +13,9 @@ Detailed rules belong to the routed specification files below.
 # Runtime Role Summary
 
 ```text
-API Thinking Engine = API-side orchestration and continuation control
+API Thinking Engine = API-side orchestration, merge, reinjection, and delivery control
 SQL Response Engine = PostgreSQL function package for committed response computation
-Temporary State     = tmp_context.json orchestration state, not reply context authority
+Temporary Context   = tmp_context.json decoded context projection, not reply context authority
 Runtime Envelope    = committed response-engine result summary
 DB Scheduled Jobs   = bounded database jobs callable through SQL functions
 ```
@@ -24,7 +24,9 @@ The API Thinking Engine and SQL Response Engine are separate runtime roles.
 
 They must not be collapsed into one scheduler.
 
-Reply-time context enters the core through the canonical reply pipeline, not through temporary context authority.
+Reply-time source context enters the core through the canonical reply pipeline.
+
+SQL-produced decoded context projections may be stored temporarily for API-side merge and reinjection.
 
 ---
 
@@ -33,8 +35,8 @@ Reply-time context enters the core through the canonical reply pipeline, not thr
 ## API Thinking Engine Boundary
 
 ```text
-Controls continuation, stop / ask / retry decisions, and output branching.
-Holds only keys, ordered search keys, and small envelope metadata in process memory.
+Controls continuation, stop / ask decisions, decoded-context merge, reinjection, and output branching.
+Holds only keys, ordered decode keys, and small envelope metadata in process memory.
 ```
 
 - spec `SPEC_API_THINKING_ENGINE_BOUNDARY.md`
@@ -42,7 +44,7 @@ Holds only keys, ordered search keys, and small envelope metadata in process mem
 ## SQL Response Engine Boundary
 
 ```text
-Defines the PostgreSQL function package that performs committed search, verification, mutation evidence, and envelope generation.
+Defines the PostgreSQL function package that performs committed search, verification, mutation evidence, corpus / decode work, decoded projection writes, and envelope generation.
 ```
 
 - spec `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`
@@ -50,7 +52,7 @@ Defines the PostgreSQL function package that performs committed search, verifica
 ## Temporary Context JSON Boundary
 
 ```text
-Defines tmp_context.json as temporary orchestration state addressed by key, not reply context authority and not semantic authority.
+Defines tmp_context.json as SQL-produced decoded context projection storage for API merge and reinjection, not reply context authority and not semantic authority.
 ```
 
 - spec `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`
@@ -80,5 +82,5 @@ API Thinking Engine must not directly mutate semantic authority.
 SQL Response Engine must not emit user-visible output directly.
 tmp_context.json must not become reply context authority or semantic authority.
 DB Scheduled Jobs must not replace operation-gated promotion.
-Runtime envelopes are usable only after SQL commit success.
+Runtime envelopes and decoded projections are usable only after SQL commit success.
 ```
