@@ -169,6 +169,9 @@ Format:
 - `SPEC_API_SECTION_LOOP.md`, `# Generic Section Loop`, `api_generic_section_loop`
 - `SPEC_API_SECTION_LOOP.md`, `# Section Instructions`, `api_section_instructions`
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Shape`, `section_fragment_shape`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Ordering Rule`, `section_fragment_ordering_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Commit Success Condition`, `section_fragment_commit_success`
 - `SPEC_API_SECTION_LOOP.md`, `# API Temporary Context Entry Shape`, `api_tmp_context_entry_shape`
 - `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
 - `SPEC_API_SECTION_LOOP.md`, `# Reinjection Rule`, `api_reinjection_rule`
@@ -185,6 +188,16 @@ Format:
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Transaction Boundary`, `sql_transaction_boundary`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Bounded Execution`, `sql_bounded_execution`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Prohibited Behavior`, `sql_prohibited_behavior`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Public Entry Strategy`, `sql_function_public_entry_strategy`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Function Signatures`, `sql_function_signatures`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Transaction Boundary`, `sql_function_transaction_boundary`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Idempotency Rule`, `sql_function_idempotency_rule`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Error / Retry Policy`, `sql_function_error_retry_policy`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Internal Dispatch Rule`, `sql_function_internal_dispatch_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Shape`, `section_fragment_shape`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Field Rules`, `section_fragment_field_rules`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Persistence Rule`, `section_fragment_persistence_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Commit Success Condition`, `section_fragment_commit_success`
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
 - `SPEC_RUNTIME_RESULT_ENVELOPE.md`, `# Canonical Fields`, `runtime_envelope_fields`
 
@@ -269,8 +282,20 @@ Format:
 
 # SQL Runtime Design Package
 
-This package is the preferred lookup bundle before defining concrete SQL runtime functions, section fragments, temporary context tables, or runtime envelopes.
+This package is the preferred lookup bundle for defining or reviewing concrete SQL runtime functions, section fragments, temporary context tables, or runtime envelopes.
 
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Public Entry Strategy`, `sql_function_public_entry_strategy`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Route Kinds`, `sql_function_route_kinds`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Function Signatures`, `sql_function_signatures`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Transaction Boundary`, `sql_function_transaction_boundary`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Idempotency Rule`, `sql_function_idempotency_rule`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Error / Retry Policy`, `sql_function_error_retry_policy`
+- `SPEC_SQL_FUNCTION_PACKAGE.md`, `# Internal Dispatch Rule`, `sql_function_internal_dispatch_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Canonical Fragment Shape`, `section_fragment_shape`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Field Rules`, `section_fragment_field_rules`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Ordering Rule`, `section_fragment_ordering_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Persistence Rule`, `section_fragment_persistence_rule`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`, `# Commit Success Condition`, `section_fragment_commit_success`
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Function Package Boundary`, `sql_function_package_boundary`
 - `SPEC_API_SECTION_LOOP.md`, `# SQL Response Fragment Shape`, `sql_response_fragment_shape`
 - `SPEC_API_SECTION_LOOP.md`, `# Ordering Rule`, `api_ordering_rule`
