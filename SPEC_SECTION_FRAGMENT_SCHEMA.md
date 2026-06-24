@@ -179,13 +179,29 @@ Canonical type:
 integer
 ```
 
-It is zero-based or one-based according to implementation policy, but the policy must be consistent inside one committed fragment set.
+Canonical base:
+
+```text
+1-based
+```
+
+The first split fragment has:
+
+```text
+split_position = 1
+```
 
 It may be null for non-split fragments.
 
 When both `sequence_tag` and `split_position` are present, `sequence_tag` is the primary ordering key and `split_position` is a tie-breaker / split provenance field.
 
 For split fragments, SQL should derive `sequence_tag` from the same ordered split source as `split_position`.
+
+Recommended split sequence tag form:
+
+```text
+split:<split_position zero-padded to 6 or more digits>
+```
 
 A committed fragment set where `sequence_tag` and `split_position` imply contradictory order is invalid.
 
