@@ -43,6 +43,24 @@ Retry judgment belongs to SQL-side idempotency and response-engine results, not 
 
 ---
 
+# DB Instruction Boundary
+
+The API Thinking Engine may instruct the database only through SQL Response Engine functions.
+
+The API Thinking Engine must not use database tables as API-side working memory, orchestration state, semantic authority, or decision authority.
+
+```text
+API -> SQL Response Engine function call -> committed envelope / fragments / refs -> API orchestration
+```
+
+The API may keep local temporary runtime files such as `tmp_context.json` for merge and reinjection control.
+
+Those temporary files are API-side orchestration artifacts, not database authority, not canonical logs, and not long-term storage.
+
+Direct database table reads or writes from API orchestration would collapse the API / DB responsibility boundary.
+
+---
+
 # Default Serial Step Pipeline
 
 The default serial thinking pipeline has four API orchestration steps:
@@ -205,3 +223,5 @@ Wave LLM must not replace SQL Response Engine verification, operation gate check
 The API Thinking Engine expands reasoning by orchestrating committed SQL Response Engine calls, merging SQL-produced decoded context projections, and reinjecting merged decoded context as orchestration input.
 
 Semantic judgment, retry authority, tokenization, splitting, verification, and mutation authority remain database-backed through the SQL Response Engine and operation gate.
+
+API orchestration may instruct database-backed computation, but it must not directly use database tables as API-side working memory or authority.
