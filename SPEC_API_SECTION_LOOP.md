@@ -17,6 +17,10 @@ This specification refers to `Wave LLM` as the section actor.
 
 It must not be read as a generic neural-network LLM adapter specification.
 
+This specification does not semantically separate split / decode from Wave LLM core behavior.
+
+It defines how split / decode behavior is materialized through SQL functions and temporary projections.
+
 ---
 
 # Core Principle
@@ -25,13 +29,15 @@ The API does not tokenize, split, verify, promote, or decide semantic authority.
 
 Wave LLM performs section-level exploration / shaping from reconstructed decoded context and section instructions.
 
-The SQL Response Engine performs:
+Wave LLM core behavior includes split / decode as part of the runtime section flow.
+
+The SQL Response Engine materializes that flow through committed database-backed functions:
 
 ```text
 input ingestion
 tokenization
-length-based splitting
-corpus / decode
+length-based split materialization
+corpus / decode projection
 res_context generation
 committed evidence reference generation
 ```
@@ -77,8 +83,7 @@ Each section follows the same loop shape.
 ```text
 API receives source or reconstructed context
 -> API calls Wave LLM with section_instruction when section-level exploration / shaping is needed
--> API calls SQL Response Engine with section_kind and resulting context
--> SQL tokenizes / splits / corpus-decodes
+-> API calls SQL Response Engine to materialize tokenize / split / corpus-decode projection
 -> SQL returns res fragments with order and evidence refs
 -> API shapes key / sequence_tag / state / res_context into tmp_context
 -> API keeps tmp_context_key and ordered_decode_keys
@@ -89,7 +94,7 @@ API receives source or reconstructed context
 
 Wave LLM owns the section-level exploration / shaping act.
 
-SQL owns the split.
+SQL owns DB-backed split / decode materialization.
 
 API owns the merge.
 
@@ -113,6 +118,8 @@ source context -> ordered decoded context
 ```
 
 The split section may be SQL-only when no Wave LLM exploration is needed.
+
+SQL-only split is still a materialization of the Wave LLM / core split-decode flow, not a separate semantic actor.
 
 ## think
 
@@ -176,7 +183,7 @@ evidence_refs
 state
 ```
 
-`res_context` is SQL-produced decoded context.
+`res_context` is SQL-produced decoded context projection.
 
 It is not raw source context and not semantic authority.
 
@@ -267,4 +274,5 @@ API must not promote semantic structures.
 API must not treat tmp_context as semantic authority.
 API must not reconstruct context from unordered fragments.
 Do not reinterpret Wave LLM as a generic NN/local LLM adapter.
+Do not treat SQL split / decode materialization as a semantic replacement for Wave LLM core behavior.
 ```
