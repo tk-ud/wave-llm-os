@@ -159,18 +159,6 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 
 - spec **`SPEC_DOCUMENT_WIRING.md`**
 
-## SQL Runtime Design Bundle
-
-```text
-SQL Response Engine の関数packageと section fragment 返却schemaを、既存runtime boundaryへ配線する bundle。
-```
-
-- spec **`SPEC_SQL_FUNCTION_PACKAGE.md`**
-- spec **`SPEC_SECTION_FRAGMENT_SCHEMA.md`**
-- spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
-- spec **`SPEC_API_SECTION_LOOP.md`**
-- spec **`SPEC_RUNTIME_RESULT_ENVELOPE.md`**
-
 ## Runtime Behavior Bundle
 
 ```text
