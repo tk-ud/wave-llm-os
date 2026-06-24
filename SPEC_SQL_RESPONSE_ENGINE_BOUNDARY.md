@@ -17,6 +17,9 @@ It does not own API-side thinking orchestration or user-visible streaming contro
 The SQL Response Engine may perform:
 
 ```text
+input ingestion
+tokenization
+length-based splitting
 semantic search
 structural verification
 input / relation diff checks
@@ -40,6 +43,18 @@ They do not create semantic authority.
 
 ---
 
+# Tokenization and Split Ownership
+
+The SQL Response Engine owns tokenization and text splitting.
+
+The API Thinking Engine may request split execution, but it must not decide token boundaries, vocabulary boundaries, grammar boundaries, or length-based split policy.
+
+Length-based split rules must be implemented inside SQL functions or SQL-owned policy tables.
+
+SQL split output must preserve order by explicit position fields or ordered index arrays.
+
+---
+
 # Function Package Boundary
 
 The SQL Response Engine must expose explicit entry functions.
@@ -49,13 +64,15 @@ Recommended entry families:
 ```text
 response_engine.run
 response_engine.reply_step
+response_engine.ingest_input
+response_engine.tokenize_and_split
 response_engine.scheduler_step
 response_engine.operation_step
 response_engine.decode_context
 response_engine.build_envelope
 ```
 
-Internal function dispatch may branch by route kind, job kind, and operation key.
+Internal function dispatch may branch by route kind, job kind, operation key, and split policy.
 
 Dispatch must remain inside the SQL Response Engine boundary.
 
