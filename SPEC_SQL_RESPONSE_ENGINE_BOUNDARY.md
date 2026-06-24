@@ -27,8 +27,16 @@ aggregate.current refreshes
 phase candidate generation
 sleep consolidation
 archive rolloff
+corpus / decode work
+decoded context projection writes
 runtime result envelope generation
 ```
+
+Decoded context projection writes are temporary response projections.
+
+They must preserve references to committed reply-core structures and evidence.
+
+They do not create semantic authority.
 
 ---
 
@@ -43,6 +51,7 @@ response_engine.run
 response_engine.reply_step
 response_engine.scheduler_step
 response_engine.operation_step
+response_engine.decode_context
 response_engine.build_envelope
 ```
 
@@ -59,6 +68,8 @@ The SQL Response Engine returns a runtime result envelope.
 The envelope is provisional until the surrounding SQL transaction commits.
 
 A failed transaction invalidates the envelope.
+
+Decoded context projections are usable for API merge only after commit success.
 
 ---
 
@@ -85,4 +96,5 @@ SQL Response Engine must not emit user-visible output directly.
 SQL Response Engine must not perform external HTTP/API side effects.
 SQL Response Engine must not replace API Thinking Engine continuation decisions.
 SQL Response Engine must not promote without operation gate authority.
+Decoded context projections must not replace semantic authority.
 ```
