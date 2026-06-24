@@ -77,7 +77,7 @@ q  = output candidate state
 
 ```text
 implementation view:
-anchor-fixed phase sweep
+anchor-fixed semantic sweep
 
 conversation-scope view:
 quaternion-like output composition
@@ -171,7 +171,7 @@ API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB sc
 ## SQL Runtime Design Routing Bundle
 
 ```text
-SQL function package、section fragment、tmp_context table、runtime envelope schema を決める前に参照する routing bundle。
+SQL function package、section fragment、tmp_context.json / temporary context、runtime envelope schema を決める前に参照する routing bundle。
 ```
 
 - spec **`SPEC_SQL_FUNCTION_PACKAGE.md`**
