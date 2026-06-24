@@ -164,6 +164,7 @@ API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB sc
 - spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
 - spec **`SPEC_RUNTIME_RESULT_ENVELOPE.md`**
 - spec **`SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`**
+- spec **`SPEC_BACKGROUND_DRIVER_API_WIRING.md`**
 
 ## SQL Runtime Design Routing Bundle
 
