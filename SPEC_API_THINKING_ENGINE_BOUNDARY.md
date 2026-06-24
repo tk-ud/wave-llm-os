@@ -8,6 +8,8 @@ The API Thinking Engine is the API-side orchestration layer.
 
 It controls continuation, stop, ask, defer, delivery, decoded-context merge, reinjection, and output branching decisions from committed envelopes.
 
+Detailed split / think / generate / audit loop rules live in `SPEC_API_SECTION_LOOP.md`.
+
 It does not own semantic mutation authority.
 
 The API is a reception, merge, reinjection, and delivery layer.
