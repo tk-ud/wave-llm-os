@@ -151,14 +151,6 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 - spec **`SPEC_CANONICAL_CORE_RESUME.md`**
 - note **`NOTE_SQL_IMPLEMENTATION_MAP.md`**
 
-## Document Wiring Bundle
-
-```text
-資料間の配線表。論点ごとに file、section、search_key を辿るための routing index。
-```
-
-- spec **`SPEC_DOCUMENT_WIRING.md`**
-
 ## Runtime Boundary Bundle
 
 ```text
@@ -179,6 +171,8 @@ API orchestration、SQL Response Engine、tmp_context、runtime envelope、DB sc
 SQL function package、section fragment、tmp_context table、runtime envelope schema を決める前に参照する routing bundle。
 ```
 
+- spec **`SPEC_SQL_FUNCTION_PACKAGE.md`**
+- spec **`SPEC_SECTION_FRAGMENT_SCHEMA.md`**
 - spec **`SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`**
 - spec **`SPEC_API_SECTION_LOOP.md`**
 - spec **`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`**
