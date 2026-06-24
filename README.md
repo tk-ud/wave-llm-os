@@ -151,6 +151,14 @@ cron : logs + semantic tables -> aggregate.current -> Phase -> Sleep -> archive
 - spec **`SPEC_CANONICAL_CORE_RESUME.md`**
 - note **`NOTE_SQL_IMPLEMENTATION_MAP.md`**
 
+## Document Wiring Bundle
+
+```text
+資料間の配線表。論点ごとに file、section、search_key を辿るための routing index。
+```
+
+- spec **`SPEC_DOCUMENT_WIRING.md`**
+
 ## Runtime Behavior Bundle
 
 ```text
