@@ -18,6 +18,44 @@ When this file conflicts with a routed `SPEC_*` file, the routed `SPEC_*` file w
 
 ---
 
+## Intent
+
+README の bundle は repository-level entry point です。
+
+このファイルは README の重複ではなく、SQL Response Engine の function family ごとに「どの既存SPECを読めばよいか」を固定する local package wiring です。
+
+実装Agentが `response_engine.*` の関数単位で作業するとき、README の広い bundle だけでは、reply section、ingest、split、decode、envelope、operation、scheduler の参照先が同じ粒度に見えます。
+
+このファイルの意図は、その迷いを function package 単位で潰すことです。
+
+---
+
+## Use when
+
+- SQL Response Engine の public function family を実装・監査する。
+- API orchestration から呼ばれる SQL function family の責務境界を確認する。
+- 実装プロンプトで、関数ごとの参照SPECを短く渡す。
+
+---
+
+## Do not use for
+
+- repository 全体の入口を探す。README を読む。
+- runtime envelope の field 定義そのものを確認する。`SPEC_RUNTIME_RESULT_ENVELOPE.md` を読む。
+- tmp_context の storage / merge rule そのものを確認する。`SPEC_TMP_CONTEXT_JSON_BOUNDARY.md` を読む。
+- operation policy を決める。`SPEC_OPERATION_GATE.md` を読む。
+- scheduler job semantics を決める。`SPEC_DB_SCHEDULED_JOB_BOUNDARY.md` と `SPEC_CRON_PIPELINE.md` を読む。
+
+---
+
+## Non-duplication rule
+
+新しい package wiring file は、README の bundle より細かい作業単位を固定できる場合だけ作る。
+
+既存SPEC 1本で十分に閉じている topic は、新しい package wiring file に分離しない。
+
+---
+
 # response_engine.run パッケージ
 
 - `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`, `# Function Package Boundary`, `sql_function_package_boundary`
