@@ -31,11 +31,11 @@ phase candidate generation
 sleep consolidation
 archive rolloff
 corpus / decode work
-decoded context projection writes
+decoded context projection generation / returns
 runtime result envelope generation
 ```
 
-Decoded context projection writes are temporary response projections.
+Decoded context projections returned to the API are temporary response projections.
 
 They must preserve references to committed reply-core structures and evidence.
 
