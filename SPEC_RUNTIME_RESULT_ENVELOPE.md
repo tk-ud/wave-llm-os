@@ -1,8 +1,8 @@
-# Specification Draft: Runtime Result Envelope
+# Specification: Runtime Result Envelope
 
 ## Authority
 
-This draft defines the runtime result envelope returned by the SQL Response Engine to the API Thinking Engine.
+This file defines the runtime result envelope returned by the SQL Response Engine to the API Thinking Engine.
 
 The envelope is a small committed result summary.
 
