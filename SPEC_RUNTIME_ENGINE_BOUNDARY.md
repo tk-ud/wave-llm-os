@@ -1,8 +1,8 @@
-# Specification Draft: Runtime Engine Boundary Resume
+# Specification: Runtime Engine Boundary Resume
 
 ## Authority
 
-This draft routes the runtime boundary specifications for API-side thinking orchestration, Wave LLM section flow, SQL-side response execution, temporary decoded context projections, result envelopes, and database scheduled jobs.
+This file routes the runtime boundary specifications for API-side thinking orchestration, Wave LLM section flow, SQL-side response execution, temporary decoded context projections, result envelopes, and database scheduled jobs.
 
 This file is a resume and routing map only.
 
