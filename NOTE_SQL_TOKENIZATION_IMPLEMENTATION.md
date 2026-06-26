@@ -36,6 +36,10 @@ phase_relation_candidate
 
 Runtime, log, aggregate, scheduler, and remote-event table details belong to their routed SPEC files before being expanded here.
 
+`structural_vector_index` is intentionally omitted from the DDL sketches below.
+
+It is an optional retrieval accelerator defined by `SPEC_SEMANTIC_TABLES.md`, not semantic authority and not required for the core SQL projection in this note.
+
 ---
 
 # input_observation
