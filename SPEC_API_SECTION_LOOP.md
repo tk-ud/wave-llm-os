@@ -1,8 +1,8 @@
-# Specification Draft: API Section Loop
+# Specification: API Section Loop
 
 ## Authority
 
-This draft defines the API-side section loop for split, think, generate, and audit orchestration.
+This file defines the API-side section loop for split, think, generate, and audit orchestration.
 
 It is routed by `SPEC_RUNTIME_ENGINE_BOUNDARY.md` and depends on:
 
