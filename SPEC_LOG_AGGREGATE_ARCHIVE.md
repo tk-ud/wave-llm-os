@@ -154,16 +154,29 @@ It must be reproducible from `logs.coherence`, `logs.diff`, and canonical semant
 
 The unique current-surface constraint belongs to `aggregate.current`, not `logs.current`.
 
+Canonical target identity rule:
+
+```text
+single semantic target  -> target_identity_kind = 'index', target_index is set
+compound semantic path  -> target_identity_kind = 'path',  target_path is set
+```
+
+`aggregate.current` must distinguish single-row targets from compound semantic paths.
+
+Implementations may use a stable `target_identity_key` projection, such as an encoded index or stable target-path hash, to enforce uniqueness without treating hashes as semantic authority.
+
 Canonical identity fields:
 
 ```text
 current_uuid
 target_table
+target_identity_kind
+target_identity_key
 target_index
 target_path
 aggregate_window
 refreshed_at
-unique(target_table, target_index, aggregate_window)
+unique(target_table, target_identity_kind, target_identity_key, aggregate_window)
 ```
 
 Canonical aggregate fields:
@@ -199,7 +212,7 @@ It is the time-series history of aggregate values.
 
 It must not be treated as the single current row for a target/window.
 
-It has no canonical uniqueness constraint on `(target_table, target_index, aggregate_window)` because multiple snapshots may exist for the same target/window.
+It has no canonical uniqueness constraint on `(target_table, target_identity_kind, target_identity_key, aggregate_window)` because multiple snapshots may exist for the same target/window.
 
 Canonical identity fields:
 
@@ -207,6 +220,8 @@ Canonical identity fields:
 current_log_uuid
 current_log_index
 target_table
+target_identity_kind
+target_identity_key
 target_index
 target_path
 aggregate_window
@@ -315,3 +330,5 @@ Hot-path intelligence must not depend on unbounded log growth.
 If an implementation already has a unique `logs.current` table with one row per `(target_table, target_index, aggregate_window)`, that table represents `aggregate.current` under the corrected interpretation.
 
 If an implementation has append-only or periodically retained aggregate snapshots, those rows represent `logs.current`.
+
+If an implementation already has aggregate rows keyed only by `(target_table, target_index, aggregate_window)`, single-target rows remain valid but compound target-path rows must be migrated to the canonical target identity rule before being used as `aggregate.current`.
