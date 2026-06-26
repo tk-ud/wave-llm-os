@@ -6,10 +6,14 @@ Canonical scheduler job kinds:
 
 ```text
 current_refresh
-sleep_consolidation
 phase_candidate_generation
+sleep_consolidation
 archive_rolloff
 ```
+
+The scheduler job kind list is a namespace list.
+
+Canonical execution order is defined by the canonical flow below.
 
 Operation keys and scheduler job kinds are separate namespaces.
 
