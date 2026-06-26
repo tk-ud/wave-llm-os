@@ -51,7 +51,17 @@ Remote events are normal input observations after inbox or quarantine acceptance
 
 Even trusted nodes cannot mutate semantic tables directly.
 
-Remote trust changes are mutations and must pass the operation gate.
+Remote trust changes are routed core-policy mutations.
+
+They must pass the operation gate using:
+
+```text
+trust.remote_node_update
+```
+
+The operation may update remote node trust metadata, enabled state, public key, or trust level according to policy.
+
+It does not grant direct semantic mutation authority.
 
 Remote quarantine is represented by operation key:
 

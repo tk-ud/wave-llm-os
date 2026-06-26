@@ -1,8 +1,8 @@
-# Specification Draft: DB Scheduled Job Boundary
+# Specification: DB Scheduled Job Boundary
 
 ## Authority
 
-This draft defines the boundary for database scheduled jobs callable through SQL functions.
+This file defines the boundary for database scheduled jobs callable through SQL functions.
 
 DB Scheduled Jobs are not the API Thinking Engine.
 

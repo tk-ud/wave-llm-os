@@ -2,7 +2,7 @@
 
 This file is the canonical authority for mutation-capable operation gating.
 
-All semantic mutation must call:
+All operation-capable semantic mutation and routed core-policy mutation must call:
 
 ```text
 core_can_execute(operation_key)
@@ -11,6 +11,8 @@ core_can_execute(operation_key)
 Freeze blocks semantic mutation.
 
 Freeze allows read-only lookup, decoder projection, invariant check, and output collapse.
+
+Remote trust updates are core-policy mutations, not semantic promotion or deletion.
 
 Canonical operation keys:
 
@@ -23,6 +25,7 @@ delete.semantic_structure
 delete.decoherence_entry
 reject.candidate
 quarantine.remote_event
+trust.remote_node_update
 ```
 
 No `adopt.*` operation key is canonical.
@@ -75,3 +78,29 @@ Effect: target deleted_flag becomes true. Ordinary search ignores deleted struct
 Allowed only for explicit manual or operator delete when freeze is false and policy result is allowed.
 
 Effect: decoherence_bank deleted_flag becomes true.
+
+## reject.candidate
+
+Allowed only when policy result is allowed and the target is a draft candidate, phase_relation_candidate, residual candidate, or unresolved generated candidate.
+
+Effect: target rejected_flag becomes true when the target table defines one, or rejection evidence is recorded in logs.diff.
+
+Rejection is not deletion.
+
+## quarantine.remote_event
+
+Allowed when a remote event fails trust, signature, policy, or structural intake checks, or when an operator explicitly quarantines an unresolved remote event.
+
+Effect: remote_event_quarantine receives or retains the event and logs.diff records quarantine evidence.
+
+Quarantine is not deletion.
+
+## trust.remote_node_update
+
+Allowed only when policy result is allowed and the target_table is `remote_node_trust`.
+
+Effect: remote node trust metadata, enabled state, public key, or trust level may be updated.
+
+This operation does not mutate semantic tables and does not allow trusted nodes to mutate semantic tables directly.
+
+Remote events accepted after this operation still enter the system only through the remote intake and `input_observation(source_kind='remote_event')` path.

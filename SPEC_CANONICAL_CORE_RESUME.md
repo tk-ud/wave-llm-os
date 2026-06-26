@@ -56,6 +56,18 @@ Reply pipeline                -> SPEC_REPLY_PIPELINE.md
 Cron pipeline                 -> SPEC_CRON_PIPELINE.md
 Search / verification         -> SPEC_SEARCH_AND_VERIFICATION.md
 Scale / cost model            -> SPEC_SCALE_AND_COST_MODEL.md
+
+Runtime engine boundary       -> SPEC_RUNTIME_ENGINE_BOUNDARY.md
+API thinking engine boundary  -> SPEC_API_THINKING_ENGINE_BOUNDARY.md
+API section loop              -> SPEC_API_SECTION_LOOP.md
+SQL response engine boundary  -> SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md
+SQL function package          -> SPEC_SQL_FUNCTION_PACKAGE.md
+Section fragment schema       -> SPEC_SECTION_FRAGMENT_SCHEMA.md
+Temporary context JSON        -> SPEC_TMP_CONTEXT_JSON_BOUNDARY.md
+Runtime result envelope       -> SPEC_RUNTIME_RESULT_ENVELOPE.md
+DB scheduled job boundary     -> SPEC_DB_SCHEDULED_JOB_BOUNDARY.md
+Background driver API wiring  -> SPEC_BACKGROUND_DRIVER_API_WIRING.md
+
 NOTE role map                 -> NOTE_SQL_IMPLEMENTATION_MAP.md
 ```
 
@@ -102,6 +114,52 @@ current_refresh
 ```
 
 Detailed authority: `SPEC_CRON_PIPELINE.md`.
+
+---
+
+# Runtime Boundary Resume
+
+```text
+API Thinking Engine = reception / orchestration / merge / reinjection / delivery
+SQL Response Engine = committed PostgreSQL-backed response computation
+tmp_context.json    = temporary decoded context projection for API merge
+runtime envelope    = small committed result summary for API branching
+DB scheduled jobs   = bounded SQL-callable maintenance jobs
+```
+
+API orchestration may instruct the SQL Response Engine, but it must not directly use database tables as API-side working memory, semantic authority, or decision authority.
+
+SQL-produced decoded context projections and runtime envelopes are usable for API merge or output branching only after SQL commit success.
+
+Detailed authority:
+- `SPEC_RUNTIME_ENGINE_BOUNDARY.md`
+- `SPEC_API_THINKING_ENGINE_BOUNDARY.md`
+- `SPEC_API_SECTION_LOOP.md`
+- `SPEC_SQL_RESPONSE_ENGINE_BOUNDARY.md`
+- `SPEC_TMP_CONTEXT_JSON_BOUNDARY.md`
+- `SPEC_RUNTIME_RESULT_ENVELOPE.md`
+- `SPEC_DB_SCHEDULED_JOB_BOUNDARY.md`
+
+---
+
+# SQL Runtime Design Resume
+
+```text
+response_engine.* functions -> SQL Response Engine boundary
+section fragments           -> SQL-produced decoded context projection shape
+tmp_context entries         -> API-side temporary merge storage
+runtime envelope            -> committed SQL result summary
+background driver API       -> thin SQL scheduled-job caller
+```
+
+SQL function package and section fragment files are routing specifications.
+
+They do not define production DDL, final signatures, transaction implementation, idempotency implementation, or generated identifier algorithms.
+
+Detailed authority:
+- `SPEC_SQL_FUNCTION_PACKAGE.md`
+- `SPEC_SECTION_FRAGMENT_SCHEMA.md`
+- `SPEC_BACKGROUND_DRIVER_API_WIRING.md`
 
 ---
 

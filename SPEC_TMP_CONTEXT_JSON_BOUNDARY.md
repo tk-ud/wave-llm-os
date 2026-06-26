@@ -1,8 +1,8 @@
-# Specification Draft: Temporary Context JSON Boundary
+# Specification: Temporary Context JSON Boundary
 
 ## Authority
 
-This draft defines temporary decoded context storage for runtime control.
+This file defines temporary decoded context storage for runtime control.
 
 Temporary decoded context may be represented as `tmp_context.json`.
 
