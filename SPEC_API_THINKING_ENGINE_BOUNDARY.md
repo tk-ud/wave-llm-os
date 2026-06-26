@@ -1,8 +1,8 @@
-# Specification Draft: API Thinking Engine Boundary
+# Specification: API Thinking Engine Boundary
 
 ## Authority
 
-This draft defines the API Thinking Engine boundary.
+This file defines the API Thinking Engine boundary.
 
 The API Thinking Engine is the API-side orchestration layer.
 
