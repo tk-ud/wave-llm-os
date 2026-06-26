@@ -154,6 +154,18 @@ target_path
 
 `target_path` is used when the target is a structural path or compound semantic reference.
 
+## Aggregate Identity Projection
+
+`aggregate.current` and `logs.current` may use `target_identity_key` to enforce current-surface uniqueness across both single semantic targets and compound semantic paths.
+
+`target_identity_key` is an implementation identity projection only.
+
+It is not a semantic reference key.
+
+Canonical semantic references remain `target_index` or `target_path`.
+
+If `target_identity_key` is implemented as an encoded index or stable target-path hash, the hash rule still applies: the hash may support equality or uniqueness, but it must not replace the generated index or bigint[] path as semantic reference authority.
+
 ## Archive Registry
 
 Archive metadata may store row-index ranges, timestamps, hashes, and storage manifests.
