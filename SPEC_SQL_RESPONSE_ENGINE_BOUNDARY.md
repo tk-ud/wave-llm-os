@@ -1,8 +1,8 @@
-# Specification Draft: SQL Response Engine Boundary
+# Specification: SQL Response Engine Boundary
 
 ## Authority
 
-This draft defines the SQL Response Engine boundary.
+This file defines the SQL Response Engine boundary.
 
 The SQL Response Engine is a PostgreSQL function package.
 
